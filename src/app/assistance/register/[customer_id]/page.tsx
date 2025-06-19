@@ -50,7 +50,7 @@ export default async function AssintanceRegisterPage({
           </TabsList>
           <TabsContent className="mt-10 flex flex-col" value="assistance">
             <Suspense>
-              <CustomerAssistance customerId={customer_id} />
+              <CustomerAssistance customer={customer} />
             </Suspense>
           </TabsContent>
           <TabsContent className="mt-10" value="data">

@@ -1,7 +1,8 @@
 
-import { SEARCH_CUSTOMER } from "@/customer/consts";
-import { Customer } from "@/customer/types";
+import { SEARCH_CUSTOMER, SEARCH_CUSTOMER_WITH_ASSISTANCE } from "@/customer/consts";
+import { Customer, CustomerWithAssistance } from "@/customer/types";
 import { createClient } from "@/lib/supabase/server";
+import { getWeekRange } from "@/lib/week";
 
 export const searchAllCustomers = async () => {
   const supabase = await createClient();
@@ -24,16 +25,19 @@ export const searchAllCustomers = async () => {
 
 export const searchCustomersById = async (id: string) => {
   const supabase = await createClient();
+  const week = getWeekRange()
   const { data } = await supabase
     .from('customers')
-    .select(SEARCH_CUSTOMER)
+    .select(SEARCH_CUSTOMER_WITH_ASSISTANCE)
     .eq('id', id)
+    .gte('assistance.assistance_date', week.start.toISOString())
+    .lte('assistance.assistance_date', week.end.toISOString())
 
   if (!data || data.length === 0) {
     return { customer: null };
   }
 
-  const customer: Customer = {
+  const customer: CustomerWithAssistance = {
     ...data[0],
     membership_type: data[0].customer_membership?.[0]?.membership_type || null,
   }

@@ -12,3 +12,8 @@ export interface Customer {
   assistance_count: number;
   // membershipExpiration?: Date | null;
 }
+export interface CustomerWithAssistance extends Customer {
+  assistance: {
+    assistance_date: string;
+  }[]
+}
