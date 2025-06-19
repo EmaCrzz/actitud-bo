@@ -10,7 +10,7 @@ import PlusRoundedIcon from "@/components/icons/plus-rounded";
 import { useRouter } from "next/navigation";
 import { useDebounce } from "use-debounce";
 import { Customer } from "@/customer/types";
-import { searchCustomer } from "@/customer/api";
+import { searchCustomer } from "@/customer/api/client";
 
 export default function AutocompleteInput() {
   const [inputValue, setInputValue] = useState("");
@@ -108,7 +108,7 @@ export default function AutocompleteInput() {
   }, [query]);
 
   const handleNavigation = () => {
-    router.push(`/assistance/register`);
+    router.push(`/assistance/register/${selectedValue}`);
   };
 
   return (

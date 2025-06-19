@@ -3,7 +3,7 @@ import PlusRoundedIcon from "@/components/icons/plus-rounded";
 
 import FooterNavigation from "@/components/nav";
 import { Button } from "@/components/ui/button";
-import { searchAllCustomers } from "@/customer/api";
+import { searchAllCustomers } from "@/customer/api/server";
 import ListCustomers from "@/customer/list";
 import { Suspense } from "react";
 

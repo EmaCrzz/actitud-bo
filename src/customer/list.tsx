@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import EyeIcon from "@/components/icons/eye";
 import { X } from "lucide-react";
+import Link from "next/link";
 
 interface Props {
   customers: Customer[];
@@ -17,7 +18,6 @@ interface Props {
 
 export default function ListCustomers({ customers }: Props) {
   const [query, setQuery] = useState("");
-  
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
@@ -87,7 +87,9 @@ export default function ListCustomers({ customers }: Props) {
                   </Label>
                 </div>
                 <Button variant={"ghost"} size={"icon"} className="size-6">
-                  <EyeIcon className="size-6" />
+                  <Link href={`/customer/${customer.id}`}>
+                    <EyeIcon className="size-6" />
+                  </Link>
                 </Button>
               </li>
             );
