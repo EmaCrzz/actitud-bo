@@ -1,11 +1,12 @@
-import BackButton from "@/assistance/back-button";
+import ArrowLeftIcon from "@/components/icons/arrow-left";
 import PlusRoundedIcon from "@/components/icons/plus-rounded";
 
 import FooterNavigation from "@/components/nav";
 import { Button } from "@/components/ui/button";
 import { searchAllCustomers } from "@/customer/api/server";
 import ListCustomers from "@/customer/list";
-import { Suspense } from "react";
+import Link from "next/link";
+
 
 export default async function CustomerListPage() {
   // TODO: Implement pagination infinite scroll
@@ -15,9 +16,11 @@ export default async function CustomerListPage() {
     <>
       <header className="max-w-3xl mx-auto w-full px-4 py-3 flex justify-between items-center border-b border-primary">
         <div className="flex gap-4 items-center">
-          <Suspense>
-            <BackButton />
-          </Suspense>
+          <Button variant="ghost" size="icon" className="size-6 rounded-full">
+            <Link href={"/"}>
+              <ArrowLeftIcon className="size-6" />
+            </Link>
+          </Button>
           <h5 className="font-medium text-sm">Lista de clientes</h5>
         </div>
       </header>

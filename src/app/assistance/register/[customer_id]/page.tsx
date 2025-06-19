@@ -3,19 +3,16 @@ import CustomerAssistance from "@/assistance/customer";
 import InfoResume from "@/customer/info-resume";
 import { Suspense } from "react";
 import { searchCustomersById } from "@/customer/api/server";
-import { Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ArrowLeftIcon from "@/components/icons/arrow-left";
-
-interface Props {
-  params: {
-    customer_id: string;
-  };
-}
+import Link from "next/link";
 
 export default async function AssintanceRegisterPage({
-  params: { customer_id },
-}: Props) {
+  params,
+}: {
+  params: Promise<{ customer_id: string }>;
+}) {
+  const { customer_id } = await params;
   const { customer } = await searchCustomersById(customer_id);
 
   if (!customer) {
@@ -53,7 +50,7 @@ export default async function AssintanceRegisterPage({
           </TabsList>
           <TabsContent className="mt-10 flex flex-col" value="assistance">
             <Suspense>
-              <CustomerAssistance />
+              <CustomerAssistance customerId={customer_id} />
             </Suspense>
           </TabsContent>
           <TabsContent className="mt-10" value="data">

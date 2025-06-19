@@ -4,8 +4,14 @@ import CustomerCounter from "@/assistance/customer-counter";
 import RegistryBtn from "@/assistance/registry-button";
 import { MEMBERSHIP_TYPE_5_DAYS } from "@/assistance/consts";
 import { useState } from "react";
+import { createAssistance } from "./api/client";
+import { toast } from "sonner"
 
-export default function CustomerAssistance() {
+export default function CustomerAssistance({
+  customerId,
+}: {
+  customerId: string;
+}) {
   const [isPending, setIsPending] = useState(false);
   const [daySelected, setDaySelected] = useState<string>();
 
@@ -15,8 +21,17 @@ export default function CustomerAssistance() {
 
   const handleSubmit = async () => {
     setIsPending(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const {error} = await createAssistance({ customer_id: customerId });
+
+    if(error?.code) {
+      setIsPending(false);
+      toast.error("Error al registrar asistencia, intente nuevamente",{
+        description: error.message,
+      });
+      return;
+    }
     setIsPending(false);
+    toast.success("¡Listo, asistencia registrada!");
   };
 
   return (
