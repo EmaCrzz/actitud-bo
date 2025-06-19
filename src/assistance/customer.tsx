@@ -4,29 +4,19 @@ import CustomerCounter from "@/assistance/customer-counter";
 import RegistryBtn from "@/assistance/registry-button";
 import { MEMBERSHIP_TYPE_5_DAYS } from "@/assistance/consts";
 import { useState } from "react";
-import { usePathname, useSearchParams, useRouter } from "next/navigation";
 
 export default function CustomerAssistance() {
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const day = searchParams.get('day')
   const [isPending, setIsPending] = useState(false);
+  const [daySelected, setDaySelected] = useState<string>();
 
   const handleSelectedDay = (day: string) => {
-    // Update the URL with the selected day
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('day', day);
-    router.push(`${pathname}?${params.toString()}`);
+    setDaySelected(day);
   };
 
   const handleSubmit = async () => {
-    // simulate a delay for the registry
-    setIsPending(true)
+    setIsPending(true);
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    // Here you would typically handle the registry logic, e.g., API call
-    console.log(`Registered for day ${day}`);
-    setIsPending(false)
+    setIsPending(false);
   };
 
   return (
@@ -38,10 +28,15 @@ export default function CustomerAssistance() {
         <CustomerCounter
           membershipType={MEMBERSHIP_TYPE_5_DAYS}
           handleSelectedDay={handleSelectedDay}
-          selectedDay={day}
+          selectedDay={daySelected}
         />
       </div>
-      <RegistryBtn disabled={!day} onClick={handleSubmit} loading={isPending} loadingText="Un momento" />
+      <RegistryBtn
+        disabled={!daySelected}
+        onClick={handleSubmit}
+        loading={isPending}
+        loadingText="Un momento"
+      />
     </>
   );
 }

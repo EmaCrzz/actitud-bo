@@ -1,9 +1,11 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CustomerAssistance from "@/assistance/customer";
 import InfoResume from "@/customer/info-resume";
-import BackButton from "@/assistance/back-button";
 import { Suspense } from "react";
 import { searchCustomersById } from "@/customer/api/server";
+import { Link } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import ArrowLeftIcon from "@/components/icons/arrow-left";
 
 interface Props {
   params: {
@@ -26,11 +28,13 @@ export default async function AssintanceRegisterPage({
 
   return (
     <>
-      <header className="px-4 pb-2 max-w-3xl mx-auto w-full  flex justify-between items-center border-b border-primary">
+      <header className="max-w-3xl mx-auto w-full px-4 py-3 flex justify-between items-center border-b border-primary">
         <div className="flex gap-4 items-center">
-          <Suspense>
-            <BackButton />
-          </Suspense>
+          <Button variant="ghost" size="icon" className="size-6 rounded-full">
+            <Link href={"/"}>
+              <ArrowLeftIcon className="size-6" />
+            </Link>
+          </Button>
           <h5 className="font-medium text-sm">Registro de asistencias</h5>
         </div>
       </header>

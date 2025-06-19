@@ -4,14 +4,14 @@ import { MembershipType } from "./consts";
 interface Porps {
   membershipType: MembershipType;
   assistanceCount?: number;
-  selectedDay: string | null;
+  selectedDay?: string;
   handleSelectedDay?: (day: string) => void;
 }
 
 export default function CustomerCounter({
   membershipType,
   assistanceCount = 1,
-  selectedDay = null,
+  selectedDay = undefined,
   handleSelectedDay,
 }: Porps) {
   const items = membershipType === "MEMBERSHIP_TYPE_5_DAYS" ? 5 : 3;
@@ -24,7 +24,6 @@ export default function CustomerCounter({
           const isChecked =
             index < assistanceCount || index + 1 === Number(selectedDay);
           const enabled = assistanceCount + 1 === index + 1;
-          console.log({ enabled, index });
 
           return (
             <span
