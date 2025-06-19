@@ -5,6 +5,7 @@ import FooterNavigation from "@/components/nav";
 import { Button } from "@/components/ui/button";
 import { searchAllCustomers } from "@/customer/api";
 import ListCustomers from "@/customer/list";
+import { Suspense } from "react";
 
 export default async function CustomerListPage() {
   // TODO: Implement pagination infinite scroll
@@ -14,7 +15,9 @@ export default async function CustomerListPage() {
     <>
       <header className="max-w-3xl mx-auto w-full px-4 py-3 flex justify-between items-center border-b border-primary">
         <div className="flex gap-4 items-center">
-          <BackButton />
+          <Suspense>
+            <BackButton />
+          </Suspense>
           <h5 className="font-medium text-sm">Lista de clientes</h5>
         </div>
       </header>
