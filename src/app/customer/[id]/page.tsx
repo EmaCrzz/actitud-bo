@@ -4,13 +4,12 @@ import { searchCustomersById } from "@/customer/api/server";
 import InfoResume from "@/customer/info-resume";
 import Link from "next/link";
 
-interface Props {
-  params: {
-    id: string;
-  };
-}
-
-export default async function CustomerDetailPage({ params: { id } }: Props) {
+export default async function CustomerDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
   const { customer } = await searchCustomersById(id);
 
   if (!customer) {
