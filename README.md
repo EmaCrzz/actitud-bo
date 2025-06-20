@@ -27,7 +27,8 @@ Backoffice de actitud
 ## 🔧 Desarrollo (In Progress)
 - [X] Implementar constantes para las rutas
 - [X] Implementar assistance count en cliente (trigger)
-- [ ] Luego de registrar la asistencia voler al home
+- [X] Luego de registrar la asistencia voler al home
+- [X] Extender modelo de usuario para tener nombre y apellido
 - [ ] Implementar CRUD Cliente
 - [ ] Implementar crear cliente desde la busqueda en la home
 - [ ] Implementar crear cliente desde el listado de clientes
@@ -37,7 +38,6 @@ Backoffice de actitud
 - [ ] Validar e informar alta de asistencia del dia si ya fue creada
 - [ ] Implementar cierre de sesion
 - [ ] Implementar mensaje de error cuando algun dato del login esta mal
-- [ ] Extender modelo de usuario para tener nombre y apellido
 - [ ] Implementar rol admin
 - [ ] Verificar como hacer una funcion que inserte datos en mas de una tabla
 - [ ] Implementar pantalla asistencias del dia
@@ -49,7 +49,8 @@ Backoffice de actitud
 
 ## 📊 Performance
 - [ ] Optimizar tiempo de carga
-- [ ] Implementar lazy loading
+- [X] Implementar lazy loading en home
+- [ ] Implementar lazy loading en listado de clientes
 - [ ] Implementar pantallas de carga
 - [ ] Optimizar consultas de base de datos
 - [ ] Implementar caching para listado de clientes, usualmente no creao muchos usuarios por dia
