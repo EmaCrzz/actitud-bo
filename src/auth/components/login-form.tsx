@@ -36,7 +36,7 @@ export function LoginForm() {
 
   return (
     <>
-      <header className="max-w-2xl mx-auto w-full py-11 flex justify-center items-center">
+      <header className="max-w-2xl mx-auto w-full py-11 flex justify-center items-center pt-4">
         <LogoBlanco />
       </header>
       <section className="max-w-2xl mx-auto w-full px-4 pt-11">

@@ -1,9 +1,12 @@
 import { MembershipTranslation } from "@/assistance/consts";
+import PencilIcon from "@/components/icons/pencil";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import EditButton from "@/customer/edit-button";
+import { CUSTOMER_EDIT } from "@/consts/routes";
 import { Customer } from "@/customer/types";
 import { formatPersonId } from "@/lib/format-person-id";
 import { formatPhone } from "@/lib/format-phone";
+import Link from "next/link";
 
 export default function InfoResume({ customer }: { customer: Customer }) {
   return (
@@ -21,7 +24,11 @@ export default function InfoResume({ customer }: { customer: Customer }) {
               {customer.first_name} {customer.last_name}
             </span>
           </div>
-          <EditButton />
+          <Button variant="ghost" size="icon" className="size-6">
+            <Link href={`${CUSTOMER_EDIT}/${customer.id}`}>
+              <PencilIcon className="size-6" />
+            </Link>
+          </Button>
         </div>
         <div className="grid gap-y-2">
           <Label className="font-light text-xs leading-6">DNI</Label>

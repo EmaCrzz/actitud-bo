@@ -3,6 +3,8 @@ import { SEARCH_CUSTOMER, SEARCH_CUSTOMER_WITH_ASSISTANCE } from "@/customer/con
 import { Customer, CustomerWithAssistance } from "@/customer/types";
 import { createClient } from "@/lib/supabase/server";
 import { getWeekRange } from "@/lib/week";
+// import { revalidatePath } from "next/cache"
+// import { redirect } from "next/navigation"
 
 export const searchAllCustomers = async () => {
   const supabase = await createClient();
@@ -44,3 +46,23 @@ export const searchCustomersById = async (id: string) => {
 
   return { customer }
 }
+
+
+
+// export async function deleteCustomer(customerId: string) {
+//   const supabase = await createClient()
+
+//   try {
+//     const { error } = await supabase.from("customers").delete().eq("id", customerId)
+
+//     if (error) {
+//       throw new Error(error.message)
+//     }
+
+//     // revalidatePath("/customers")
+//     // redirect("/customers")
+//   } catch (error) {
+//     console.error("Error deleting customer:", error)
+//     throw new Error("Error al eliminar el cliente")
+//   }
+// }
