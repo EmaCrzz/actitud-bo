@@ -1,4 +1,6 @@
-import AssistanceCounter from "@/assistance/counter";
+import AssistanceCounter, {
+  AssistanceCounterLoader,
+} from "@/assistance/counter";
 import AutocompleteInput from "@/assistance/search";
 import AuthHeader, { AuthHeaderLoader } from "@/auth/components/header";
 import FooterNavigation from "@/components/nav";
@@ -11,7 +13,9 @@ export default async function Home() {
         <AuthHeader />
       </Suspense>
       <section className="max-w-3xl mx-auto w-full">
-        <AssistanceCounter />
+        <Suspense fallback={<AssistanceCounterLoader />}>
+          <AssistanceCounter />
+        </Suspense>
         <AutocompleteInput />
       </section>
       <FooterNavigation />
