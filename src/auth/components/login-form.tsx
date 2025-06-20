@@ -1,12 +1,13 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import LogoBlanco from "@/assets/logos/blanco/logo";
+import { signUp } from "@/auth/api/client";
+import { HOME } from "@/consts/routes";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -17,18 +18,15 @@ export function LoginForm() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      await signUp({
         email,
         password,
       });
-      if (error) throw error;
-      // Update this route to redirect to an authenticated route. The user already has an active session.
-      router.push("/");
+      router.push(HOME);
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
@@ -49,7 +47,7 @@ export function LoginForm() {
               <Input
                 id="email"
                 type="email"
-                autoComplete={'off'}
+                autoComplete={"off"}
                 placeholder="m@example.com"
                 required
                 value={email}
