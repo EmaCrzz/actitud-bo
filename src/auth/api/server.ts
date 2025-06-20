@@ -5,7 +5,7 @@ import { Profile } from "@/auth/types";
 export async function getProfile(userId?: string): Promise<Profile | null> {
   if(!userId) return null
   const supabase = await createClient();
-  const { data, error } = await supabase.from("profile").select("*").eq("id", userId).single()
+  const { data, error } = await supabase.from("profile").select("*").eq("auth_id", userId).single()
 
   if (error) {
     console.error("Error fetching profile:", error)
