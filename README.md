@@ -50,7 +50,8 @@ Backoffice de actitud
 ## 📊 Performance
 - [ ] Optimizar tiempo de carga
 - [X] Implementar lazy loading en home
-- [ ] Implementar lazy loading en listado de clientes
+- [X] Implementar lazy loading en listado de clientes
+- [X] Implementar lazy loading en detalle de cliente
 - [ ] Implementar pantallas de carga
 - [ ] Optimizar consultas de base de datos
 - [ ] Implementar caching para listado de clientes, usualmente no creao muchos usuarios por dia
