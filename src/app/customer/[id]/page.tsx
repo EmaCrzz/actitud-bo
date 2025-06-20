@@ -1,5 +1,6 @@
 import ArrowLeftIcon from "@/components/icons/arrow-left";
 import { Button } from "@/components/ui/button";
+import { CUSTOMER } from "@/consts/routes";
 import { searchCustomersById } from "@/customer/api/server";
 import InfoResume from "@/customer/info-resume";
 import Link from "next/link";
@@ -25,7 +26,7 @@ export default async function CustomerDetailPage({
       <header className="max-w-3xl mx-auto w-full px-4 py-3 flex justify-between items-center border-b border-primary">
         <div className="flex gap-4 items-center">
           <Button variant="ghost" size="icon" className="size-6 rounded-full">
-            <Link href={"/customer"}>
+            <Link href={CUSTOMER}>
               <ArrowLeftIcon className="size-6" />
             </Link>
           </Button>

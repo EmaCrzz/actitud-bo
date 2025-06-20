@@ -7,6 +7,8 @@ import { useState } from "react";
 import { createAssistance } from "./api/client";
 import { toast } from "sonner";
 import { CustomerWithAssistance } from "@/customer/types";
+import { HOME } from "@/consts/routes";
+import { useRouter } from "next/navigation";
 
 export default function CustomerAssistance({
   customer,
@@ -15,7 +17,8 @@ export default function CustomerAssistance({
 }) {
   const [isPending, setIsPending] = useState(false);
   const [daySelected, setDaySelected] = useState<string>();
-
+  const router = useRouter()
+  
   const handleSelectedDay = (day: string) => {
     setDaySelected(day);
   };
@@ -33,6 +36,7 @@ export default function CustomerAssistance({
     }
     setIsPending(false);
     toast.success("¡Listo, asistencia registrada!");
+    router.push(HOME)
   };
 
   return (

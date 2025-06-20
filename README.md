@@ -25,6 +25,7 @@ Backoffice de actitud
 - [X] Implementar autenticación de usuarios
 
 ## 🔧 Desarrollo (In Progress)
+- [X] Implementar constantes para las rutas
 - [X] Implementar assistance count en cliente (trigger)
 - [ ] Luego de registrar la asistencia voler al home
 - [ ] Implementar CRUD Cliente

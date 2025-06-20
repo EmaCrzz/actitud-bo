@@ -6,6 +6,7 @@ import { searchCustomersById } from "@/customer/api/server";
 import { Button } from "@/components/ui/button";
 import ArrowLeftIcon from "@/components/icons/arrow-left";
 import Link from "next/link";
+import { HOME } from "@/consts/routes";
 
 export default async function AssintanceRegisterPage({
   params,
@@ -28,7 +29,7 @@ export default async function AssintanceRegisterPage({
       <header className="max-w-3xl mx-auto w-full px-4 py-3 flex justify-between items-center border-b border-primary">
         <div className="flex gap-4 items-center">
           <Button variant="ghost" size="icon" className="size-6 rounded-full">
-            <Link href={"/"}>
+            <Link href={HOME}>
               <ArrowLeftIcon className="size-6" />
             </Link>
           </Button>

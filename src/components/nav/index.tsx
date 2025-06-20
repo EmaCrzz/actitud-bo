@@ -7,28 +7,29 @@ import StatsIcon from "@/components/icons/stats";
 import PersonPlus from "@/components/icons/person-plus";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { ROUTES } from "@/consts/routes";
 
 const navigationItems = [
   {
-    id: "/",
+    id: ROUTES.HOME,
     icon: HomeIcon,
-    href: "/",
+    href: ROUTES.HOME,
   },
   {
-    id: "/customer",
+    id: ROUTES.CUSTOMER,
     icon: PersonsIcon,
-    href: "/customer",
+    href: ROUTES.CUSTOMER,
   },
   {
-    id: "/stats",
+    id: ROUTES.STATS,
     icon: StatsIcon,
-    href: "/stats",
+    href: ROUTES.STATS,
     disabled: true,
   },
   {
-    id: "/customer/new",
+    id: ROUTES.REGISTER_ASSISTANCE,
     icon: PersonPlus,
-    href: "/customer/new",
+    href: ROUTES.REGISTER_ASSISTANCE,
     disabled: true,
   },
 ];
