@@ -9,6 +9,9 @@ export interface Customer {
   email: string | null
   assistance_count: number
 }
+export interface CustomerWithMembership extends Customer {
+  membership_type: MembershipType | null
+}
 
 export interface CustomerMembership {
   membership_type: MembershipType

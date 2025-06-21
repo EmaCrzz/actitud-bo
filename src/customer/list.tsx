@@ -1,6 +1,6 @@
 "use client";
 
-import {  CustomerComplete } from "@/customer/types";
+import {  CustomerWithMembership } from "@/customer/types";
 import { useMemo, useState } from "react";
 import SearchIcon from "@/components/icons/search";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ import Link from "next/link";
 import { CUSTOMER } from "@/consts/routes";
 
 interface Props {
-  customers: CustomerComplete[];
+  customers: CustomerWithMembership[];
 }
 
 export default function ListCustomers({ customers }: Props) {
@@ -82,8 +82,8 @@ export default function ListCustomers({ customers }: Props) {
                     {`${customer.first_name} ${customer.last_name}`}
                   </span>
                   <Label className="font-light text-xs leading-6">
-                    {customer.customer_membership?.membership_type
-                      ? MembershipTranslation[customer.customer_membership?.membership_type]
+                    {customer.membership_type
+                      ? MembershipTranslation[customer.membership_type]
                       : "Sin membresía"}
                   </Label>
                 </div>

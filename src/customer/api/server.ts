@@ -1,20 +1,21 @@
 
 import { SEARCH_CUSTOMER } from "@/customer/consts";
-import { Customer, CustomerComplete, CustomerMembership } from "@/customer/types";
+import { Customer, CustomerComplete, CustomerMembership, CustomerWithMembership } from "@/customer/types";
 import { createClient } from "@/lib/supabase/server";
 import { getWeekRange } from "@/lib/week";
 
-export const searchAllCustomers = async () => {
+export const searchAllCustomers = async (): Promise<CustomerWithMembership[]> => {
   const supabase = await createClient();
   const { data } = await supabase
     .from('customers')
     .select(SEARCH_CUSTOMER)
     .order('first_name', {
       ascending: true
-    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }) as unknown as { data: any[]}; // TODO fix this
 
-  const customers: Customer[] = data?.map((customer) => {
-    const membership_type = customer.customer_membership?.[0]?.membership_type || null;
+  const customers = data?.map((customer) => {
+    const membership_type = customer.customer_membership?.membership_type || null;
     return ({
       ...customer,
       membership_type,
@@ -54,7 +55,6 @@ export const searchCustomersById = async (id: string): Promise<CustomerComplete 
     assistance: assistances || [],
   }
 }
-
 
 // Función auxiliar para obtener solo los datos básicos del cliente
 export async function getCustomerBasic(id: string): Promise<Customer | null> {

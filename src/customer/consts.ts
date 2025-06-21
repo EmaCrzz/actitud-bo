@@ -8,5 +8,5 @@ export const SEARCH_CUSTOMER = `
   phone,
   created_at,
   assistance_count,
-  "customer_membership" (membership_type)
+  customer_membership!inner (membership_type)
 ` as const

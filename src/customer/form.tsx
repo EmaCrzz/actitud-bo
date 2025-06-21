@@ -29,7 +29,6 @@ export default function CustomerForm({
       formData,
     });
     setLoading(false);
-console.log({ errors, message, success });
 
     if (success) {
       toast.success(message);
