@@ -68,7 +68,7 @@ function Input({ className, variant, componentLeft, componentRight, type, ...pro
     return (
       <div className={cn(inputVariants({ variant }), "items-center gap-2", className)} data-slot="input-wrapper">
         <div className="flex items-center justify-center text-muted-foreground shrink-0">{componentLeft}</div>
-        <input type={type} className={cn(inputFieldVariants({ variant, hasComponentLeft: true }))} {...props} />
+        <input autoComplete="off" type={type} className={cn(inputFieldVariants({ variant, hasComponentLeft: true }))} {...props} />
         <div className="flex items-center justify-center text-muted-foreground shrink-0">{componentRight}</div>
       </div>
     )
@@ -78,7 +78,7 @@ function Input({ className, variant, componentLeft, componentRight, type, ...pro
     return (
       <div className={cn(inputVariants({ variant }), "items-center gap-2", className)} data-slot="input-wrapper">
         <div className="flex items-center justify-center text-muted-foreground shrink-0">{componentLeft}</div>
-        <input type={type} className={cn(inputFieldVariants({ variant, hasComponentLeft: true }))} {...props} />
+        <input autoComplete="off" type={type} className={cn(inputFieldVariants({ variant, hasComponentLeft: true }))} {...props} />
       </div>
     )
   }
@@ -86,7 +86,7 @@ function Input({ className, variant, componentLeft, componentRight, type, ...pro
   if (componentRight) {
     return (
       <div className={cn(inputVariants({ variant }), "items-center gap-2", className)} data-slot="input-wrapper">
-        <input type={type} className={cn(inputFieldVariants({ variant, hasComponentLeft: false }))} {...props} />
+        <input autoComplete="off" type={type} className={cn(inputFieldVariants({ variant, hasComponentLeft: false }))} {...props} />
         <div className="flex items-center justify-center text-muted-foreground shrink-0">{componentRight}</div>
       </div>
     )
@@ -94,7 +94,7 @@ function Input({ className, variant, componentLeft, componentRight, type, ...pro
 
 
 
-  return <input type={type} data-slot="input" className={cn(inputVariants({ variant }), className)} {...props} />
+  return <input autoComplete="off" type={type} data-slot="input" className={cn(inputVariants({ variant }), className)} {...props} />
 }
 
 export { Input, inputVariants }
