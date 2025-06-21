@@ -9,12 +9,14 @@ import { CustomerComplete } from "@/customer/types";
 import { CustomerFormResponse, upsertCustomer } from "@/customer/api/client";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function CustomerForm({
   customer,
 }: {
   customer?: CustomerComplete;
 }) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<CustomerFormResponse["errors"]>();
 
@@ -32,6 +34,7 @@ export default function CustomerForm({
 
     if (success) {
       toast.success(message);
+      router.back();
       return;
     }
 
@@ -112,7 +115,12 @@ export default function CustomerForm({
         </section>
       </form>
       <footer className="flex justify-between max-w-3xl mx-auto w-full px-4 pb-9">
-        <Button loading={loading} className="w-44 h-14" variant="outline">
+        <Button
+          loading={loading}
+          onClick={() => router.back()}
+          className="w-44 h-14"
+          variant="outline"
+        >
           Cancelar
         </Button>
         <Button
