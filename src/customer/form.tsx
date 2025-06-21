@@ -6,19 +6,44 @@ import { Input } from "@/components/ui/input";
 import { PersonIdInput } from "@/components/ui/input-person-id";
 import { Label } from "@/components/ui/label";
 import { CustomerComplete } from "@/customer/types";
-import { upsertCustomer } from "@/customer/api/client";
+import { CustomerFormResponse, upsertCustomer } from "@/customer/api/client";
+import { useState } from "react";
+import { toast } from "sonner";
 
-export default function CustomerForm({ customer }: { customer?: CustomerComplete }) {
+export default function CustomerForm({
+  customer,
+}: {
+  customer?: CustomerComplete;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<CustomerFormResponse["errors"]>();
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setErrors(undefined);
     const formData = new FormData(event.currentTarget);
+    setLoading(true);
+
     const { errors, message, success } = await upsertCustomer({
       customerId: customer?.id || "",
       formData,
     });
+    setLoading(false);
+console.log({ errors, message, success });
 
-    console.log({ errors, message, success });
+    if (success) {
+      toast.success(message);
+      return;
+    }
+
+    if (errors || !success) {
+      toast.error(message);
+      setErrors(errors);
+      return;
+    }
   };
+
+  console.log({ errors });
 
   return (
     <>
@@ -66,7 +91,9 @@ export default function CustomerForm({ customer }: { customer?: CustomerComplete
               </Label>
               <SelectMembership
                 name={"membership_type"}
-                defaultValue={customer?.customer_membership?.membership_type || ""}
+                defaultValue={
+                  customer?.customer_membership?.membership_type || ""
+                }
                 className="font-light"
               />
             </div>
@@ -80,10 +107,15 @@ export default function CustomerForm({ customer }: { customer?: CustomerComplete
         </section>
       </form>
       <footer className="flex justify-between max-w-3xl mx-auto w-full px-4 pb-9">
-        <Button className="w-44 h-14" variant="outline">
+        <Button loading={loading} className="w-44 h-14" variant="outline">
           Cancelar
         </Button>
-        <Button type="submit" form="form-edit" className="w-44 h-14">
+        <Button
+          loading={loading}
+          type="submit"
+          form="form-edit"
+          className="w-44 h-14"
+        >
           Guardar
         </Button>
       </footer>

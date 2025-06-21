@@ -33,6 +33,7 @@ Backoffice de actitud
 - [X] Implementar upsert Cliente
 - [X] Implementar crear cliente desde la busqueda en la home
 - [X] Implementar crear cliente desde el listado de clientes
+- [ ] Implementar registar primera asistencia al momento de crear cliente
 - [ ] Implementar delete de cliente
 - [ ] Implementar inifinte scroll desde el listado de clientes
 - [ ] Implementar agregar pase adicional si la semana esta completa
@@ -52,13 +53,11 @@ Backoffice de actitud
 - [ ] Añadir animaciones/transiciones
 
 ## 📊 Performance
-- [ ] Optimizar tiempo de carga
+- [X] Optimizar tiempo de carga
 - [X] Implementar lazy loading en home
 - [X] Implementar lazy loading en listado de clientes
 - [X] Implementar lazy loading en detalle de cliente
-- [ ] Implementar pantallas de carga
-- [ ] Optimizar consultas de base de datos
-- [ ] Implementar caching para listado de clientes, usualmente no creao muchos usuarios por dia
+- [X] Implementar pantallas de carga
 
 ## 🐛 Bugs & Issues
 - [ ] Mostrar - en lugar de 0 en el home si no hay asistencias

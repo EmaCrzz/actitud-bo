@@ -83,7 +83,7 @@ export async function upsertCustomer({ customerId, formData }: {
   }
   
   try {
-    const { data, error } = await supabase.rpc("upsert_customer_and_membership", {
+    const { data, error } = await supabase.rpc("upsert_customer_with_membership", {
       p_customer_id: customerId || null,
       p_first_name: firstName || null,
       p_last_name: lastName || null,
@@ -91,10 +91,16 @@ export async function upsertCustomer({ customerId, formData }: {
       p_phone: phone || null,
       p_email: email || null,
       p_membership_type: membershipType || null,
+      // p_last_payment_date 
+      // p_expiration_date
     })
 
     if (error) {
-      throw new Error(error.message)
+      console.error("Error al insertar o actualizar el cliente:", error)
+      return {
+        success: false,
+        message: error.message || "Error al procesar la solicitud",
+      }
     }
 
     return data
