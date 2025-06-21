@@ -27,10 +27,10 @@ const navigationItems = [
     disabled: true,
   },
   {
-    id: ROUTES.REGISTER_ASSISTANCE,
+    id: ROUTES.CUSTOMER_NEW,
     icon: PersonPlus,
-    href: ROUTES.REGISTER_ASSISTANCE,
-    disabled: true,
+    href: ROUTES.CUSTOMER_NEW,
+    disabled: false,
   },
 ];
 

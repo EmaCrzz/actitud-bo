@@ -3,7 +3,7 @@ import PlusRoundedIcon from "@/components/icons/plus-rounded";
 
 import FooterNavigation from "@/components/nav";
 import { Button } from "@/components/ui/button";
-import { HOME } from "@/consts/routes";
+import { CUSTOMER_NEW, HOME } from "@/consts/routes";
 import { searchAllCustomers } from "@/customer/api/server";
 import ListCustomers from "@/customer/list";
 import Link from "next/link";
@@ -26,8 +26,10 @@ export default async function CustomerListPage() {
       </header>
       <section className="max-w-3xl mx-auto w-full px-4 overflow-auto pb-4">
         <Button variant={"link"} className="flex justify-start h-14 pl-0!">
-          <PlusRoundedIcon className="size-6" />
-          <span>Crear nuevo cliente</span>
+          <Link href={CUSTOMER_NEW}>
+            <PlusRoundedIcon className="size-6" />
+            <span>Crear nuevo cliente</span>
+          </Link>
         </Button>
         <ListCustomers customers={customers} />
       </section>

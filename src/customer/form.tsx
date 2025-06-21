@@ -6,19 +6,18 @@ import { Input } from "@/components/ui/input";
 import { PersonIdInput } from "@/components/ui/input-person-id";
 import { Label } from "@/components/ui/label";
 import { Customer } from "@/customer/types";
-import { updateCustomer } from "@/customer/api/client";
+import { upsertCustomer } from "@/customer/api/client";
 
 export default function CustomerForm({ customer }: { customer?: Customer }) {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const { errors, message, success } = await updateCustomer({
+    const { errors, message, success } = await upsertCustomer({
       customerId: customer?.id || "",
       formData,
     });
 
     console.log({ errors, message, success });
-    
   };
 
   return (
@@ -26,8 +25,9 @@ export default function CustomerForm({ customer }: { customer?: Customer }) {
       <form onSubmit={handleSubmit} id="form-edit">
         <section className="max-w-3xl mx-auto w-full px-4 overflow-auto pb-4 pt-12">
           <h3 className="text-sm sm:text-md mb-4">
-            Puedes modificar el formulario para actualizar la información de
-            este cliente.
+            {customer
+              ? "Puedes modificar el formulario para actualizar la información de este cliente."
+              : "Completá el formulario para dar de alta un nuevo cliente."}
           </h3>
           <div className="grid gap-y-8">
             <div className="grid gap-y-2">

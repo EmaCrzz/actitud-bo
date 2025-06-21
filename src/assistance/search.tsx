@@ -11,7 +11,8 @@ import { useRouter } from "next/navigation";
 import { useDebounce } from "use-debounce";
 import { Customer } from "@/customer/types";
 import { searchCustomer } from "@/customer/api/client";
-import { REGISTER_ASSISTANCE } from "@/consts/routes";
+import { CUSTOMER_NEW, REGISTER_ASSISTANCE } from "@/consts/routes";
+import Link from "next/link";
 
 export default function AutocompleteInput() {
   const [inputValue, setInputValue] = useState("");
@@ -194,8 +195,10 @@ export default function AutocompleteInput() {
                   "px-2 py-4 cursor-pointer flex items-center hover:bg-inputhover gap-2"
                 )}
               >
-                <PlusRoundedIcon className="h-4 w-4 text-white/30" />
-                <span>Crear nuevo cliente</span>
+                <Link href={CUSTOMER_NEW}>
+                  <PlusRoundedIcon className="h-4 w-4 text-white/30" />
+                  <span>Crear nuevo cliente</span>
+                </Link>
               </li>
             </ul>
           )}

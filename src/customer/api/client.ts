@@ -36,7 +36,7 @@ export interface CustomerFormResponse {
 }
 
 
-export async function updateCustomer({ customerId, formData }: {
+export async function upsertCustomer({ customerId, formData }: {
   customerId: string,
   formData: FormData
 }): Promise<CustomerFormResponse> {
@@ -81,92 +81,23 @@ export async function updateCustomer({ customerId, formData }: {
       errors,
     }
   }
-  console.log({
-    firstName,
-    lastName,
-    personId,
-    phone,
-    email,
-    membershipType
-  });
-
+  
   try {
-    // Verificar que el customer existe
-    // const { data: existingCustomer, error: fetchError } = await supabase
-    //   .from("customers")
-    //   .select("id")
-    //   .eq("id", customerId)
-    //   .single()
-
-    // if (fetchError || !existingCustomer) {
-    //   return {
-    //     success: false,
-    //     message: "Cliente no encontrado",
-    //   }
-    // }
-
-    // // Verificar si ya existe otro cliente con el mismo person_id
-    // const { data: duplicateCheck } = await supabase
-    //   .from("customers")
-    //   .select("id")
-    //   .eq("person_id", personId)
-    //   .neq("id", customerId)
-    //   .single()
-
-    // if (duplicateCheck) {
-    //   return {
-    //     success: false,
-    //     message: "Ya existe un cliente con ese número de identificación",
-    //     errors: {
-    //       person_id: ["Este número de identificación ya está registrado"],
-    //     },
-    //   }
-    // }
-
-    // Actualizar el customer
-    // const { error: updateError } = await supabase
-    //   .from("customers")
-    //   .update({
-    //     first_name: firstName.trim(),
-    //     last_name: lastName.trim(),
-    //     person_id: personId.trim(),
-    //     phone: phone?.trim() || null,
-    //     email: email?.trim() || null,
-    //   })
-    //   .eq("id", customerId)
-
-    // if (updateError) {
-    //   console.error("Error updating customer:", updateError)
-    //   return {
-    //     success: false,
-    //     message: "Error al actualizar el cliente",
-    //   }
-    // }
-
-    // return {
-    //   success: true,
-    //   message: "Cliente actualizado exitosamente",
-    // }
-
-    // Actualizar cliente y membresía usando RPC
-
-    const { data: result, error } = await supabase.rpc("update_customer_and_membership", {
-      p_customer_id: customerId,
+    const { data, error } = await supabase.rpc("upsert_customer_and_membership", {
+      p_customer_id: customerId || null,
       p_first_name: firstName || null,
       p_last_name: lastName || null,
       p_person_id: personId || null,
       p_phone: phone || null,
       p_email: email || null,
       p_membership_type: membershipType || null,
-      p_membership_enable: true,
-      // p_membership_enable: membershipEnable ?? true,
     })
 
     if (error) {
       throw new Error(error.message)
     }
 
-    return result
+    return data
   } catch (error) {
     console.error("Error in updateCustomer:", error)
     return {
