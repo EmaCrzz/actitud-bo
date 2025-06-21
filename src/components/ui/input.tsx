@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { InfoIcon } from "lucide-react";
 
 const inputVariants = cva(
-  "placeholder:text-muted-foreground selection:text-primary-foreground flex w-full min-w-0 text-base transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm autofill:bg-yellow-200! px-2 py-4",
+  "placeholder:text-muted-foreground selection:text-primary-foreground flex w-full min-w-0 text-base transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm px-2 py-4",
   {
     variants: {
       variant: {
@@ -67,6 +67,44 @@ export interface InputProps
   isInvalid?: boolean;
 }
 
+// Componente helper para renderizar los iconos/componentes laterales
+function InputComponent({
+  children,
+  position,
+}: {
+  children: React.ReactNode;
+  position: "left" | "right";
+}) {
+  return (
+    <div
+      className={`flex items-center justify-center text-muted-foreground shrink-0 ${position}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+// Componente helper para el texto de ayuda
+function HelperText({
+  text,
+  isInvalid,
+}: {
+  text: string;
+  isInvalid?: boolean;
+}) {
+  return (
+    <small
+      className={cn(
+        "text-xs font-light flex gap-1 pt-1",
+        isInvalid ? "text-destructive" : "text-muted-foreground"
+      )}
+    >
+      {isInvalid && <InfoIcon className="size-4" />}
+      {text}
+    </small>
+  );
+}
+
 function Input({
   className,
   variant,
@@ -77,137 +115,61 @@ function Input({
   isInvalid,
   ...props
 }: InputProps) {
-  if (componentLeft && componentRight) {
+  const hasComponents = componentLeft || componentRight;
+
+  // Input field común
+  const inputField = (
+    <input
+      autoComplete="off"
+      type={type}
+      className={cn(
+        !isInvalid && !helperText ? "mb-[20px]" : "",
+        hasComponents
+          ? inputFieldVariants({ variant, hasComponentLeft: !!componentLeft })
+          : inputVariants({ variant })
+      )}
+      data-slot={hasComponents ? undefined : "input"}
+      {...props}
+    />
+  );
+
+  // Helper text común
+  const helperTextElement = helperText && (
+    <HelperText text={helperText} isInvalid={isInvalid} />
+  );
+
+  // Si no hay componentes laterales, renderizar input simple
+  if (!hasComponents) {
     return (
-      <div
-        className={cn(
-          inputVariants({ variant }),
-          "items-center gap-2",
-          className
-        )}
-        data-slot="input-wrapper"
-      >
-        <div className="flex items-center justify-center text-muted-foreground shrink-0">
-          {componentLeft}
-        </div>
-        <input
-          autoComplete="off"
-          type={type}
-          className={cn(
-            inputFieldVariants({ variant, hasComponentLeft: true })
-          )}
-          {...props}
-        />
-        <div className="flex items-center justify-center text-muted-foreground shrink-0">
-          {componentRight}
-        </div>
-        {helperText && (
-          <small
-            className={cn(
-              "text-xs font-light flex gap-1 pt-1",
-              isInvalid ? "text-destructive" : "text-muted-foreground"
-            )}
-          >
-            {isInvalid ? <InfoIcon className="size-4" /> : null}
-            {helperText}
-          </small>
-        )}
+      <div>
+        {inputField}
+        {helperTextElement}
       </div>
     );
   }
 
-  if (componentLeft) {
-    return (
-      <div
-        className={cn(
-          inputVariants({ variant }),
-          "items-center gap-2",
-          className
-        )}
-        data-slot="input-wrapper"
-      >
-        <div className="flex items-center justify-center text-muted-foreground shrink-0">
-          {componentLeft}
-        </div>
-        <input
-          autoComplete="off"
-          type={type}
-          className={cn(
-            inputFieldVariants({ variant, hasComponentLeft: true })
-          )}
-          {...props}
-        />
-        {helperText && (
-          <small
-            className={cn(
-              "text-xs font-light flex gap-1 pt-1",
-              isInvalid ? "text-destructive" : "text-muted-foreground"
-            )}
-          >
-            {isInvalid ? <InfoIcon className="size-4" /> : null}
-            {helperText}
-          </small>
-        )}
-      </div>
-    );
-  }
-
-  if (componentRight) {
-    return (
-      <div
-        className={cn(
-          inputVariants({ variant }),
-          "items-center gap-2",
-          className
-        )}
-        data-slot="input-wrapper"
-      >
-        <input
-          autoComplete="off"
-          type={type}
-          className={cn(
-            inputFieldVariants({ variant, hasComponentLeft: false })
-          )}
-          {...props}
-        />
-        <div className="flex items-center justify-center text-muted-foreground shrink-0">
-          {componentRight}
-        </div>
-        {helperText && (
-          <small
-            className={cn(
-              "text-xs font-light flex gap-1 pt-1",
-              isInvalid ? "text-destructive" : "text-muted-foreground"
-            )}
-          >
-            {isInvalid ? <InfoIcon className="size-4" /> : null}
-            {helperText}
-          </small>
-        )}
-      </div>
-    );
-  }
-
+  // Renderizar con wrapper para componentes laterales
   return (
     <div>
-      <input
-        autoComplete="off"
-        type={type}
-        data-slot="input"
-        className={cn(inputVariants({ variant }), className)}
-        {...props}
-      />
-      {helperText && (
-        <small
-          className={cn(
-            "text-xs font-light flex gap-1 pt-1",
-            isInvalid ? "text-destructive" : "text-muted-foreground"
-          )}
-        >
-          {isInvalid ? <InfoIcon className="size-4" /> : null}
-          {helperText}
-        </small>
-      )}
+      <div
+        className={cn(
+          inputVariants({ variant }),
+          "items-center gap-2",
+          className
+        )}
+        data-slot="input-wrapper"
+      >
+        {componentLeft && (
+          <InputComponent position="left">{componentLeft}</InputComponent>
+        )}
+
+        {inputField}
+
+        {componentRight && (
+          <InputComponent position="right">{componentRight}</InputComponent>
+        )}
+      </div>
+      {helperTextElement}
     </div>
   );
 }

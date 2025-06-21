@@ -54,7 +54,7 @@ export default async function AuthHeader() {
 
 export const AuthHeaderLoader = () => {
   return (
-    <header className="max-w-3xl mx-auto w-full px-4 flex justify-between items-center">
+    <header className="max-w-3xl mx-auto w-full px-4 flex justify-between items-center pt-4">
       <div className="flex gap-4 items-center">
         <Skeleton className="size-14 rounded-full" />
         <div>
