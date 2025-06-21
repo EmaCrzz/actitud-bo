@@ -24,6 +24,7 @@ export const searchCustomer = async (query?: string) => {
 }
 
 export interface CustomerFormResponse {
+  customer?: Customer
   success?: boolean
   message?: string
   errors?: {
@@ -86,7 +87,7 @@ export async function upsertCustomer({ customerId, formData }: {
       errors,
     }
   }
-  
+
   try {
     const { data, error } = await supabase.rpc("upsert_customer_with_membership", {
       p_customer_id: customerId || null,

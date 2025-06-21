@@ -26,15 +26,20 @@ export default function CustomerForm({
     const formData = new FormData(event.currentTarget);
     setLoading(true);
 
-    const { errors, message, success } = await upsertCustomer({
+    const {
+      errors,
+      message,
+      success,
+      customer: customerResponse,
+    } = await upsertCustomer({
       customerId: customer?.id || "",
       formData,
     });
     setLoading(false);
 
-    if (success) {
+    if (success && customerResponse) {
       toast.success(message);
-      router.back();
+      router.push(`/customer/${customerResponse.id}`);
       return;
     }
 
