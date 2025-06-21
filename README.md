@@ -18,6 +18,7 @@ Backoffice de actitud
 # TODO List - [Actitdud BO]
 
 ## 🚀 Próximas Tareas (High Priority)
+- [ ] Implementar eslint y prettier
 - [X] Configurar entorno de desarrollo
 - [X] Definir arquitectura del proyecto
 - [X] Crear mockups/wireframes básicos

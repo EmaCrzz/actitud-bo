@@ -14,8 +14,8 @@ export default async function AssintanceRegisterPage({
   params: Promise<{ customer_id: string }>;
 }) {
   const { customer_id } = await params;
-  const { customer } = await searchCustomersById(customer_id);
-
+  const customer = await searchCustomersById(customer_id);
+  
   if (!customer) {
     return (
       <div className="max-w-3xl mx-auto w-full px-4 py-6">

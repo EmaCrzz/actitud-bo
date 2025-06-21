@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PersonIdInput } from "@/components/ui/input-person-id";
 import { Label } from "@/components/ui/label";
-import { Customer } from "@/customer/types";
+import { CustomerComplete } from "@/customer/types";
 import { upsertCustomer } from "@/customer/api/client";
 
-export default function CustomerForm({ customer }: { customer?: Customer }) {
+export default function CustomerForm({ customer }: { customer?: CustomerComplete }) {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
@@ -66,7 +66,7 @@ export default function CustomerForm({ customer }: { customer?: Customer }) {
               </Label>
               <SelectMembership
                 name={"membership_type"}
-                defaultValue={customer?.membership_type || ""}
+                defaultValue={customer?.customer_membership?.membership_type || ""}
                 className="font-light"
               />
             </div>

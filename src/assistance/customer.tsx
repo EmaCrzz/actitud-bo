@@ -6,14 +6,14 @@ import { MEMBERSHIP_TYPE_5_DAYS } from "@/assistance/consts";
 import { useState } from "react";
 import { createAssistance } from "./api/client";
 import { toast } from "sonner";
-import { CustomerWithAssistance } from "@/customer/types";
+import { CustomerComplete } from "@/customer/types";
 import { HOME } from "@/consts/routes";
 import { useRouter } from "next/navigation";
 
 export default function CustomerAssistance({
   customer,
 }: {
-  customer: CustomerWithAssistance;
+  customer: CustomerComplete;
 }) {
   const [isPending, setIsPending] = useState(false);
   const [daySelected, setDaySelected] = useState<string>();

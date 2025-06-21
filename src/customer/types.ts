@@ -1,19 +1,25 @@
 import { MembershipType } from "@/assistance/consts";
-
 export interface Customer {
-  id: string;
-  first_name: string;
-  last_name: string;
-  person_id: string;
-  email?: string;
-  phone?: string;
-  membership_type: MembershipType | null;
+  id: string
   created_at: string
-  assistance_count: number;
-  // membershipExpiration?: Date | null;
+  first_name: string
+  last_name: string
+  person_id: string
+  phone: string | null
+  email: string | null
+  assistance_count: number
 }
-export interface CustomerWithAssistance extends Customer {
-  assistance: {
-    assistance_date: string;
-  }[]
+
+export interface CustomerMembership {
+  membership_type: MembershipType
+}
+
+export interface Assistance {
+  assistance_date: string
+}
+
+// Tipo combinado para el resultado final
+export interface CustomerComplete extends Customer {
+  customer_membership: CustomerMembership | null
+  assistance: Assistance[]
 }

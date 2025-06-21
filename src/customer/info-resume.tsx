@@ -3,12 +3,12 @@ import PencilIcon from "@/components/icons/pencil";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { CUSTOMER_EDIT } from "@/consts/routes";
-import { Customer } from "@/customer/types";
+import { CustomerComplete } from "@/customer/types";
 import { formatPersonId } from "@/lib/format-person-id";
 import { formatPhone } from "@/lib/format-phone";
 import Link from "next/link";
 
-export default function InfoResume({ customer }: { customer: Customer }) {
+export default function InfoResume({ customer }: { customer: CustomerComplete }) {  
   return (
     <>
       <Label className="font-light text-xs leading-6 text-[#FF91B6]">
@@ -41,8 +41,8 @@ export default function InfoResume({ customer }: { customer: Customer }) {
             Tipo de Membresía
           </Label>
           <span className="font-medium leading-6">
-            {customer.membership_type
-              ? MembershipTranslation[customer.membership_type]
+            {customer.customer_membership?.membership_type
+              ? MembershipTranslation[customer.customer_membership?.membership_type]
               : "Sin membresía"}
           </span>
         </div>

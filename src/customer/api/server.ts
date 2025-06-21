@@ -1,10 +1,8 @@
 
-import { SEARCH_CUSTOMER, SEARCH_CUSTOMER_WITH_ASSISTANCE } from "@/customer/consts";
-import { Customer, CustomerWithAssistance } from "@/customer/types";
+import { SEARCH_CUSTOMER } from "@/customer/consts";
+import { Customer, CustomerComplete, CustomerMembership } from "@/customer/types";
 import { createClient } from "@/lib/supabase/server";
 import { getWeekRange } from "@/lib/week";
-// import { revalidatePath } from "next/cache"
-// import { redirect } from "next/navigation"
 
 export const searchAllCustomers = async () => {
   const supabase = await createClient();
@@ -25,28 +23,67 @@ export const searchAllCustomers = async () => {
   return customers;
 }
 
-export const searchCustomersById = async (id: string) => {
+export const searchCustomersById = async (id: string): Promise<CustomerComplete | null> => {
   const supabase = await createClient();
+  // Consulta 1: Datos básicos del cliente
+  const { data: customer, error: customerError } = await supabase.from("customers").select("*").eq("id", id).single()
+
+  if (customerError || !customer) {
+    return null
+  }
+
   const week = getWeekRange()
-  const { data } = await supabase
-    .from('customers')
-    .select(SEARCH_CUSTOMER_WITH_ASSISTANCE)
-    .eq('id', id)
-    .gte('assistance.assistance_date', week.start.toISOString())
-    .lte('assistance.assistance_date', week.end.toISOString())
+  // Consulta 2: Membresía (sabemos que es única)
+  const { data: membership } = await supabase
+    .from("customer_membership")
+    .select("membership_type")
+    .eq("customer_id", id)
+    .single()
 
-  if (!data || data.length === 0) {
-    return { customer: null };
+  // Consulta 3: Asistencias de la semana
+  const { data: assistances } = await supabase
+    .from("assistance")
+    .select("assistance_date")
+    .eq("customer_id", id)
+    .gte("assistance_date", week.start.toISOString())
+    .lte("assistance_date", week.end.toISOString())
+
+  return {
+    ...customer,
+    customer_membership: membership || null,
+    assistance: assistances || [],
   }
-
-  const customer: CustomerWithAssistance = {
-    ...data[0],
-    membership_type: data[0].customer_membership?.[0]?.membership_type || null,
-  }
-
-  return { customer }
 }
 
+
+// Función auxiliar para obtener solo los datos básicos del cliente
+export async function getCustomerBasic(id: string): Promise<Customer | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("customers").select("*").eq("id", id).single()
+
+  if (error || !data) {
+    console.error("Error fetching customer:", error)
+    return null
+  }
+
+  return data as Customer
+}
+
+// Función auxiliar para obtener solo la membresía
+export async function getCustomerMembership(customerId: string): Promise<CustomerMembership | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("customer_membership")
+    .select("membership_type")
+    .eq("customer_id", customerId)
+    .single()
+
+  if (error || !data) {
+    return null
+  }
+
+  return data as CustomerMembership
+}
 
 
 // export async function deleteCustomer(customerId: string) {

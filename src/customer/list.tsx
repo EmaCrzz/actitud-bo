@@ -1,6 +1,6 @@
 "use client";
 
-import { Customer } from "@/customer/types";
+import {  CustomerComplete } from "@/customer/types";
 import { useMemo, useState } from "react";
 import SearchIcon from "@/components/icons/search";
 import { Input } from "@/components/ui/input";
@@ -11,9 +11,10 @@ import { Button } from "@/components/ui/button";
 import EyeIcon from "@/components/icons/eye";
 import { X } from "lucide-react";
 import Link from "next/link";
+import { CUSTOMER } from "@/consts/routes";
 
 interface Props {
-  customers: Customer[];
+  customers: CustomerComplete[];
 }
 
 export default function ListCustomers({ customers }: Props) {
@@ -81,13 +82,13 @@ export default function ListCustomers({ customers }: Props) {
                     {`${customer.first_name} ${customer.last_name}`}
                   </span>
                   <Label className="font-light text-xs leading-6">
-                    {customer.membership_type
-                      ? MembershipTranslation[customer.membership_type]
+                    {customer.customer_membership?.membership_type
+                      ? MembershipTranslation[customer.customer_membership?.membership_type]
                       : "Sin membresía"}
                   </Label>
                 </div>
                 <Button variant={"ghost"} size={"icon"} className="size-6">
-                  <Link href={`/customer/${customer.id}`}>
+                  <Link href={`${CUSTOMER}/${customer.id}`}>
                     <EyeIcon className="size-6" />
                   </Link>
                 </Button>

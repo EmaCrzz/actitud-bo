@@ -11,7 +11,7 @@ export default async function CustomerDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { customer } = await searchCustomersById(id);
+  const customer = await searchCustomersById(id);
 
   if (!customer) {
     return (

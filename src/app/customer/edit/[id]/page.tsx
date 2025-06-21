@@ -11,8 +11,8 @@ export default async function EditCustomerPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { customer } = await searchCustomersById(id);
-  
+  const customer = await searchCustomersById(id);
+
   if (!customer) {
     return (
       <div className="max-w-3xl mx-auto w-full px-4 py-6">
@@ -20,7 +20,6 @@ export default async function EditCustomerPage({
       </div>
     );
   }
-
 
   return (
     <>
