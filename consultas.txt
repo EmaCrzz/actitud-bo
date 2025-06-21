@@ -1,0 +1,59 @@
+-- Membresías activas
+SELECT c.first_name, c.last_name, cm.membership_type, cm.expiration_date
+FROM customers c
+JOIN customer_membership cm ON c.id = cm.customer_id
+WHERE cm.is_active = true;
+
+-- Membresías que vencen en los próximos 7 días
+SELECT c.first_name, c.last_name, cm.expiration_date
+FROM customers c
+JOIN customer_membership cm ON c.id = cm.customer_id
+WHERE cm.expiration_date BETWEEN now() AND now() + interval '7 days';
+
+-- Membresías vencidas
+SELECT c.first_name, c.last_name, cm.expiration_date
+FROM customers c
+JOIN customer_membership cm ON c.id = cm.customer_id
+WHERE cm.is_active = false AND cm.expiration_date IS NOT NULL;
+
+-- Obtener la membresía de un cliente específico
+SELECT cm.*, tm.type
+FROM customer_membership cm
+JOIN types_memberships tm ON cm.membership_type = tm.type
+WHERE cm.customer_id = 'abc-123-def';
+
+-- Todos los clientes con membresías activas
+SELECT c.first_name, c.last_name, cm.expiration_date
+FROM customers c
+JOIN customer_membership cm ON c.id = cm.customer_id
+WHERE cm.is_active = true;
+
+-- Membresías activas (calculado en tiempo real)
+SELECT 
+  c.first_name, 
+  c.last_name, 
+  cm.membership_type,
+  cm.expiration_date,
+  (cm.expiration_date IS NOT NULL AND cm.expiration_date > now()) as is_active
+FROM customers c
+JOIN customer_membership cm ON c.id = cm.customer_id
+WHERE cm.expiration_date IS NOT NULL AND cm.expiration_date > now();
+
+-- Membresías que vencen en 7 días
+SELECT 
+  c.first_name, 
+  c.last_name, 
+  cm.expiration_date,
+  (cm.expiration_date - now()) as time_until_expiration
+FROM customers c
+JOIN customer_membership cm ON c.id = cm.customer_id
+WHERE cm.expiration_date BETWEEN now() AND now() + interval '7 days';
+
+-- Membresías vencidas
+SELECT 
+  c.first_name, 
+  c.last_name, 
+  cm.expiration_date
+FROM customers c
+JOIN customer_membership cm ON c.id = cm.customer_id
+WHERE cm.expiration_date IS NOT NULL AND cm.expiration_date <= now();
