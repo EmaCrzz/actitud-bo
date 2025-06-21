@@ -29,9 +29,10 @@ Backoffice de actitud
 - [X] Implementar assistance count en cliente (trigger)
 - [X] Luego de registrar la asistencia voler al home
 - [X] Extender modelo de usuario para tener nombre y apellido
-- [ ] Implementar CRUD Cliente
-- [ ] Implementar crear cliente desde la busqueda en la home
-- [ ] Implementar crear cliente desde el listado de clientes
+- [X] Implementar upsert Cliente
+- [X] Implementar crear cliente desde la busqueda en la home
+- [X] Implementar crear cliente desde el listado de clientes
+- [ ] Implementar delete de cliente
 - [ ] Implementar inifinte scroll desde el listado de clientes
 - [ ] Implementar agregar pase adicional si la semana esta completa
 - [ ] Implementar delete de asistencia del dia
@@ -60,7 +61,7 @@ Backoffice de actitud
 
 ## 🐛 Bugs & Issues
 - [ ] Mostrar - en lugar de 0 en el home si no hay asistencias
-- [ ] [Descripción del bug #2]
+- [X] BTN crear cliente desalineado
 - [ ] [Descripción del bug #3]
 
 ## 💡 Ideas Futuras (Backlog)

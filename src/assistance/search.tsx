@@ -192,10 +192,13 @@ export default function AutocompleteInput() {
               )}
               <li
                 className={cn(
-                  "px-2 py-4 cursor-pointer flex items-center hover:bg-inputhover gap-2"
+                  "px-2 py-4 cursor-pointer hover:bg-inputhover gap-2"
                 )}
               >
-                <Link href={CUSTOMER_NEW}>
+                <Link
+                  href={CUSTOMER_NEW}
+                  className="flex justify-start gap-x-2 items-center"
+                >
                   <PlusRoundedIcon className="h-4 w-4 text-white/30" />
                   <span>Crear nuevo cliente</span>
                 </Link>

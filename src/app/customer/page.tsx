@@ -25,8 +25,8 @@ export default async function CustomerListPage() {
         </div>
       </header>
       <section className="max-w-3xl mx-auto w-full px-4 overflow-auto pb-4">
-        <Button variant={"link"} className="flex justify-start h-14 pl-0!">
-          <Link href={CUSTOMER_NEW}>
+        <Button variant={"link"} className="h-14 pl-0!">
+          <Link href={CUSTOMER_NEW} className="flex justify-start gap-x-2 items-center">
             <PlusRoundedIcon className="size-6" />
             <span>Crear nuevo cliente</span>
           </Link>
