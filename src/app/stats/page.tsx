@@ -8,6 +8,7 @@ import { HOME } from "@/consts/routes";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import ArrowLeftIcon from "@/components/icons/arrow-left";
+import FooterNavigation from "@/components/nav";
 
 // Mock data completamente independiente basado en tu esquema SQL
 const mockData = {
@@ -119,7 +120,7 @@ export default function DashboardStats() {
         </div>
       </header>
 
-      <section className="mt-6 px-4 max-w-3xl mx-auto w-full pb-4 grid gap-y-4">
+      <section className="mt-6 px-4 max-w-3xl mx-auto w-full pb-4 grid gap-y-4 overflow-auto">
         {/* Asistencias del día - Destacado */}
         <Card className="border-l-4 border-l-primary bg-gradient-to-r from-input to-inputhover">
           <CardHeader className="pb-3">
@@ -343,6 +344,7 @@ export default function DashboardStats() {
           <p className="text-xs text-gray-500">Última actualización: 14:30</p>
         </div>
       </section>
+      <FooterNavigation />
     </>
   );
 }
