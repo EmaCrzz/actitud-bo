@@ -32,6 +32,7 @@ export interface CustomerFormResponse {
     person_id?: string[]
     phone?: string[]
     email?: string[]
+    membership_type?: string[]
   }
 }
 
@@ -71,6 +72,10 @@ export async function upsertCustomer({ customerId, formData }: {
 
   if (phone && !/^\+?[\d\s\-$$$$]+$/.test(phone)) {
     errors.phone = ["El formato del teléfono no es válido"]
+  }
+
+  if (!membershipType) {
+    errors.membership_type = ["El tipo de membresía es requerido"]
   }
 
   // Si hay errores, retornarlos

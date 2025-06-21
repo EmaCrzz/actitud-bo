@@ -20,15 +20,21 @@ const getMemberships = async () => {
   return data || [];
 };
 
+interface Props {
+  name?: string;
+  defaultValue?: string;
+  className?: string;
+  isInvalid?: boolean;
+  helperText?: string;
+}
+
 export default function SelectMembershipHybrid({
   name = "membership_type",
   defaultValue,
   className,
-}: {
-  name?: string;
-  defaultValue?: string;
-  className?: string;
-}) {
+  helperText,
+  isInvalid = false,
+}: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [memberships, setMemberships] = useState<Membership[]>([]);
 
@@ -43,13 +49,15 @@ export default function SelectMembershipHybrid({
     value: membership.type,
     label: MembershipTranslation[membership.type],
   }));
-  
+
   if (isLoading) {
     return <Skeleton className="h-[54px] w-full" />;
   }
-  
+
   return (
     <HybridSelect
+      helperText={helperText}
+      isInvalid={isInvalid}
       options={options}
       name={name}
       defaultValue={defaultValue}

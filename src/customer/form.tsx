@@ -42,8 +42,6 @@ export default function CustomerForm({
     }
   };
 
-  console.log({ errors });
-
   return (
     <>
       <form onSubmit={handleSubmit} id="form-edit">
@@ -59,6 +57,8 @@ export default function CustomerForm({
                 Nombre
               </Label>
               <Input
+                isInvalid={!!errors?.first_name}
+                helperText={errors?.first_name?.[0]}
                 name={"first_name"}
                 defaultValue={customer?.first_name || ""}
                 className="w-full font-light"
@@ -70,6 +70,8 @@ export default function CustomerForm({
               </Label>
               <Input
                 name={"last_name"}
+                isInvalid={!!errors?.last_name}
+                helperText={errors?.last_name?.[0]}
                 defaultValue={customer?.last_name || ""}
                 className="w-full font-light"
               />
@@ -80,6 +82,8 @@ export default function CustomerForm({
               </Label>
               <PersonIdInput
                 name={"person_id"}
+                isInvalid={!!errors?.person_id}
+                helperText={errors?.person_id?.[0]}
                 defaultValue={customer?.person_id || ""}
                 className="w-full font-light"
               />
@@ -94,6 +98,8 @@ export default function CustomerForm({
                   customer?.customer_membership?.membership_type || ""
                 }
                 className="font-light"
+                isInvalid={!!errors?.membership_type}
+                helperText={errors?.membership_type?.[0]}
               />
             </div>
             <div className="grid gap-y-2">

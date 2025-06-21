@@ -1,15 +1,18 @@
+import type * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 
-import type * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
+import { InfoIcon } from "lucide-react";
 
 const inputVariants = cva(
   "placeholder:text-muted-foreground selection:text-primary-foreground flex w-full min-w-0 text-base transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm autofill:bg-yellow-200! px-2 py-4",
   {
     variants: {
       variant: {
-        default: ["border border-borderinput shadow-xs rounded-[4px] bg-input", "focus-within:border-inputactive"],
+        default: [
+          "border border-borderinput shadow-xs rounded-[4px] bg-input",
+          "focus-within:border-inputactive",
+        ],
         line: [
           "border-0 border-b-[0.5px] border-b-primary200 bg-transparent rounded-none hover:border-b-primary",
           "focus-within:border-b-primary focus-within:border-b-primary",
@@ -19,8 +22,8 @@ const inputVariants = cva(
     defaultVariants: {
       variant: "default",
     },
-  },
-)
+  }
+);
 
 const inputFieldVariants = cva(
   "flex-1 bg-transparent border-0 outline-none placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
@@ -51,50 +54,162 @@ const inputFieldVariants = cva(
       variant: "default",
       hasComponentLeft: false,
     },
-  },
-)
+  }
+);
 
 export interface InputProps
   extends Omit<React.ComponentProps<"input">, "className">,
     VariantProps<typeof inputVariants> {
-  className?: string
-  componentLeft?: React.ReactNode
-  componentRight?: React.ReactNode
+  className?: string;
+  componentLeft?: React.ReactNode;
+  componentRight?: React.ReactNode;
+  helperText?: string;
+  isInvalid?: boolean;
 }
 
-function Input({ className, variant, componentLeft, componentRight, type, ...props }: InputProps) {
-
-  if( componentLeft && componentRight) {
+function Input({
+  className,
+  variant,
+  componentLeft,
+  componentRight,
+  type,
+  helperText,
+  isInvalid,
+  ...props
+}: InputProps) {
+  if (componentLeft && componentRight) {
     return (
-      <div className={cn(inputVariants({ variant }), "items-center gap-2", className)} data-slot="input-wrapper">
-        <div className="flex items-center justify-center text-muted-foreground shrink-0">{componentLeft}</div>
-        <input autoComplete="off" type={type} className={cn(inputFieldVariants({ variant, hasComponentLeft: true }))} {...props} />
-        <div className="flex items-center justify-center text-muted-foreground shrink-0">{componentRight}</div>
+      <div
+        className={cn(
+          inputVariants({ variant }),
+          "items-center gap-2",
+          className
+        )}
+        data-slot="input-wrapper"
+      >
+        <div className="flex items-center justify-center text-muted-foreground shrink-0">
+          {componentLeft}
+        </div>
+        <input
+          autoComplete="off"
+          type={type}
+          className={cn(
+            inputFieldVariants({ variant, hasComponentLeft: true })
+          )}
+          {...props}
+        />
+        <div className="flex items-center justify-center text-muted-foreground shrink-0">
+          {componentRight}
+        </div>
+        {helperText && (
+          <small
+            className={cn(
+              "text-xs font-light flex gap-1 pt-1",
+              isInvalid ? "text-destructive" : "text-muted-foreground"
+            )}
+          >
+            {isInvalid ? <InfoIcon className="size-4" /> : null}
+            {helperText}
+          </small>
+        )}
       </div>
-    )
+    );
   }
 
   if (componentLeft) {
     return (
-      <div className={cn(inputVariants({ variant }), "items-center gap-2", className)} data-slot="input-wrapper">
-        <div className="flex items-center justify-center text-muted-foreground shrink-0">{componentLeft}</div>
-        <input autoComplete="off" type={type} className={cn(inputFieldVariants({ variant, hasComponentLeft: true }))} {...props} />
+      <div
+        className={cn(
+          inputVariants({ variant }),
+          "items-center gap-2",
+          className
+        )}
+        data-slot="input-wrapper"
+      >
+        <div className="flex items-center justify-center text-muted-foreground shrink-0">
+          {componentLeft}
+        </div>
+        <input
+          autoComplete="off"
+          type={type}
+          className={cn(
+            inputFieldVariants({ variant, hasComponentLeft: true })
+          )}
+          {...props}
+        />
+        {helperText && (
+          <small
+            className={cn(
+              "text-xs font-light flex gap-1 pt-1",
+              isInvalid ? "text-destructive" : "text-muted-foreground"
+            )}
+          >
+            {isInvalid ? <InfoIcon className="size-4" /> : null}
+            {helperText}
+          </small>
+        )}
       </div>
-    )
+    );
   }
 
   if (componentRight) {
     return (
-      <div className={cn(inputVariants({ variant }), "items-center gap-2", className)} data-slot="input-wrapper">
-        <input autoComplete="off" type={type} className={cn(inputFieldVariants({ variant, hasComponentLeft: false }))} {...props} />
-        <div className="flex items-center justify-center text-muted-foreground shrink-0">{componentRight}</div>
+      <div
+        className={cn(
+          inputVariants({ variant }),
+          "items-center gap-2",
+          className
+        )}
+        data-slot="input-wrapper"
+      >
+        <input
+          autoComplete="off"
+          type={type}
+          className={cn(
+            inputFieldVariants({ variant, hasComponentLeft: false })
+          )}
+          {...props}
+        />
+        <div className="flex items-center justify-center text-muted-foreground shrink-0">
+          {componentRight}
+        </div>
+        {helperText && (
+          <small
+            className={cn(
+              "text-xs font-light flex gap-1 pt-1",
+              isInvalid ? "text-destructive" : "text-muted-foreground"
+            )}
+          >
+            {isInvalid ? <InfoIcon className="size-4" /> : null}
+            {helperText}
+          </small>
+        )}
       </div>
-    )
+    );
   }
 
-
-
-  return <input autoComplete="off" type={type} data-slot="input" className={cn(inputVariants({ variant }), className)} {...props} />
+  return (
+    <div>
+      <input
+        autoComplete="off"
+        type={type}
+        data-slot="input"
+        className={cn(inputVariants({ variant }), className)}
+        {...props}
+      />
+      {helperText && (
+        <small
+          className={cn(
+            "text-xs font-light flex gap-1 pt-1",
+            isInvalid ? "text-destructive" : "text-muted-foreground"
+          )}
+        >
+          {isInvalid ? <InfoIcon className="size-4" /> : null}
+          {helperText}
+        </small>
+      )}
+    </div>
+  );
 }
 
-export { Input, inputVariants }
+export { Input, inputVariants };

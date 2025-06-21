@@ -8,6 +8,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import { InfoIcon } from "lucide-react";
 
 interface HybridSelectProps {
   options: Array<{ value: string; label: string }>;
@@ -15,6 +17,8 @@ interface HybridSelectProps {
   defaultValue?: string;
   placeholder?: string;
   className?: string;
+  isInvalid?: boolean;
+  helperText?: string;
 }
 
 export function HybridSelect({
@@ -23,11 +27,13 @@ export function HybridSelect({
   defaultValue,
   placeholder,
   className,
+  helperText,
+  isInvalid = false,
 }: HybridSelectProps) {
   const [value, setValue] = React.useState(defaultValue || "");
 
   return (
-    <>
+    <div>
       {/* Hidden input para el formulario no controlado */}
       <input type="hidden" name={name} value={value} />
 
@@ -44,6 +50,17 @@ export function HybridSelect({
           ))}
         </SelectContent>
       </Select>
-    </>
+      {helperText && (
+        <small
+          className={cn(
+            "text-xs font-light flex gap-1 pt-1",
+            isInvalid ? "text-destructive" : "text-muted-foreground"
+          )}
+        >
+          {isInvalid ? <InfoIcon className="size-4" /> : null}
+          {helperText}
+        </small>
+      )}
+    </div>
   );
 }

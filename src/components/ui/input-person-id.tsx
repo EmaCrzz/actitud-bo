@@ -1,11 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { Input } from "@/components/ui/input"
+import { Input, InputProps } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { formatPersonId } from "@/lib/format-person-id"
 
-export interface PersonIdInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface PersonIdInputProps extends InputProps {
   onPersonIdChange?: (formattedValue: string, rawValue: string) => void
 }
 
