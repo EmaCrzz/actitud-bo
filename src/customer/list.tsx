@@ -35,11 +35,11 @@ export default function ListCustomers({ customers }: Props) {
 
   return (
     <>
-      <div className="bg-background sticky top-0 pb-1">
+      <div className="bg-background sticky top-0 pb-1 mt-6">
         <Input
           value={query}
           onChange={onChange}
-          className="py-2 pl-0 mt-6"
+          className="py-2 pl-0 mb-0"
           autoComplete={"off"}
           variant={"line"}
           placeholder="Búsqueda de clientes"

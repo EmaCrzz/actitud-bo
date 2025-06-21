@@ -126,7 +126,8 @@ function Input({
         !isInvalid && !helperText ? "mb-[20px]" : "",
         hasComponents
           ? inputFieldVariants({ variant, hasComponentLeft: !!componentLeft })
-          : inputVariants({ variant })
+          : inputVariants({ variant }),
+          className
       )}
       data-slot={hasComponents ? undefined : "input"}
       {...props}
