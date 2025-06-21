@@ -40,7 +40,7 @@ export default function AutocompleteInput() {
     setSelectedValue(option.id);
     setIsOpen(false);
     setHighlightedIndex(-1);
-    // inputRef.current?.focus();
+    inputRef.current?.focus();
   };
 
   const handleClear = () => {
@@ -128,11 +128,6 @@ export default function AutocompleteInput() {
               value={inputValue}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              onFocus={() => {
-                if (inputValue.length > 0) {
-                  setIsOpen(true);
-                }
-              }}
               className="w-full font-light"
             />
             {inputValue && (

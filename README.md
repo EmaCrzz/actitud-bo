@@ -62,7 +62,7 @@ Backoffice de actitud
 ## 🐛 Bugs & Issues
 - [ ] Mostrar - en lugar de 0 en el home si no hay asistencias
 - [X] BTN crear cliente desalineado
-- [ ] [Descripción del bug #3]
+- [X] Buscar un cliente que no existe, limpiar el input, queda el menu desplegado con el mensaje de que no se encontraron clientes
 
 ## 💡 Ideas Futuras (Backlog)
 - [ ] Crear dashboard de analytics
