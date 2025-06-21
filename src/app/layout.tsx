@@ -14,6 +14,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <meta name="apple-mobile-web-app-title" content="Actitud" />
+      </head>
       <body className="h-screen grid grid-rows-[auto_1fr_auto]">
         {children}
         <Toaster />

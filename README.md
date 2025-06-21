@@ -48,6 +48,11 @@ Backoffice de actitud
 - [ ] Componentizar el btn de volver atras con el texto y la ruta
 - [ ] Implementar page 404 cuando vamos a un cliente con un id no valido
 
+## 📱 PWA (In Progress)
+- [ ] Crear manifest
+- [ ] Crear SW
+- [ ] Crear notificaciones
+
 ## 🎨 Frontend
 - [X] Estilar correctamente el input y select para mostrar el error o helpertext sin saltos en la pantalla
 - [ ] Estilar toast
