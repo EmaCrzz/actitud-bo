@@ -24,7 +24,7 @@ const navigationItems = [
     id: ROUTES.STATS,
     icon: StatsIcon,
     href: ROUTES.STATS,
-    disabled: true,
+    disabled: false,
   },
   {
     id: ROUTES.CUSTOMER_NEW,

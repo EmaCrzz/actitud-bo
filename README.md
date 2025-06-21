@@ -49,7 +49,7 @@ Backoffice de actitud
 - [ ] Implementar page 404 cuando vamos a un cliente con un id no valido
 
 ## 🎨 Frontend
-- [ ] Estilar correctamente el input y select para mostrar el error o helpertext sin saltos en la pantalla
+- [X] Estilar correctamente el input y select para mostrar el error o helpertext sin saltos en la pantalla
 - [ ] Estilar toast
 - [ ] Añadir animaciones/transiciones
 
