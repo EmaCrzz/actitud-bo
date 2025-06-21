@@ -51,7 +51,7 @@ export default function CustomerForm({
               ? "Puedes modificar el formulario para actualizar la información de este cliente."
               : "Completá el formulario para dar de alta un nuevo cliente."}
           </h3>
-          <div className="grid gap-y-8">
+          <div className="grid gap-y-4">
             <div className="grid gap-y-2">
               <Label className="font-light" htmlFor="assistance">
                 Nombre

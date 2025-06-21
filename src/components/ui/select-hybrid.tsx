@@ -33,7 +33,7 @@ export function HybridSelect({
   const [value, setValue] = React.useState(defaultValue || "");
 
   return (
-    <div>
+    <div className={cn(!isInvalid && !helperText ? "mb-[20px]" : "")}>
       {/* Hidden input para el formulario no controlado */}
       <input type="hidden" name={name} value={value} />
 
