@@ -11,6 +11,7 @@ import {
   getTotalAssistancesToday,
   getTodayAssistances,
 } from "@/assistance/api/server";
+import { formatPersonId } from "@/lib/format-person-id";
 
 // Mock data completamente independiente basado en tu esquema SQL
 const mockData = {
@@ -179,7 +180,7 @@ export default async function DashboardStats() {
                       {customer.first_name} {customer.last_name}
                     </p>
                     <p className="text-xs text-gray-500">
-                      DNI: {customer.person_id}
+                      DNI: {formatPersonId(customer.person_id)}
                     </p>
                   </div>
                 </div>
@@ -189,7 +190,6 @@ export default async function DashboardStats() {
           </CardContent>
         </Card>
 
-        {/* Top Asistentes del Mes */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-white/70">
