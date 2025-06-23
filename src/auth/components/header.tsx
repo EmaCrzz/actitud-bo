@@ -43,7 +43,7 @@ export default async function AuthHeader() {
       <div className="relative">
         <MenuAuth>
           <Avatar className="size-12">
-            {avatarUrl && <AvatarImage src={avatarUrl} alt={data.user.email} />}
+            {avatarUrl && <AvatarImage className="object-cover" src={avatarUrl} alt={data.user.email} />}
             <AvatarFallback className="font-medium text-xs">
               {avatarFallback}
             </AvatarFallback>

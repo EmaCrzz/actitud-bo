@@ -1,14 +1,16 @@
-"use client";
-
 import type React from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Users, TrendingUp, Award, Activity } from "lucide-react";
+import { Calendar, Users, TrendingUp, Award } from "lucide-react";
 import { HOME } from "@/consts/routes";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import ArrowLeftIcon from "@/components/icons/arrow-left";
 import FooterNavigation from "@/components/nav";
+import {
+  getTotalAssistancesToday,
+  getTodayAssistances,
+} from "@/assistance/api/server";
 
 // Mock data completamente independiente basado en tu esquema SQL
 const mockData = {
@@ -89,7 +91,10 @@ function Progress({
   );
 }
 
-export default function DashboardStats() {
+export default async function DashboardStats() {
+  const count = await getTotalAssistancesToday();
+  const data = await getTodayAssistances();
+
   const currentMonth =
     mockData.monthlyComparison[mockData.monthlyComparison.length - 1];
   const previousMonth =
@@ -106,6 +111,12 @@ export default function DashboardStats() {
   const maxMonthlyValue = Math.max(
     ...mockData.monthlyComparison.map((m) => m.memberships)
   );
+
+  const today = new Intl.DateTimeFormat("es-ES", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(new Date());
 
   return (
     <>
@@ -131,17 +142,15 @@ export default function DashboardStats() {
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="text-3xl font-bold text-primary">
-              {mockData.todayAssistances.count}
+              {count === 0 ? "-" : count}
             </div>
-            <p className="text-sm text-gray-600">
-              {mockData.todayAssistances.date}
-            </p>
-            <div className="flex items-center gap-2">
+            <p className="text-sm text-gray-600">{today}</p>
+            {/* <div className="flex items-center gap-2">
               <Activity className="h-4 w-4 text-green-600" />
               <span className="text-sm text-green-600 font-medium">
                 +{mockData.todayAssistances.growth}% vs ayer
               </span>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
 
@@ -150,7 +159,42 @@ export default function DashboardStats() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-white/70">
               <Award className="h-5 w-5 text-yellow-600" />
-              Top Asistentes del Mes
+              Asistencias del dia
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {data.customers.map((customer, index) => (
+              <div
+                key={customer.person_id}
+                className="flex items-center justify-between p-3 bg-inputhover rounded"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-8 h-8 bg-primary200 rounded-full">
+                    <span className="text-sm font-bold text-white/70">
+                      #{index + 1}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-300">
+                      {customer.first_name} {customer.last_name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      DNI: {customer.person_id}
+                    </p>
+                  </div>
+                </div>
+                {/* <Badge>{assistant.count} días</Badge> */}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Top Asistentes del Mes */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white/70">
+              <Award className="h-5 w-5 text-yellow-600" />
+              Top Asistentes del Mes (fake)
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -185,7 +229,7 @@ export default function DashboardStats() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-white/70">
               <Users className="h-5 w-5 text-primary" />
-              Membresías por Tipo
+              Membresías por Tipo (fake)
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -218,7 +262,7 @@ export default function DashboardStats() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-white/70">
               <TrendingUp className="h-5 w-5 text-green-600" />
-              Evolución Mensual
+              Evolución Mensual (fake)
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -286,7 +330,7 @@ export default function DashboardStats() {
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-indigo-600">80</div>
-              <p className="text-sm text-gray-600">Clientes Totales</p>
+              <p className="text-sm text-gray-600">Clientes Totales (fake)</p>
             </CardContent>
           </Card>
           <Card>
@@ -302,7 +346,7 @@ export default function DashboardStats() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-orange-700">
               <Calendar className="h-5 w-5" />
-              Vencimientos Próximos
+              Vencimientos Próximos (fake)
             </CardTitle>
           </CardHeader>
           <CardContent>
