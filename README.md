@@ -42,9 +42,8 @@ Backoffice de actitud
 - [ ] Implementar cierre de sesion
 - [ ] Implementar mensaje de error cuando algun dato del login esta mal
 - [ ] Implementar rol admin
-- [ ] Verificar como hacer una funcion que inserte datos en mas de una tabla
 - [ ] Implementar pantalla asistencias del dia
-- [ ] Implementar pantalla de estadisticas en progreso
+- [X] Implementar pantalla de estadisticas en progreso
 - [ ] Componentizar el btn de volver atras con el texto y la ruta
 - [ ] Implementar page 404 cuando vamos a un cliente con un id no valido
 

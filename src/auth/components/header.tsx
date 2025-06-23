@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import IsoBlanco from "@/assets/logos/blanco/iso";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import MenuAuth from "@/auth/components/menu";
 
 export default async function AuthHeader() {
   const supabase = await createClient();
@@ -40,12 +41,15 @@ export default async function AuthHeader() {
         </div>
       </div>
       <div className="relative">
-        <Avatar className="size-12">
-          {avatarUrl && <AvatarImage src={avatarUrl} alt={data.user.email} />}
-          <AvatarFallback className="font-medium text-xs">
-            {avatarFallback}
-          </AvatarFallback>
-        </Avatar>
+        <MenuAuth>
+          <Avatar className="size-12">
+            {avatarUrl && <AvatarImage src={avatarUrl} alt={data.user.email} />}
+            <AvatarFallback className="font-medium text-xs">
+              {avatarFallback}
+            </AvatarFallback>
+          </Avatar>
+        </MenuAuth>
+
         <div className="absolute left-2 bottom-0 size-2 bg-green-400 rounded-full" />
       </div>
     </header>

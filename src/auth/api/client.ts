@@ -13,7 +13,7 @@ export async function signUp({ email, password }: SignUp) {
     email,
     password,
   });
-
+  
   if (error) {
     throw new Error(error.message)
   }
@@ -21,6 +21,14 @@ export async function signUp({ email, password }: SignUp) {
   return { success: true, message: "User signed up successfully" }
 }
 
+export async function signOut() {
+  const supabase = createClient();
+  const { error } = await supabase.auth.signOut()
+  
+  if (error) {
+    throw new Error(error.message)
+  }
+}
 
 // Actualizar perfil
 export async function updateProfile(userId: string, updates: Partial<Profile>) {
