@@ -10,7 +10,7 @@ import { CustomerComplete } from "@/customer/types";
 import { HOME } from "@/consts/routes";
 import { useRouter } from "next/navigation";
 import { Alert, AlertTitle } from "@/components/ui/alert";
-import { AlertCircleIcon, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 export default function CustomerAssistance({
   customer,
