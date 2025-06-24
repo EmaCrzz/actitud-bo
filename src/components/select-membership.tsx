@@ -6,6 +6,7 @@ import {
 } from "@/assistance/consts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HybridSelect } from "@/components/ui/select-hybrid";
+import { useMediaQuery } from "usehooks-ts";
 
 type Membership = {
   id: number;
@@ -37,6 +38,7 @@ export default function SelectMembershipHybrid({
 }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [memberships, setMemberships] = useState<Membership[]>([]);
+  const isLargerThan430 = useMediaQuery("(min-width: 430px)");
 
   useEffect(() => {
     getMemberships().then((data) => {
@@ -61,7 +63,7 @@ export default function SelectMembershipHybrid({
       options={options}
       name={name}
       defaultValue={defaultValue}
-      placeholder="Selecciona un tipo de membresía"
+      placeholder={isLargerThan430 ? "Selecciona un tipo de membresía" : "Tipo de membresía"}
       className={className}
     />
   );

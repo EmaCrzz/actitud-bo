@@ -1,6 +1,6 @@
 "use client";
 
-import {  CustomerWithMembership } from "@/customer/types";
+import { CustomerWithMembership } from "@/customer/types";
 import { useMemo, useState } from "react";
 import SearchIcon from "@/components/icons/search";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import EyeIcon from "@/components/icons/eye";
 import { X } from "lucide-react";
 import Link from "next/link";
 import { CUSTOMER } from "@/consts/routes";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {
   customers: CustomerWithMembership[];
@@ -35,7 +36,7 @@ export default function ListCustomers({ customers }: Props) {
 
   return (
     <>
-      <div className="bg-background sticky top-0 pb-1 mt-6">
+      <div className="bg-background sticky top-0 pb-1 mt-2 sm:mt-6">
         <Input
           value={query}
           onChange={onChange}
@@ -95,6 +96,43 @@ export default function ListCustomers({ customers }: Props) {
               </li>
             );
           })}
+      </ul>
+    </>
+  );
+}
+
+export function CustomerListLoading() {
+  return (
+    <>
+      <div className="bg-background sticky top-0 pb-1 mt-6">
+        <Input
+          className="py-2 pl-0 mb-0"
+          autoComplete={"off"}
+          variant={"line"}
+          disabled
+          placeholder="Búsqueda de clientes"
+          componentLeft={<SearchIcon className="size-6 text-primary200" />}
+        />
+      </div>
+      <ul className="mt-6">
+        {Array.from({ length: 10 }).map((_, index) => {
+          const isLast = index === 9;
+          return (
+            <li
+              key={index}
+              className={cn(
+                "grid grid-cols-[1fr_auto] border-b-[0.5px] px-2 py-1 items-center",
+                isLast && "border-b-0"
+              )}
+            >
+              <div className="grid grid-cols-1">
+                <Skeleton className="h-5 w-3/4 sm:w-2/4 mb-2" />
+                <Skeleton className="h-5 w-2/4 sm:w-1/4" />
+              </div>
+              <Skeleton className="h-6 w-6 rounded-full" />
+            </li>
+          );
+        })}
       </ul>
     </>
   );

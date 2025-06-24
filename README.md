@@ -38,6 +38,7 @@ Backoffice de actitud
 - [ ] Implementar inifinte scroll desde el listado de clientes
 - [ ] Implementar delete de cliente
 - [ ] Implementar rol admin
+- [ ] Verificar porque la fuente no se ve en mobiles
 - [X] Implementar cierre de sesion
 - [X] Validar e informar alta de asistencia del dia si ya fue creada
 - [X] Implementar constantes para las rutas

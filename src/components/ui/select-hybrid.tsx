@@ -33,14 +33,19 @@ export function HybridSelect({
   const [value, setValue] = React.useState(defaultValue || "");
 
   return (
-    <div className={cn(!isInvalid && !helperText ? "mb-[20px]" : "")}>
+    <div className={cn("w-full", !isInvalid && !helperText ? "mb-[20px]" : "")}>
       {/* Hidden input para el formulario no controlado */}
       <input type="hidden" name={name} value={value} />
 
-      {/* Select visual de shadcn/ui */}
       <Select value={value} onValueChange={setValue}>
-        <SelectTrigger className={className}>
-          <SelectValue placeholder={placeholder} />
+        <SelectTrigger
+          className={cn(
+            "w-full max-w-full", // Asegura que no exceda el ancho del contenedor
+            isInvalid && "border-red-500",
+            className
+          )}
+        >
+          <SelectValue placeholder={placeholder} className="truncate max-w-full" />
         </SelectTrigger>
         <SelectContent>
           {options.map((option) => (

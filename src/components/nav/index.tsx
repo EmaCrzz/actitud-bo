@@ -8,6 +8,7 @@ import PersonPlus from "@/components/icons/person-plus";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { ROUTES } from "@/consts/routes";
+import { LucideListChecks } from "lucide-react";
 
 const navigationItems = [
   {
@@ -32,13 +33,19 @@ const navigationItems = [
     href: ROUTES.CUSTOMER_NEW,
     disabled: false,
   },
+  {
+    id: ROUTES.ASSISTANCES,
+    icon: LucideListChecks,
+    href: ROUTES.ASSISTANCES,
+    disabled: false,
+  },
 ];
 
 export default function FooterNavigation() {
   const pathname = usePathname();
 
   return (
-    <nav className="p-4 pb-9 safe-area-pb shadow-[0px_0px_8px_0px_rgba(255,255,255,0.30)] rounded-t-[8px]">
+    <nav className="p-4 pb-6 sm:pb-9 safe-area-pb shadow-[0px_0px_8px_0px_rgba(255,255,255,0.30)] rounded-t-[8px]">
       <div className="max-w-3xl mx-auto">
         <ul className="flex justify-around items-center">
           {navigationItems.map(({ icon, id, disabled, href }) => {
@@ -59,13 +66,17 @@ export default function FooterNavigation() {
                 >
                   {disabled && (
                     <Icon
-                      className={cn("size-8 transition-all duration-200")}
+                      className={cn(
+                        "size-6 sm:size-8 transition-all duration-200"
+                      )}
                     />
                   )}
                   {!disabled && (
                     <Link href={href}>
                       <Icon
-                        className={cn("size-8 transition-all duration-200")}
+                        className={cn(
+                          "size-6 sm:size-8 transition-all duration-200"
+                        )}
                       />
                     </Link>
                   )}

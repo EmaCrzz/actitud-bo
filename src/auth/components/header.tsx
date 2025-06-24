@@ -30,14 +30,14 @@ export default async function AuthHeader() {
   }).format(new Date());
 
   return (
-    <header className="max-w-3xl mx-auto w-full px-4 flex justify-between items-center pt-4">
+    <header className="max-w-3xl mx-auto w-full px-4 flex gap-2 justify-between items-center pt-4">
       <div className="flex gap-4 items-center">
-        <div className="size-14 rounded-full bg-primary">
-          <IsoBlanco className="size-14" />
+        <div className="size-12 sm:size-14 rounded-full bg-primary">
+          <IsoBlanco className="size-12 sm:size-14" />
         </div>
         <div>
-          <h3 className="font-medium text-sm">Hola, {fullName}</h3>
-          <p className="font-medium text-xs capitalize">{today}</p>
+          <h3 className="font-medium text-xs sm:text-sm">Hola, {fullName}</h3>
+          <p className="font-medium text-xs sm:text-sm capitalize">{today}</p>
         </div>
       </div>
       <div className="relative">

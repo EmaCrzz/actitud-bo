@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { InfoIcon } from "lucide-react";
 
 const inputVariants = cva(
-  "placeholder:text-muted-foreground selection:text-primary-foreground flex w-full min-w-0 text-base transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm px-2 py-4",
+  "placeholder:text-muted-foreground selection:text-primary-foreground flex w-full min-w-0 text-base transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm px-2 py-3 sm:py-4",
   {
     variants: {
       variant: {

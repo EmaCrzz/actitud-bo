@@ -155,7 +155,7 @@ export default async function DashboardStats() {
           </CardContent>
         </Card>
 
-        {/* Top Asistentes del Mes */}
+        {/* Top Asistentes del dia */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-white/70">

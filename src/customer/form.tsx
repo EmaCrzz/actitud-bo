@@ -119,11 +119,11 @@ export default function CustomerForm({
           </div>
         </section>
       </form>
-      <footer className="flex justify-between max-w-3xl mx-auto w-full px-4 pb-9">
+      <footer className="flex justify-between max-w-3xl gap-2 mx-auto w-full px-4 pb-9">
         <Button
           loading={loading}
           onClick={() => router.back()}
-          className="w-44 h-14"
+          className="w-36 h-12 sm:w-44 sm:h-14"
           variant="outline"
         >
           Cancelar
@@ -132,7 +132,7 @@ export default function CustomerForm({
           loading={loading}
           type="submit"
           form="form-edit"
-          className="w-44 h-14"
+          className="w-36 h-12 sm:w-44 sm:h-14"
         >
           Guardar
         </Button>
