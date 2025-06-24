@@ -26,6 +26,7 @@ Backoffice de actitud
 - [X] Implementar autenticación de usuarios
 
 ## 🔧 Desarrollo (In Progress)
+- [ ] Verificar proteccion de todas las rutas de la app 🔝 🚩
 - [X] Implementar constantes para las rutas
 - [X] Implementar assistance count en cliente (trigger)
 - [X] Luego de registrar la asistencia voler al home

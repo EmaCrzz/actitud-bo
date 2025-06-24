@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
-import { Profile } from "@/auth/types";
+import { UserProfile } from "@/auth/types";
 
 interface SignUp {
   email: string;
@@ -31,7 +31,7 @@ export async function signOut() {
 }
 
 // Actualizar perfil
-export async function updateProfile(userId: string, updates: Partial<Profile>) {
+export async function updateProfile(userId: string, updates: Partial<UserProfile>) {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("profile")
