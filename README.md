@@ -27,18 +27,18 @@ Backoffice de actitud
 
 ## 🔧 Desarrollo (In Progress)
 - [ ] Verificar proteccion de todas las rutas de la app 🔝 🚩
+- [ ] Implementar pantalla asistencias del dia
 - [ ] Implementar registar primera asistencia al momento de crear cliente
-- [ ] Implementar delete de cliente
-- [ ] Implementar inifinte scroll desde el listado de clientes
 - [ ] Implementar agregar pase adicional si la semana esta completa
 - [ ] Implementar delete de asistencia del dia
-- [ ] Implementar cierre de sesion
 - [ ] Implementar mensaje de error cuando algun dato del login esta mal
-- [ ] Implementar rol admin
-- [ ] Implementar pantalla asistencias del dia
 - [ ] Componentizar el btn de volver atras con el texto y la ruta
 - [ ] Implementar page 404 cuando vamos a un cliente con un id no valido
 - [ ] Implementar ordenamiento de cliente con prioridad de los que tienen membresia activa
+- [ ] Implementar inifinte scroll desde el listado de clientes
+- [ ] Implementar delete de cliente
+- [ ] Implementar rol admin
+- [X] Implementar cierre de sesion
 - [X] Validar e informar alta de asistencia del dia si ya fue creada
 - [X] Implementar constantes para las rutas
 - [X] Implementar assistance count en cliente (trigger)
