@@ -1,7 +1,7 @@
 import type React from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Users, TrendingUp, Award } from "lucide-react";
+import { Calendar, Users, TrendingUp, Award, CalendarCheck } from "lucide-react";
 import { HOME } from "@/consts/routes";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -12,6 +12,7 @@ import {
   getTodayAssistances,
 } from "@/assistance/api/server";
 import { formatPersonId } from "@/lib/format-person-id";
+import { DateDisplay } from "@/components/date-display";
 
 // Mock data completamente independiente basado en tu esquema SQL
 const mockData = {
@@ -94,7 +95,7 @@ function Progress({
 
 export default async function DashboardStats() {
   const count = await getTotalAssistancesToday();
-  const data = await getTodayAssistances();
+  const assistances = await getTodayAssistances();
 
   const currentMonth =
     mockData.monthlyComparison[mockData.monthlyComparison.length - 1];
@@ -156,18 +157,24 @@ export default async function DashboardStats() {
         </Card>
 
         {/* Top Asistentes del dia */}
-        <Card>
-          <CardHeader>
+        <Card className="py-4 sm:py-6">
+          <CardHeader className="px-4 sm:px-6">
             <CardTitle className="flex items-center gap-2 text-white/70">
-              <Award className="h-5 w-5 text-yellow-600" />
+              <CalendarCheck className="h-5 w-5 text-yellow-600" />
               Asistencias del dia
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {data.customers.map((customer, index) => (
+          <CardContent className="space-y-3 px-4 sm:px-6">
+            {assistances.length === 0 && (
+              <div className="text-center text-gray-500">
+                <p className="text-sm">No hay asistencias registradas hoy.</p>
+              </div>
+            )}
+
+            {assistances.map((item, index) => (
               <div
-                key={customer.person_id}
-                className="flex items-center justify-between p-3 bg-inputhover rounded"
+                key={item.id}
+                className="flex items-center justify-between p-2 sm:p-3 bg-inputhover rounded"
               >
                 <div className="flex items-center gap-3">
                   <div className="flex items-center justify-center w-8 h-8 bg-primary200 rounded-full">
@@ -177,14 +184,14 @@ export default async function DashboardStats() {
                   </div>
                   <div>
                     <p className="font-medium text-gray-300">
-                      {customer.first_name} {customer.last_name}
+                      {item.customers.first_name} {item.customers.last_name}
                     </p>
-                    <p className="text-xs text-gray-500">
-                      DNI: {formatPersonId(customer.person_id)}
-                    </p>
+                    <DateDisplay className="text-xs text-gray-500" 
+                      date={item.assistance_date}
+                      format="relative" 
+                      />
                   </div>
                 </div>
-                {/* <Badge>{assistant.count} días</Badge> */}
               </div>
             ))}
           </CardContent>

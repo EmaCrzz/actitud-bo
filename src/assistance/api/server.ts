@@ -81,8 +81,7 @@ export async function getAssistancesByDate(date: Date): Promise<AssistanceByDate
     .gte("assistance_date", startOfDay.toISOString())
     .lte("assistance_date", endOfDay.toISOString())
     .order("assistance_date", { ascending: false })
-    console.log({data});
-    
+
   const assistances = data as unknown as AssistanceByDate[]
 
   if (error) {
