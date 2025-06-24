@@ -5,6 +5,7 @@ interface Porps {
   membershipType: MembershipType;
   assistanceCount?: number;
   selectedDay?: string;
+  isDisabled?: boolean;
   handleSelectedDay?: (day: string) => void;
 }
 
@@ -12,6 +13,7 @@ export default function CustomerCounter({
   membershipType,
   assistanceCount = 1,
   selectedDay = undefined,
+  isDisabled = false,
   handleSelectedDay,
 }: Porps) {
   const items = membershipType === "MEMBERSHIP_TYPE_5_DAYS" ? 5 : 3;
@@ -23,7 +25,7 @@ export default function CustomerCounter({
         {Array.from({ length: items }).map((_, index) => {
           const isChecked =
             index < assistanceCount || index + 1 === Number(selectedDay);
-          const enabled = assistanceCount + 1 === index + 1;
+          const enabled = assistanceCount + 1 === index + 1 && !isDisabled;
 
           return (
             <span

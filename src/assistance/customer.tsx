@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { CustomerComplete } from "@/customer/types";
 import { HOME } from "@/consts/routes";
 import { useRouter } from "next/navigation";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { AlertCircleIcon } from "lucide-react";
 
 export default function CustomerAssistance({
   customer,
@@ -17,8 +19,8 @@ export default function CustomerAssistance({
 }) {
   const [isPending, setIsPending] = useState(false);
   const [daySelected, setDaySelected] = useState<string>();
-  const router = useRouter()
-  
+  const router = useRouter();
+
   const handleSelectedDay = (day: string) => {
     setDaySelected(day);
   };
@@ -36,24 +38,38 @@ export default function CustomerAssistance({
     }
     setIsPending(false);
     toast.success("¡Listo, asistencia registrada!");
-    router.push(HOME)
+    router.push(HOME);
   };
+
+  const today = new Date();
+  const hasAssistanceToday = customer.assistance.some(
+    (assistance) =>
+      new Date(assistance.assistance_date).toDateString() ===
+      today.toDateString()
+  );
 
   return (
     <>
       <div className="grow">
         <p className="text-lg">Membresía de:</p>
-        <hr className="my-2 border-primary" />
+        <hr className="my-2 border-primary bg-am" />
         <p className="text-lg">5 días</p>
         <CustomerCounter
+          isDisabled={hasAssistanceToday}
           assistanceCount={customer.assistance.length}
           membershipType={MEMBERSHIP_TYPE_5_DAYS}
           handleSelectedDay={handleSelectedDay}
           selectedDay={daySelected}
         />
+        {hasAssistanceToday && (
+          <Alert variant="warning" className="mt-6">
+            <AlertCircleIcon />
+            <AlertTitle>Ya has registrado una asistencia hoy</AlertTitle>
+          </Alert>
+        )}
       </div>
       <RegistryBtn
-        disabled={!daySelected}
+        disabled={!daySelected || hasAssistanceToday}
         onClick={handleSubmit}
         loading={isPending}
         loadingText="Un momento"
