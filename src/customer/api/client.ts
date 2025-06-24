@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/supabase/client";
 import { Customer } from "@/customer/types";
 import { SEARCH_CUSTOMER } from "@/customer/consts";
+import { createAssistance } from "@/assistance/api/client";
+import { toast } from "sonner";
+import { removeFormatPersonId } from "@/lib/format-person-id";
 
 export const searchCustomer = async (query?: string) => {
   if (!query) return []
@@ -51,6 +54,7 @@ export async function upsertCustomer({ customerId, formData }: {
   const phone = formData.get("phone") as string
   const email = formData.get("email") as string
   const membershipType = formData.get("membership_type") as string
+  const firstAssistance = formData.get("first-assistance") as 'on' | null
 
   // Validaciones básicas
   const errors: CustomerFormResponse["errors"] = {}
@@ -93,7 +97,7 @@ export async function upsertCustomer({ customerId, formData }: {
       p_customer_id: customerId || null,
       p_first_name: firstName || null,
       p_last_name: lastName || null,
-      p_person_id: personId || null,
+      p_person_id: removeFormatPersonId(personId) || null,
       p_phone: phone || null,
       p_email: email || null,
       p_membership_type: membershipType || null,
@@ -106,6 +110,16 @@ export async function upsertCustomer({ customerId, formData }: {
       return {
         success: false,
         message: error.message || "Error al procesar la solicitud",
+      }
+    }
+
+    if (firstAssistance === 'on' && data?.customer?.id) {
+      const { error } = await createAssistance({ customer_id: data.customer.id });
+
+      if (error?.code) {
+        toast.error("Error al registrar asistencia", {
+          description: error.message,
+        });
       }
     }
 

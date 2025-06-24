@@ -27,7 +27,6 @@ Backoffice de actitud
 
 ## 🔧 Desarrollo (In Progress)
 - [ ] Verificar proteccion de todas las rutas de la app 🔝 🚩
-- [ ] Implementar pantalla asistencias del dia
 - [ ] Implementar registar primera asistencia al momento de crear cliente
 - [ ] Implementar agregar pase adicional si la semana esta completa
 - [ ] Implementar delete de asistencia del dia
@@ -39,6 +38,7 @@ Backoffice de actitud
 - [ ] Implementar delete de cliente
 - [ ] Implementar rol admin
 - [ ] Verificar porque la fuente no se ve en mobiles
+- [X] Implementar pantalla asistencias del dia
 - [X] Implementar cierre de sesion
 - [X] Validar e informar alta de asistencia del dia si ya fue creada
 - [X] Implementar constantes para las rutas

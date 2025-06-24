@@ -10,6 +10,7 @@ import { CustomerFormResponse, upsertCustomer } from "@/customer/api/client";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function CustomerForm({
   customer,
@@ -115,6 +116,16 @@ export default function CustomerForm({
                 Contacto telefónico
               </Label>
               <Input name={"phone"} defaultValue={customer?.phone || ""} />
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox
+                id="first-assistance"
+                name="first-assistance"
+                className="size-6"
+              />
+              <Label className="text-xs text-white" htmlFor="first-assistance">
+                Registrar su primer asistencia
+              </Label>
             </div>
           </div>
         </section>

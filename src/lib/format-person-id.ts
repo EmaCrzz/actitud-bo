@@ -12,6 +12,10 @@ export function formatPersonId(dni: string | number): string {
     return cleanDNI.replace(/(\d{2})(\d{3})(\d{3})/, '$1.$2.$3')
   }
 }
+// Función limpiar formato de DNI
+export function removeFormatPersonId(dni: string): string {
+  return dni.replaceAll('.', '').replaceAll('-', '').replaceAll(' ', '')
+}
 
 // Función para validar DNI
 export function isValidDNI(dni: string | number): boolean {
