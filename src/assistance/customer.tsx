@@ -10,7 +10,7 @@ import { CustomerComplete } from "@/customer/types";
 import { HOME } from "@/consts/routes";
 import { useRouter } from "next/navigation";
 import { Alert, AlertTitle } from "@/components/ui/alert";
-import { AlertCircleIcon } from "lucide-react";
+import { AlertCircleIcon, AlertTriangle } from "lucide-react";
 
 export default function CustomerAssistance({
   customer,
@@ -63,7 +63,7 @@ export default function CustomerAssistance({
         />
         {hasAssistanceToday && (
           <Alert variant="warning" className="mt-6">
-            <AlertCircleIcon />
+            <AlertTriangle />
             <AlertTitle>Ya has registrado una asistencia hoy</AlertTitle>
           </Alert>
         )}
