@@ -11,7 +11,6 @@ import {
   getTotalAssistancesToday,
   getTodayAssistances,
 } from "@/assistance/api/server";
-import { formatPersonId } from "@/lib/format-person-id";
 import { DateDisplay } from "@/components/date-display";
 
 // Mock data completamente independiente basado en tu esquema SQL
