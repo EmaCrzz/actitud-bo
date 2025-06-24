@@ -10,8 +10,8 @@ export default async function AssistanceCounter() {
 
   return (
     <section className="flex flex-col justify-center mt-10 gap-1 ">
-      <div className="mx-auto size-[100px] rounded-full text-center shadow bg-primary/20 flex items-center justify-center relative">
-        <span className="text-4xl leading-6 font-bold">
+      <div className="mx-auto size-[90px] sm:size-[100px] rounded-full text-center shadow bg-primary/20 flex items-center justify-center relative">
+        <span className="text-3xl sm:text-4xl leading-5 sm:leading-6 font-bold">
           {count === 0 ? "-" : count}
         </span>
         <Button
@@ -35,7 +35,7 @@ export default async function AssistanceCounter() {
 export const AssistanceCounterLoader = () => {
   return (
     <section className="flex flex-col justify-center mt-10 gap-1 ">
-      <Skeleton className="mx-auto size-[100px] rounded-full" />
+      <Skeleton className="mx-auto size-[90px] sm:size-[100px] rounded-full" />
       <Skeleton className=" mx-auto w-32 h-6" />
     </section>
   );

@@ -23,18 +23,18 @@ export default async function page() {
         </div>
       </header>
       <section className="max-w-3xl mx-auto w-full px-4 overflow-auto py-4">
-        <Card>
-          <CardHeader>
+        <Card className="py-4 sm:py-6"> 
+          <CardHeader className="px-4 sm:px-6">
             <CardTitle className="flex items-center gap-2 text-white/70">
               <CalendarCheck className="h-5 w-5 text-yellow-600" />
               Asistencias del dia
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3 px-4 sm:px-6">
             {data.customers.map((customer, index) => (
               <div
                 key={customer.person_id}
-                className="flex items-center justify-between p-3 bg-inputhover rounded"
+                className="flex items-center justify-between p-2 sm:p-3 bg-inputhover rounded"
               >
                 <div className="flex items-center gap-3">
                   <div className="flex items-center justify-center w-8 h-8 bg-primary200 rounded-full">
