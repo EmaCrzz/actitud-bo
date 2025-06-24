@@ -37,6 +37,7 @@ Backoffice de actitud
 - [ ] Implementar delete de cliente
 - [ ] Implementar rol admin
 - [ ] Verificar porque la fuente no se ve en mobiles
+- [X] Mostrar en el listado de asistencias del dia la hs en la que se registro
 - [X] Implementar registar primera asistencia al momento de crear cliente
 - [X] Implementar pantalla asistencias del dia
 - [X] Implementar cierre de sesion

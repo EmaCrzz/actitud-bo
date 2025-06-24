@@ -56,7 +56,7 @@ interface AssistanceByDate {
 }
 
 // Función para obtener todas las asistencias de una fecha específica
-export async function getAssistancesByDate(date: Date) {
+export async function getAssistancesByDate(date: Date): Promise<AssistanceByDate[]> {
   // Crear el rango de la fecha (desde 00:00:00 hasta 23:59:59)
   const supabase = await createClient();
   const startOfDay = new Date(date)
@@ -81,28 +81,31 @@ export async function getAssistancesByDate(date: Date) {
     .gte("assistance_date", startOfDay.toISOString())
     .lte("assistance_date", endOfDay.toISOString())
     .order("assistance_date", { ascending: false })
+    console.log({data});
+    
   const assistances = data as unknown as AssistanceByDate[]
 
   if (error) {
     console.error("Error fetching assistances by date:", error)
-    return { assistance_date: date.toISOString(), customers: [] }
+    return []
   }
 
-  const response: { assistance_date: string, customers: AssistanceByDate['customers'][] } = { assistance_date: data[0]?.assistance_date || '', customers: [] }
-  assistances.forEach((item) => {
-    if (item.customers) {
-      response.customers.push({
-        first_name: item.customers.first_name || '',
-        last_name: item.customers.last_name || '',
-        person_id: item.customers.person_id || '',
-        phone: item.customers.phone || null,
-        email: item.customers.email || null,
-      })
+  // const response: { assistance_date: string, customers: AssistanceByDate['customers'][] } = { assistance_date: data[0]?.assistance_date || '', customers: [] }
+  // assistances.forEach((item) => {
+  //   if (item.customers) {
+  //     response.customers.push({
+  //       first_name: item.customers.first_name || '',
+  //       last_name: item.customers.last_name || '',
+  //       person_id: item.customers.person_id || '',
+  //       phone: item.customers.phone || null,
+  //       email: item.customers.email || null,
+  //     })
 
-    }
-  })
+  //   }
+  // })
 
-  return response
+  // return response
+  return assistances
 }
 
 // Función para obtener estadísticas de asistencias por fecha
