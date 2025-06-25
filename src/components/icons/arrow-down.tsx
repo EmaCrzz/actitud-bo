@@ -1,12 +1,6 @@
-import * as React from "react"
-const ArrowDownIcon =(props: React.SVGAttributes<SVGElement>) => (
-  <svg
-    viewBox="0 0 24 24"
-    width={24}
-    height={24}
-    fill="none"
-    {...props}
-  >
+import * as React from "react";
+const ArrowDownIcon = (props: React.SVGAttributes<SVGElement>) => (
+  <svg viewBox="0 0 24 24" width={24} height={24} fill="none" {...props}>
     <path
       fill="currentColor"
       fillOpacity={0.3}
@@ -15,5 +9,5 @@ const ArrowDownIcon =(props: React.SVGAttributes<SVGElement>) => (
       clipRule="evenodd"
     />
   </svg>
-)
-export default ArrowDownIcon
+);
+export default ArrowDownIcon;

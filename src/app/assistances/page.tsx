@@ -43,8 +43,8 @@ export default async function page() {
                 className="flex items-center justify-between p-2 sm:p-3 bg-inputhover rounded"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center w-8 h-8 bg-primary200 rounded-full">
-                    <span className="text-sm font-bold text-white/70">
+                  <div className="flex items-center justify-center w-10 h-10 bg-primary200 rounded-full">
+                    <span className="text-xs font-bold text-white/70">
                       #{index + 1}
                     </span>
                   </div>

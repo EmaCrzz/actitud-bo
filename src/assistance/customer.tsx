@@ -10,7 +10,7 @@ import { CustomerComplete } from "@/customer/types";
 import { HOME } from "@/consts/routes";
 import { useRouter } from "next/navigation";
 import { Alert, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
+import AlertContainedIcon from "@/components/icons/alert-contained";
 
 export default function CustomerAssistance({
   customer,
@@ -62,9 +62,11 @@ export default function CustomerAssistance({
           selectedDay={daySelected}
         />
         {hasAssistanceToday && (
-          <Alert variant="warning" className="mt-6">
-            <AlertTriangle />
-            <AlertTitle>Ya has registrado una asistencia hoy</AlertTitle>
+          <Alert variant="destructive" className="mt-6">
+            <AlertContainedIcon />
+            <AlertTitle className="font-secondary tracking-[0.48px]">
+              Ya se registro una asistencia el dia de hoy
+            </AlertTitle>
           </Alert>
         )}
       </div>

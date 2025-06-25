@@ -14,18 +14,19 @@
   --label: rgba(255, 255, 255, 0.3);
   --muted-foreground: rgba(255, 255, 255, 0.3);
   --card: #272325;
+  --alert: #140209;
   --textsecondary: #FFBDD3;
   --accent: oklch(0.37 0.04 355.12);
   --ring: oklch(0.708 0 0);
   --popover: #322d2f;
   --popover-foreground: rgba(255, 255, 255, 0.8);
-
+  --destructive: #E82531;
+  
   --card-foreground: oklch(0.145 0 0);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -51,6 +52,7 @@
   --color-inputactive: var(--inputactive);
   --color-inputhover: var(--inputhover);
   --color-card: var(--card);
+  --color-alert: var(--alert);
   --color-textsecondary: var(--textsecondary);
 
   --font-sans: var(--font-geist-sans);
@@ -88,6 +90,7 @@
   --radius-xl: calc(var(--radius) + 4px);
 
   --font-sans: "unbounded", "system-ui", sans-serif;
+  --font-secondary: "Inter", "system-ui", sans-serif;
 }
 
 @layer base {
@@ -96,36 +99,72 @@
 
     @font-face {
       font-family: unbounded;
-      src: url("/fonts/Unbounded-Bold.woff2") format("woff2");
+      src: url("/fonts/unbounded/bold.woff2") format("woff2");
       font-weight: bold;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: unbounded;
-      src: url("/fonts/Unbounded-ExtraBold.woff2") format("woff2");
+      src: url("/fonts/unbounded/extraBold.woff2") format("woff2");
       font-weight: 800;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: unbounded;
-      src: url("/fonts/Unbounded-Light.woff2") format("woff2");
+      src: url("/fonts/unbounded/light.woff2") format("woff2");
       font-weight: light;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: unbounded;
-      src: url("/fonts/Unbounded-Medium.woff2") format("woff2");
+      src: url("/fonts/unbounded/medium.woff2") format("woff2");
       font-weight: normal;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: unbounded;
-      src: url("/fonts/Unbounded-SemiBold.woff2") format("woff2");
+      src: url("/fonts/unbounded/semiBold.woff2") format("woff2");
       font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: poppins;
+      src: url("/fonts/poppins/bold.woff2") format("woff2");
+      font-weight: bold;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: poppins;
+      src: url("/fonts/poppins/extraBold.woff2") format("woff2");
+      font-weight: 800;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: poppins;
+      src: url("/fonts/poppins/light.woff2") format("woff2");
+      font-weight: light;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: poppins;
+      src: url("/fonts/poppins/regular.woff2") format("woff2");
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: poppins;
+      src: url("/fonts/poppins/semiBold.woff2") format("woff2");
+      font-weight: semiBold;
       font-style: normal;
       font-display: swap;
     }
