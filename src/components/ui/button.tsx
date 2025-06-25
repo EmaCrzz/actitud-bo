@@ -60,17 +60,17 @@ function Button({
 
   return (
     <Comp
-      data-slot="button"
       className={cn(buttonVariants({ variant, size, className }), loading && "bg-primary/60 border border-white", disabled && "disabled:bg-primary/20")}
+      data-slot="button"
       disabled={disabled || loading}
       {...props}
     >
       {loading ? (
         <div className="flex items-center justify-center gap-2">
           <div className="flex space-x-1">
-            <div className="size-2 bg-white rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-            <div className="size-2 bg-white rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-            <div className="size-2 bg-white rounded-full animate-bounce"></div>
+            <div className="size-2 bg-white rounded-full animate-bounce [animation-delay:-0.3s]" />
+            <div className="size-2 bg-white rounded-full animate-bounce [animation-delay:-0.15s]" />
+            <div className="size-2 bg-white rounded-full animate-bounce" />
           </div>
          
           {children && (

@@ -29,6 +29,7 @@ export default function ListCustomers({ customers }: Props) {
     return customers.filter((customer) => {
       const fullName =
         `${customer.first_name} ${customer.last_name}`.toLowerCase();
+
       return fullName.includes(query.toLowerCase());
     });
   }, [customers, query]);
@@ -38,26 +39,26 @@ export default function ListCustomers({ customers }: Props) {
     <>
       <div className="bg-background sticky top-0 pb-1 mt-2 sm:mt-6">
         <Input
-          value={query}
-          onChange={onChange}
-          className="py-2 pl-0 mb-0"
           autoComplete={"off"}
-          variant={"line"}
-          placeholder="Búsqueda de clientes"
+          className="py-2 pl-0 mb-0"
           componentLeft={<SearchIcon className="size-6 text-primary200" />}
           componentRight={
             query && (
               <Button
+                className="h-6 w-6 p-0 hover:bg-transparent hover:text-primary text-primary200"
+                size="icon"
                 type="button"
                 variant="ghost"
-                size="icon"
-                className="h-6 w-6 p-0 hover:bg-transparent hover:text-primary text-primary200"
                 onClick={() => setQuery("")}
               >
                 <X className="h-4 w-4" />
               </Button>
             )
           }
+          placeholder="Búsqueda de clientes"
+          value={query}
+          variant={"line"}
+          onChange={onChange}
         />
       </div>
       <ul className="mt-6">
@@ -70,6 +71,7 @@ export default function ListCustomers({ customers }: Props) {
         {hasCustomers &&
           customerFiltered.map((customer, index) => {
             const isLast = index === customers.length - 1;
+
             return (
               <li
                 key={customer.id}
@@ -88,7 +90,7 @@ export default function ListCustomers({ customers }: Props) {
                       : "Sin membresía"}
                   </Label>
                 </div>
-                <Button variant={"ghost"} size={"icon"} className="size-6">
+                <Button className="size-6" size={"icon"} variant={"ghost"}>
                   <Link href={`${CUSTOMER}/${customer.id}`}>
                     <EyeIcon className="size-6" />
                   </Link>
@@ -106,17 +108,18 @@ export function CustomerListLoading() {
     <>
       <div className="bg-background sticky top-0 pb-1 mt-6">
         <Input
-          className="py-2 pl-0 mb-0"
-          autoComplete={"off"}
-          variant={"line"}
           disabled
-          placeholder="Búsqueda de clientes"
+          autoComplete={"off"}
+          className="py-2 pl-0 mb-0"
           componentLeft={<SearchIcon className="size-6 text-primary200" />}
+          placeholder="Búsqueda de clientes"
+          variant={"line"}
         />
       </div>
       <ul className="mt-6">
         {Array.from({ length: 10 }).map((_, index) => {
           const isLast = index === 9;
+
           return (
             <li
               key={index}

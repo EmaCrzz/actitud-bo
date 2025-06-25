@@ -9,6 +9,7 @@ export function usePermissions() {
 
   const checkPermission = (resource: string, action: "create" | "read" | "update" | "delete") => {
     if (loading) return false
+
     return hasPermission(roles, resource, action)
   }
 

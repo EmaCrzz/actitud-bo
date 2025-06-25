@@ -2,12 +2,12 @@
 export function formatPhone(phone: string | number): string {
   const cleanPhone = phone.toString().replace(/\D/g, '')
   let phoneNumber = cleanPhone
-  
+
   // Remover código de país (54) si está presente
   if (phoneNumber.startsWith('54') && phoneNumber.length > 10) {
     phoneNumber = phoneNumber.substring(2)
   }
-  
+
   // Formatear según longitud y tipo
   if (phoneNumber.length === 10) {
     if (phoneNumber.startsWith('11')) {
@@ -21,12 +21,13 @@ export function formatPhone(phone: string | number): string {
     // Fijo Buenos Aires: (011) xxxx-xxxx
     return phoneNumber.replace(/(\d{4})(\d{4})/, '(011) $1-$2')
   }
-  
+
   return cleanPhone
 }
 
 // Función para validar teléfonos
 export function isValidPhone(phone: string | number): boolean {
   const cleanPhone = phone.toString().replace(/\D/g, '')
+
   return cleanPhone.length >= 8 && cleanPhone.length <= 10
 }

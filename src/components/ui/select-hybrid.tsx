@@ -35,7 +35,7 @@ export function HybridSelect({
   return (
     <div className={cn("w-full", !isInvalid && !helperText ? "mb-[20px]" : "")}>
       {/* Hidden input para el formulario no controlado */}
-      <input type="hidden" name={name} value={value} />
+      <input name={name} type="hidden" value={value} />
 
       <Select value={value} onValueChange={setValue}>
         <SelectTrigger
@@ -45,7 +45,7 @@ export function HybridSelect({
             className
           )}
         >
-          <SelectValue placeholder={placeholder} className="truncate max-w-full" />
+          <SelectValue className="truncate max-w-full" placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
           {options.map((option) => (

@@ -15,9 +15,9 @@ export default async function AssistanceCounter() {
           {count === 0 ? "-" : count}
         </span>
         <Button
-          variant="ghost"
-          size="icon"
           className="size-6 absolute right-2 bottom-0"
+          size="icon"
+          variant="ghost"
         >
           <Link href={ASSISTANCES}>
             <EyeIcon className="size-6" />

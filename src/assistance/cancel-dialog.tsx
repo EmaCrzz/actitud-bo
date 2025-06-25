@@ -29,8 +29,8 @@ export function AlertCancelAssintance({
         </AlertDialogHeader>
         <AlertDialogFooter className="grid grid-cols-2 gap-4">
           <AlertDialogCancel
-            onClick={() => handleConfirmCancel && handleConfirmCancel()}
             className="h-14 rounded-[4px]"
+            onClick={() => handleConfirmCancel && handleConfirmCancel()}
           >
             Si, cancelar
           </AlertDialogCancel>

@@ -28,6 +28,7 @@ export default function AutocompleteInput() {
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+
     setLoading(true);
     setInputValue(value);
     setSelectedValue("");
@@ -96,6 +97,7 @@ export default function AutocompleteInput() {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
+
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
@@ -103,9 +105,11 @@ export default function AutocompleteInput() {
     if (!query) return;
     const fetchCustomers = async () => {
       const dataCustomers = await searchCustomer(query);
+
       setCustomers(dataCustomers);
       setLoading(false);
     };
+
     fetchCustomers();
   }, [query]);
 
@@ -123,19 +127,19 @@ export default function AutocompleteInput() {
           <div className="relative">
             <Input
               ref={inputRef}
-              type="text"
+              className="w-full font-light"
               placeholder="¿A quien quieres registar hoy?"
+              type="text"
               value={inputValue}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              className="w-full font-light"
             />
             {inputValue && (
               <Button
+                className="absolute right-1 rounded-full top-1/2 -translate-y-1/2 h-6 w-6 p-0 hover:bg-transparent"
+                size="icon"
                 type="button"
                 variant="ghost"
-                size="icon"
-                className="absolute right-1 rounded-full top-1/2 -translate-y-1/2 h-6 w-6 p-0 hover:bg-transparent"
                 onClick={handleClear}
               >
                 <X className="h-4 w-4" />
@@ -191,8 +195,8 @@ export default function AutocompleteInput() {
                 )}
               >
                 <Link
-                  href={CUSTOMER_NEW}
                   className="flex justify-start gap-x-2 items-center"
+                  href={CUSTOMER_NEW}
                 >
                   <PlusRoundedIcon className="h-4 w-4 text-white/30" />
                   <span>Crear nuevo cliente</span>

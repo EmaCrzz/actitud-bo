@@ -10,6 +10,7 @@ export default async function AuthHeader() {
   const supabase = await createClient();
 
   const { data, error } = await supabase.auth.getUser();
+
   if (error || !data?.user) {
     redirect("/auth/login");
   }
@@ -43,7 +44,7 @@ export default async function AuthHeader() {
       <div className="relative">
         <MenuAuth>
           <Avatar className="size-12">
-            {avatarUrl && <AvatarImage className="object-cover" src={avatarUrl} alt={data.user.email} />}
+            {avatarUrl && <AvatarImage alt={data.user.email} className="object-cover" src={avatarUrl} />}
             <AvatarFallback className="font-medium text-xs">
               {avatarFallback}
             </AvatarFallback>

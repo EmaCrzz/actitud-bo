@@ -18,11 +18,13 @@ export const searchCustomer = async (query?: string) => {
 
   const customers: Customer[] = data?.map((customer) => {
     const membership_type = customer.customer_membership?.[0]?.membership_type || null;
+
     return ({
       ...customer,
       membership_type,
     })
   }) || [];
+
   return customers;
 }
 
@@ -107,6 +109,7 @@ export async function upsertCustomer({ customerId, formData }: {
 
     if (error) {
       console.error("Error al insertar o actualizar el cliente:", error)
+
       return {
         success: false,
         message: error.message || "Error al procesar la solicitud",
@@ -126,6 +129,7 @@ export async function upsertCustomer({ customerId, formData }: {
     return data
   } catch (error) {
     console.error("Error in updateCustomer:", error)
+
     return {
       success: false,
       message: "Error interno del servidor",

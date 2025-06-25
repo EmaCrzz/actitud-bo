@@ -79,6 +79,7 @@ const PersonIdInput = React.forwardRef<HTMLInputElement, PersonIdInputProps>(
     React.useEffect(() => {
       if (defaultValue && inputRef.current) {
         const formatted = formatPersonId(String(defaultValue))
+
         inputRef.current.value = formatted
       }
     }, [defaultValue])
@@ -87,12 +88,12 @@ const PersonIdInput = React.forwardRef<HTMLInputElement, PersonIdInputProps>(
       <Input
         {...props}
         ref={inputRef}
-        type="text"
-        onChange={handleChange}
-        placeholder="XX.XXX.XXX"
-        maxLength={10}
         className={cn(className)}
         defaultValue={defaultValue ? formatPersonId(String(defaultValue)) : undefined}
+        maxLength={10}
+        placeholder="XX.XXX.XXX"
+        type="text"
+        onChange={handleChange}
       />
     )
   },

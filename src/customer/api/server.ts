@@ -16,11 +16,13 @@ export const searchAllCustomers = async (): Promise<CustomerWithMembership[]> =>
 
   const customers = data?.map((customer) => {
     const membership_type = customer.customer_membership?.membership_type || null;
+
     return ({
       ...customer,
       membership_type,
     })
   }) || [];
+
   return customers;
 }
 
@@ -63,6 +65,7 @@ export async function getCustomerBasic(id: string): Promise<Customer | null> {
 
   if (error || !data) {
     console.error("Error fetching customer:", error)
+
     return null
   }
 

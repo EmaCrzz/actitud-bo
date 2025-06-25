@@ -121,7 +121,6 @@ function Input({
   const inputField = (
     <input
       autoComplete="off"
-      type={type}
       className={cn(
         !isInvalid && !helperText ? "mb-[20px]" : "",
         hasComponents
@@ -130,13 +129,14 @@ function Input({
           className
       )}
       data-slot={hasComponents ? undefined : "input"}
+      type={type}
       {...props}
     />
   );
 
   // Helper text común
   const helperTextElement = helperText && (
-    <HelperText text={helperText} isInvalid={isInvalid} />
+    <HelperText isInvalid={isInvalid} text={helperText} />
   );
 
   // Si no hay componentes laterales, renderizar input simple

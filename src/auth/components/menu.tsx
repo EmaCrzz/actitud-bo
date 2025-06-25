@@ -25,7 +25,7 @@ export default function MenuAuth({ children }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end">
+      <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={handleLogout}>Cerrar sesión</DropdownMenuItem>
         </DropdownMenuGroup>

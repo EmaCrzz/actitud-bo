@@ -60,9 +60,11 @@ export async function getAssistancesByDate(date: Date): Promise<AssistanceByDate
   // Crear el rango de la fecha (desde 00:00:00 hasta 23:59:59)
   const supabase = await createClient();
   const startOfDay = new Date(date)
+
   startOfDay.setHours(0, 0, 0, 0)
 
   const endOfDay = new Date(date)
+
   endOfDay.setHours(23, 59, 59, 999)
 
   const { data, error } = await supabase
@@ -86,6 +88,7 @@ export async function getAssistancesByDate(date: Date): Promise<AssistanceByDate
 
   if (error) {
     console.error("Error fetching assistances by date:", error)
+
     return []
   }
 
@@ -147,6 +150,7 @@ export async function getAssistancesByWeek(startDate: Date, endDate: Date) {
 
   if (error) {
     console.error("Error fetching assistances by week:", error)
+
     return []
   }
 

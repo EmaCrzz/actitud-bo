@@ -45,11 +45,11 @@ export function LoginForm() {
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
-                id="email"
-                type="email"
-                autoComplete={"off"}
-                placeholder="m@example.com"
                 required
+                autoComplete={"off"}
+                id="email"
+                placeholder="m@example.com"
+                type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -65,21 +65,21 @@ export function LoginForm() {
                 </Link> */}
               </div>
               <Input
-                id="password"
-                type="password"
                 required
+                id="password"
                 placeholder="********"
+                type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
             {error && <p className="text-sm text-red-500">{error}</p>}
             <Button
-              type="submit"
               className="w-full h-14"
               disabled={isLoading}
               loading={isLoading}
               loadingText="Un momento"
+              type="submit"
             >
               Iniciar Sesión
             </Button>

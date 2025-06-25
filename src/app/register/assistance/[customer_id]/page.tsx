@@ -28,7 +28,7 @@ export default async function AssintanceRegisterPage({
     <>
       <header className="max-w-3xl mx-auto w-full px-4 py-3 flex justify-between items-center border-b border-primary pt-4">
         <div className="flex gap-4 items-center">
-          <Button variant="ghost" size="icon" className="size-6 rounded-full">
+          <Button className="size-6 rounded-full" size="icon" variant="ghost">
             <Link href={HOME}>
               <ArrowLeftIcon className="size-6" />
             </Link>
@@ -40,7 +40,7 @@ export default async function AssintanceRegisterPage({
         <h3 className="text-2xl">
           {customer.first_name} {customer.last_name}
         </h3>
-        <Tabs defaultValue="assistance" className="mt-10 grow">
+        <Tabs className="mt-10 grow" defaultValue="assistance">
           <TabsList className="rounded-full bg-primary w-full max-w-96 h-12">
             <TabsTrigger className="rounded-full" value="assistance">
               Asistencias

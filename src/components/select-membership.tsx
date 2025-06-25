@@ -18,6 +18,7 @@ const getMemberships = async () => {
   const { data } = (await supabase.from("types_memberships").select()) as {
     data: Membership[];
   };
+
   return data || [];
 };
 
@@ -58,13 +59,13 @@ export default function SelectMembershipHybrid({
 
   return (
     <HybridSelect
+      className={className}
+      defaultValue={defaultValue}
       helperText={helperText}
       isInvalid={isInvalid}
-      options={options}
       name={name}
-      defaultValue={defaultValue}
+      options={options}
       placeholder={isLargerThan430 ? "Selecciona un tipo de membresía" : "Tipo de membresía"}
-      className={className}
     />
   );
 }

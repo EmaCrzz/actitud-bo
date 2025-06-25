@@ -10,6 +10,7 @@ export async function getProfile(userId?: string): Promise<UserProfile | null> {
 
   if (error) {
     console.error("Error fetching profile:", error)
+
     return null
   }
 
@@ -23,6 +24,7 @@ export async function getCurrentUserRoles(): Promise<UserRole[]> {
   const {
     data: { user },
   } = await supabase.auth.getUser()
+
   if (!user) return []
 
   const { data: profile } = await supabase.from("profile").select("id").eq("auth_id", user.id).single()

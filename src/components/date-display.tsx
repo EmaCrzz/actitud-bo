@@ -74,6 +74,7 @@ export function formatRelativeTime(utcDateString: string): string {
     return "Hace menos de un minuto"
   } else if (diffInSeconds < 3600) {
     const minutes = Math.floor(diffInSeconds / 60)
+
     return `Hace ${minutes} minuto${minutes > 1 ? "s" : ""}`
   } else if (diffInSeconds < 86400) {
     return formatTimeOnly(utcDateString)

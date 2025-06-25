@@ -17,6 +17,7 @@ export default function CustomerCounter({
   handleSelectedDay,
 }: Porps) {
   const items = membershipType === "MEMBERSHIP_TYPE_5_DAYS" ? 5 : 3;
+
   return (
     <>
       <p className="text-lg mt-5">Asistencias de la semana</p>
@@ -30,10 +31,6 @@ export default function CustomerCounter({
           return (
             <span
               key={index}
-              onClick={() => {
-                if (!enabled) return;
-                handleSelectedDay?.(String(index + 1));
-              }}
               className={cn(
                 "size-14 rounded-full flex items-center justify-center transition-colors",
                 isChecked
@@ -44,6 +41,10 @@ export default function CustomerCounter({
                   ? "bg-white text-background hover:cursor-pointer hover:bg-white/90"
                   : "bg-white text-background hover:cursor-not-allowed"
               )}
+              onClick={() => {
+                if (!enabled) return;
+                handleSelectedDay?.(String(index + 1));
+              }}
             >
               <span className="font-medium">{index + 1}</span>
             </span>

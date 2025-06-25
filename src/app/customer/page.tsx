@@ -16,7 +16,7 @@ export default async function CustomerListPage() {
     <>
       <header className="max-w-3xl mx-auto w-full px-4 py-3 flex justify-between items-center border-b border-primary pt-4">
         <div className="flex gap-4 items-center">
-          <Button variant="ghost" size="icon" className="size-6 rounded-full">
+          <Button className="size-6 rounded-full" size="icon" variant="ghost">
             <Link href={HOME}>
               <ArrowLeftIcon className="size-6" />
             </Link>
@@ -25,8 +25,8 @@ export default async function CustomerListPage() {
         </div>
       </header>
       <section className="max-w-3xl mx-auto w-full px-4 overflow-auto pb-4">
-        <Button variant={"link"} className="h-14 pl-0!">
-          <Link href={CUSTOMER_NEW} className="flex justify-start gap-x-2 items-center">
+        <Button className="h-14 pl-0!" variant={"link"}>
+          <Link className="flex justify-start gap-x-2 items-center" href={CUSTOMER_NEW}>
             <PlusRoundedIcon className="size-6" />
             <span>Crear nuevo cliente</span>
           </Link>

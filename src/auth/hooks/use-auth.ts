@@ -18,6 +18,7 @@ export function useAuth() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
+
       setUser(user)
 
       if (user) {

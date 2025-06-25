@@ -24,7 +24,7 @@ export default function InfoResume({ customer }: { customer: CustomerComplete })
               {customer.first_name} {customer.last_name}
             </span>
           </div>
-          <Button variant="ghost" size="icon" className="size-6">
+          <Button className="size-6" size="icon" variant="ghost">
             <Link href={`${CUSTOMER_EDIT}/${customer.id}`}>
               <PencilIcon className="size-6" />
             </Link>

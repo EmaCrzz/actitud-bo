@@ -20,5 +20,6 @@ export function removeFormatPersonId(dni: string): string {
 // Función para validar DNI
 export function isValidDNI(dni: string | number): boolean {
   const cleanDNI = dni.toString().replace(/\D/g, '')
+
   return cleanDNI.length >= 7 && cleanDNI.length <= 8
 }

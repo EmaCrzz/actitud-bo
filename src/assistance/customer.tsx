@@ -34,6 +34,7 @@ export default function CustomerAssistance({
       toast.error("Error al registrar asistencia, intente nuevamente", {
         description: error.message,
       });
+
       return;
     }
     setIsPending(false);
@@ -55,14 +56,14 @@ export default function CustomerAssistance({
         <hr className="my-2 border-primary bg-am" />
         <p className="text-lg">5 días</p>
         <CustomerCounter
-          isDisabled={hasAssistanceToday}
           assistanceCount={customer.assistance.length}
-          membershipType={MEMBERSHIP_TYPE_5_DAYS}
           handleSelectedDay={handleSelectedDay}
+          isDisabled={hasAssistanceToday}
+          membershipType={MEMBERSHIP_TYPE_5_DAYS}
           selectedDay={daySelected}
         />
         {hasAssistanceToday && (
-          <Alert variant="destructive" className="mt-6">
+          <Alert className="mt-6" variant="destructive">
             <AlertContainedIcon />
             <AlertTitle className="font-secondary tracking-[0.48px]">
               Ya se registro una asistencia el dia de hoy
@@ -72,9 +73,9 @@ export default function CustomerAssistance({
       </div>
       <RegistryBtn
         disabled={!daySelected || hasAssistanceToday}
-        onClick={handleSubmit}
         loading={isPending}
         loadingText="Un momento"
+        onClick={handleSubmit}
       />
     </>
   );
