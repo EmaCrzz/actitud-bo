@@ -7,3 +7,9 @@ export const MembershipTranslation = {
   [MEMBERSHIP_TYPE_3_DAYS]: "Membresía: 3 días",
   [MEMBERSHIP_TYPE_DAILY]: "Pase diario",
 }
+
+export const MembershipTranslationTwoLines = {
+  [MEMBERSHIP_TYPE_5_DAYS]: { one: "5", two: "Días/Semana" },
+  [MEMBERSHIP_TYPE_3_DAYS]: { one: "3", two: "días/semana" },
+  [MEMBERSHIP_TYPE_DAILY]: { one: "1", two: "Pase diario" },
+}

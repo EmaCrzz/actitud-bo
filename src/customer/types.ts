@@ -17,6 +17,7 @@ export interface CustomerWithMembership extends Customer {
 
 export interface CustomerMembership {
   membership_type: MembershipType
+  expiration_date: string
 }
 
 export interface Assistance {

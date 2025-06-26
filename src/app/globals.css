@@ -6,21 +6,25 @@
   --primary200: #FF6398;
   --background: #260210;
   --foreground: #ffffff;
-  --muted: #272325;
-  --input: #322d2f;
   --inputhover: #3c3839;
-  --borderinput: rgba(255, 255, 255, 0.3);
-  --inputactive: rgba(255, 255, 255, 0.8);
-  --label: rgba(255, 255, 255, 0.3);
-  --muted-foreground: rgba(255, 255, 255, 0.3);
-  --card: #272325;
-  --alert: #140209;
   --textsecondary: #FFBDD3;
   --accent: oklch(0.37 0.04 355.12);
   --ring: oklch(0.708 0 0);
+  --destructive: #FB0817;
+  
+  /* TODO: refactorizarlos */
+  --input: #322d2f;
+  --membership-card: #4D2331;
+  --alert: #010101;
   --popover: #322d2f;
+  --inputactive: rgba(255, 255, 255, 0.8);
   --popover-foreground: rgba(255, 255, 255, 0.8);
-  --destructive: #E82531;
+  --muted: #272325;
+  --card: #272325;
+  --borderinput: rgba(255, 255, 255, 0.3);
+  --label: rgba(255, 255, 255, 0.3);
+  --muted-foreground: rgba(255, 255, 255, 0.3);
+  /* **** */
   
   --card-foreground: oklch(0.145 0 0);
   --primary-foreground: oklch(0.985 0 0);
@@ -54,6 +58,7 @@
   --color-card: var(--card);
   --color-alert: var(--alert);
   --color-textsecondary: var(--textsecondary);
+  --color-membership-card: var(--membership-card);
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);

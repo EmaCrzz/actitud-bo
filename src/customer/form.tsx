@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label'
 import { PersonIdInput } from '@/components/ui/input-person-id'
 import { upsertCustomer } from '@/customer/api/client'
 import SelectMembership from '@/components/select-membership'
+import { CUSTOMER } from '@/consts/routes'
 
 export default function CustomerForm({ customer }: { customer?: CustomerComplete }) {
   const router = useRouter()
@@ -44,7 +45,7 @@ export default function CustomerForm({ customer }: { customer?: CustomerComplete
     } else {
       toast.success(response.message)
 
-      router.push(`/customer/${customer?.id}`)
+      router.push(`${CUSTOMER}/${customer?.id}`)
     }
   }
 

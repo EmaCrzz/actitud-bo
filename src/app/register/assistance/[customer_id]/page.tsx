@@ -41,12 +41,12 @@ export default async function AssintanceRegisterPage({
           {customer.first_name} {customer.last_name}
         </h3>
         <Tabs className="mt-10 grow" defaultValue="assistance">
-          <TabsList className="rounded-full bg-primary w-full max-w-96 h-12">
-            <TabsTrigger className="rounded-full" value="assistance">
-              Asistencias
+          <TabsList className="rounded-full bg-primary w-full max-w-96 h-12 ">
+            <TabsTrigger className="hover:cursor-pointer rounded-full font-secondary font-bold" value="assistance">
+              Membresía
             </TabsTrigger>
-            <TabsTrigger className="rounded-full" value="data">
-              Datos
+            <TabsTrigger className="hover:cursor-pointer rounded-full font-secondary font-bold" value="data">
+              Información
             </TabsTrigger>
           </TabsList>
           <TabsContent className="mt-10 flex flex-col" value="assistance">

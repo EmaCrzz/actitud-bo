@@ -60,6 +60,8 @@ Backoffice de actitud
 ## 🎨 Frontend
 - [X] Estilar correctamente el input y select para mostrar el error o helpertext sin saltos en la pantalla
 - [ ] Estilar toast
+- [ ] Estilar Button outlined, ver estilos de renovar/modificar membresía
+- [ ] Estilar Button ghost, ver estilos de registarar pase diario
 - [ ] Añadir animaciones/transiciones
 
 ## 📊 Performance
