@@ -4,6 +4,7 @@ import { SEARCH_CUSTOMER } from "@/customer/consts";
 import { createAssistance } from "@/assistance/api/client";
 import { toast } from "sonner";
 import { removeFormatPersonId } from "@/lib/format-person-id";
+import { DatabaseResult } from "@/types/database-errors";
 
 export const searchCustomer = async (query?: string) => {
   if (!query) return []
@@ -28,25 +29,10 @@ export const searchCustomer = async (query?: string) => {
   return customers;
 }
 
-export interface CustomerFormResponse {
-  customer?: Customer
-  success?: boolean
-  message?: string
-  errors?: {
-    first_name?: string[]
-    last_name?: string[]
-    person_id?: string[]
-    phone?: string[]
-    email?: string[]
-    membership_type?: string[]
-  }
-}
-
-
 export async function upsertCustomer({ customerId, formData }: {
   customerId: string,
   formData: FormData
-}): Promise<CustomerFormResponse> {
+}): Promise<DatabaseResult & { customer?: Customer }> {
   const supabase = createClient()
 
   // Extraer datos del formulario
@@ -59,80 +45,80 @@ export async function upsertCustomer({ customerId, formData }: {
   const firstAssistance = formData.get("first-assistance") as 'on' | null
 
   // Validaciones básicas
-  const errors: CustomerFormResponse["errors"] = {}
+  const errors: DatabaseResult["data"] = {}
 
   if (!firstName?.trim()) {
-    errors.first_name = ["El nombre es requerido"]
+    errors.first_name = "El nombre es requerido"
   }
 
   if (!lastName?.trim()) {
-    errors.last_name = ["El apellido es requerido"]
+    errors.last_name = "El apellido es requerido"
   }
 
   if (!personId?.trim()) {
-    errors.person_id = ["El número de identificación es requerido"]
+    errors.person_id = "El número de identificación es requerido"
   }
 
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    errors.email = ["El formato del email no es válido"]
+    errors.email = "El formato del email no es válido"
   }
 
   if (phone && !/^\+?[\d\s\-$$$$]+$/.test(phone)) {
-    errors.phone = ["El formato del teléfono no es válido"]
+    errors.phone = "El formato del teléfono no es válido"
   }
 
   if (!membershipType) {
-    errors.membership_type = ["El tipo de membresía es requerido"]
+    errors.membership_type = "El tipo de membresía es requerido"
   }
 
-  // Si hay errores, retornarlos
   if (Object.keys(errors).length > 0) {
     return {
       success: false,
       message: "Por favor corrige los errores en el formulario",
-      errors,
+      error_code: "MISSING_REQUIRED_FIELDS",
+      operation: customerId ? "update" : "create",
+      data: errors,
     }
   }
 
-  try {
-    const { data, error } = await supabase.rpc("upsert_customer_with_membership", {
-      p_customer_id: customerId || null,
-      p_first_name: firstName || null,
-      p_last_name: lastName || null,
-      p_person_id: removeFormatPersonId(personId) || null,
-      p_phone: phone || null,
-      p_email: email || null,
-      p_membership_type: membershipType || null,
-      // p_last_payment_date 
-      // p_expiration_date
-    })
+  // try {
+  const { data, error } = await supabase.rpc("upsert_customer_with_membership", {
+    p_customer_id: customerId || null,
+    p_first_name: firstName || null,
+    p_last_name: lastName || null,
+    p_person_id: removeFormatPersonId(personId) || null,
+    p_phone: phone || null,
+    p_email: email || null,
+    p_membership_type: membershipType
+    // p_last_payment_date 
+    // p_expiration_date
+  })
 
-    if (error) {
-      console.error("Error al insertar o actualizar el cliente:", error)
-
-      return {
-        success: false,
-        message: error.message || "Error al procesar la solicitud",
-      }
-    }
-
-    if (firstAssistance === 'on' && data?.customer?.id) {
-      const { error } = await createAssistance({ customer_id: data.customer.id });
-
-      if (error?.code) {
-        toast.error("Error al registrar asistencia", {
-          description: error.message,
-        });
-      }
-    }
-
-    return data
-  } catch (error) {
-    console.error("Error in updateCustomer:", error)
-
+  if (error) {
     return {
       success: false,
-      message: "Error interno del servidor",
+      message: "Ocurrió un error al procesar la solicitud",
+      error_code: 'UNEXPECTED_ERROR',
+      operation: customerId ? "update" : "create",
     }
   }
+
+  const result = data as DatabaseResult
+
+  if (!result.success) {
+    return result
+  }
+
+
+  if (firstAssistance === 'on' && data?.customer?.id) {
+    const { error } = await createAssistance({ customer_id: data.customer.id });
+
+    if (error?.code) {
+      toast.error("Error al registrar asistencia", {
+        description: error.message,
+      });
+    }
+  }
+
+  return result
 }

@@ -1,26 +1,26 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import { Toaster } from "sonner";
+import type { Metadata } from 'next'
+import './globals.css'
+import { Toaster } from 'sonner'
 
 export const metadata: Metadata = {
-  title: "Actitud",
-  description: "Actitud Backoffice",
-};
+  title: 'Actitud',
+  description: 'Actitud Backoffice',
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang='en'>
       <head>
-        <meta content="Actitud" name="apple-mobile-web-app-title" />
+        <meta content='Actitud' name='apple-mobile-web-app-title' />
       </head>
-      <body className="h-screen grid grid-rows-[auto_1fr_auto]">
+      <body className='h-screen grid grid-rows-[auto_1fr_auto]'>
         {children}
-        <Toaster />
+        <Toaster richColors />
       </body>
     </html>
-  );
+  )
 }
