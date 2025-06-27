@@ -26,6 +26,7 @@ Backoffice de actitud
 - [X] Implementar autenticación de usuarios
 
 ## 🔧 Desarrollo (In Progress)
+- [ ] Loading del perfil del cliente con los nuevo bloques
 - [ ] Crear formulario multi step para crear cliente
 - [ ] Loading para page editar membresia
 - [ ] Verificar proteccion de todas las rutas de la app 🔝 🚩
