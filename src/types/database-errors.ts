@@ -6,6 +6,7 @@ export type DatabaseErrorCode =
   | "CUSTOMER_NOT_FOUND"
   | "INVALID_MEMBERSHIP_TYPE"
   | "UNEXPECTED_ERROR"
+  | "UPDATE_MEMBERSHIP_ERROR"
 
 export interface DatabaseError {
   success: false

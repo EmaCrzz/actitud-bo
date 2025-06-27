@@ -1,24 +1,25 @@
-"use client";
+'use client'
 
-import * as React from "react";
+import * as React from 'react'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { cn } from "@/lib/utils";
-import { InfoIcon } from "lucide-react";
+} from '@/components/ui/select'
+import { cn } from '@/lib/utils'
+import { InfoIcon } from 'lucide-react'
 
 interface HybridSelectProps {
-  options: Array<{ value: string; label: string }>;
-  name: string;
-  defaultValue?: string;
-  placeholder?: string;
-  className?: string;
-  isInvalid?: boolean;
-  helperText?: string;
+  options: Array<{ value: string; label: string }>
+  name: string
+  defaultValue?: string
+  placeholder?: string
+  className?: string
+  isInvalid?: boolean
+  isDisabled?: boolean
+  helperText?: string
 }
 
 export function HybridSelect({
@@ -29,23 +30,25 @@ export function HybridSelect({
   className,
   helperText,
   isInvalid = false,
+  isDisabled = false,
 }: HybridSelectProps) {
-  const [value, setValue] = React.useState(defaultValue || "");
+  const [value, setValue] = React.useState(defaultValue || '')
 
   return (
-    <div className={cn("w-full", !isInvalid && !helperText ? "mb-[20px]" : "")}>
+    <div className={cn('w-full', !isInvalid && !helperText ? 'mb-[20px]' : '')}>
       {/* Hidden input para el formulario no controlado */}
-      <input name={name} type="hidden" value={value} />
+      <input name={name} type='hidden' value={value} />
 
       <Select value={value} onValueChange={setValue}>
         <SelectTrigger
           className={cn(
-            "w-full max-w-full", // Asegura que no exceda el ancho del contenedor
-            isInvalid && "border-red-500",
+            'w-full max-w-full', // Asegura que no exceda el ancho del contenedor
+            isInvalid && 'border-red-500',
             className
           )}
+          disabled={isDisabled}
         >
-          <SelectValue className="truncate max-w-full" placeholder={placeholder} />
+          <SelectValue className='truncate max-w-full' placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
           {options.map((option) => (
@@ -58,14 +61,14 @@ export function HybridSelect({
       {helperText && (
         <small
           className={cn(
-            "text-xs font-light flex gap-1 pt-1",
-            isInvalid ? "text-destructive" : "text-muted-foreground"
+            'text-xs font-light flex gap-1 pt-1',
+            isInvalid ? 'text-destructive' : 'text-muted-foreground'
           )}
         >
-          {isInvalid ? <InfoIcon className="size-4" /> : null}
+          {isInvalid ? <InfoIcon className='size-4' /> : null}
           {helperText}
         </small>
       )}
     </div>
-  );
+  )
 }

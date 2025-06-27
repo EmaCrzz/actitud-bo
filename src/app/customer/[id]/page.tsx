@@ -2,7 +2,9 @@ import ArrowLeftIcon from "@/components/icons/arrow-left";
 import { Button } from "@/components/ui/button";
 import { CUSTOMER } from "@/consts/routes";
 import { searchCustomersById } from "@/customer/api/server";
+import BtnEditMembership from "@/customer/btn-edit-membership";
 import InfoResume from "@/customer/info-resume";
+import CustomerMembership from "@/customer/membership";
 import Link from "next/link";
 
 export default async function CustomerDetailPage({
@@ -33,10 +35,12 @@ export default async function CustomerDetailPage({
           <h5 className="font-medium text-sm">Perfil del cliente</h5>
         </div>
       </header>
-      <section className="max-w-3xl mx-auto w-full px-4 overflow-auto pb-4">
+      <section className="max-w-3xl mx-auto w-full px-4 overflow-auto pb-4 flex flex-col gap-y-5">
         <h2 className="text-2xl font-semibold mt-6 mb-12">
           {customer.first_name} {customer.last_name}
         </h2>
+        <CustomerMembership customer={customer} />
+        <BtnEditMembership customer={customer} />
         <InfoResume customer={customer} />
       </section>
     </>

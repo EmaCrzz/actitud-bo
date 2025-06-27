@@ -28,6 +28,7 @@ interface Props {
   className?: string;
   isInvalid?: boolean;
   helperText?: string;
+  isDisabled?: boolean;
 }
 
 export default function SelectMembershipHybrid({
@@ -36,6 +37,7 @@ export default function SelectMembershipHybrid({
   className,
   helperText,
   isInvalid = false,
+  isDisabled = false,
 }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [memberships, setMemberships] = useState<Membership[]>([]);
@@ -59,9 +61,10 @@ export default function SelectMembershipHybrid({
 
   return (
     <HybridSelect
-      className={className}
+    className={className}
       defaultValue={defaultValue}
       helperText={helperText}
+      isDisabled={isDisabled}
       isInvalid={isInvalid}
       name={name}
       options={options}

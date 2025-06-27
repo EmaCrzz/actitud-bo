@@ -2,7 +2,7 @@
 
 import CustomerCounter from '@/assistance/customer-counter'
 import RegistryBtn from '@/assistance/registry-button'
-import { MEMBERSHIP_TYPE_3_DAYS, MembershipTranslationTwoLines } from '@/assistance/consts'
+import { MEMBERSHIP_TYPE_3_DAYS } from '@/assistance/consts'
 import { useMemo, useState } from 'react'
 import { createAssistance } from './api/client'
 import { toast } from 'sonner'
@@ -11,10 +11,9 @@ import { HOME } from '@/consts/routes'
 import { useRouter } from 'next/navigation'
 import { Alert, AlertTitle } from '@/components/ui/alert'
 import AlertContainedIcon from '@/components/icons/alert-contained'
-import { Button } from '@/components/ui/button'
-import { ChevronRight, InfoIcon } from 'lucide-react'
-import AlertTriangleContained from '@/components/icons/alert-triangle-contained'
-import CheckCircleContained from '@/components/icons/check-circle-contained'
+import { InfoIcon } from 'lucide-react'
+import CustomerMembership from '@/customer/membership'
+import BtnEditMembership from '@/customer/btn-edit-membership'
 
 export default function CustomerAssistance({ customer }: { customer: CustomerComplete }) {
   const [isPending, setIsPending] = useState(false)
@@ -22,7 +21,11 @@ export default function CustomerAssistance({ customer }: { customer: CustomerCom
   const router = useRouter()
 
   const handleSelectedDay = (day: string) => {
-    setDaySelected(day)
+    setDaySelected((prev) => {
+      if (prev === day) return undefined // Deselect if the same day is clicked
+
+      return day
+    })
   }
 
   const handleSubmit = async () => {
@@ -41,30 +44,10 @@ export default function CustomerAssistance({ customer }: { customer: CustomerCom
     toast.success('¡Listo, asistencia registrada!')
     router.push(HOME)
   }
-
   const today = new Date()
   const hasAssistanceToday = customer.assistance.some(
     (assistance) => new Date(assistance.assistance_date).toDateString() === today.toDateString()
   )
-  const membershipTransaltionTowLines = customer.customer_membership?.membership_type
-    ? MembershipTranslationTwoLines[customer.customer_membership.membership_type]
-    : null
-  const isExpired = useMemo(() => {
-    if (!customer.customer_membership?.expiration_date) return true
-    const expirationDate = new Date(customer.customer_membership.expiration_date)
-
-    return expirationDate < today
-  }, [])
-  const aboutToExpire = useMemo(() => {
-    // Check if the membership is about to expire in the next 5 days
-    if (!customer.customer_membership?.expiration_date) return false
-    const expirationDate = new Date(customer.customer_membership.expiration_date)
-    const fiveDaysFromNow = new Date(today)
-
-    fiveDaysFromNow.setDate(today.getDate() + 5)
-
-    return expirationDate > today && expirationDate <= fiveDaysFromNow
-  }, [])
   const fullMembership = useMemo(() => {
     if (!customer.customer_membership?.membership_type) return false
     const { membership_type } = customer.customer_membership
@@ -82,46 +65,8 @@ export default function CustomerAssistance({ customer }: { customer: CustomerCom
   return (
     <>
       <div className='grow'>
-        <div className='grid grid-cols-3 gap-x-3 font-secondary'>
-          {membershipTransaltionTowLines && (
-            <div className='col-span-1 px-1 py-4 bg-membership-card rounded-[4px] border border-white/20 flex flex-col gap-y-2 items-center justify-between'>
-              <span className='text-3xl font-sans font-semibold tracking-[1.28px]'>
-                {membershipTransaltionTowLines?.one}
-              </span>
-              <span className='text-sm font-bold'>{membershipTransaltionTowLines?.two}</span>
-            </div>
-          )}
-          <div className='col-span-1 px-1 py-4 bg-membership-card rounded-[4px] border border-white/20 flex flex-col gap-y-2 items-center justify-between'>
-            {!isExpired && !aboutToExpire && (
-              <>
-                <CheckCircleContained className='text-green-400 size-10' />
-                <span className='text-sm font-bold'>Activo</span>
-              </>
-            )}
-            {isExpired && (
-              <>
-                <AlertContainedIcon className='text-destructive size-10' />
-                <span className='text-sm font-bold'>Vencido</span>
-              </>
-            )}
-            {aboutToExpire && (
-              <>
-                <AlertTriangleContained className='text-amber-400 size-10' />
-                <span className='text-sm font-bold'>Por vencer</span>
-              </>
-            )}
-          </div>
-          <div className='col-span-1 px-1 py-4 bg-membership-card rounded-[4px] border border-white/20 flex flex-col gap-y-2 items-center justify-between'>
-            <span className='text-3xl font-sans font-semibold tracking-[1.28px]'>
-              {customer.assistance_count ?? '-'}
-            </span>
-            <span className='text-sm font-bold'>Total Asist.</span>
-          </div>
-        </div>
-        <Button className='h-14 w-full mt-4' variant={'outline'}>
-          {isExpired || aboutToExpire ? 'Renovar membresía' : 'Modificar membresía'}
-          <ChevronRight className='size-6' />
-        </Button>
+        <CustomerMembership customer={customer} />
+        <BtnEditMembership customer={customer} />
         {customer?.customer_membership?.membership_type && (
           <CustomerCounter
             assistanceCount={customer.assistance.length}

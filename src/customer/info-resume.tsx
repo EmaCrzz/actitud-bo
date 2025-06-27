@@ -10,7 +10,7 @@ import Link from "next/link";
 
 export default function InfoResume({ customer }: { customer: CustomerComplete }) {  
   return (
-    <>
+    <section>
       <Label className="font-light text-xs leading-6 text-[#FF91B6]">
         Datos Personales
       </Label>
@@ -55,6 +55,6 @@ export default function InfoResume({ customer }: { customer: CustomerComplete })
           </span>
         </div>
       </section>
-    </>
+    </section>
   );
 }

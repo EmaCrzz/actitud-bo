@@ -122,3 +122,42 @@ export async function upsertCustomer({ customerId, formData }: {
 
   return result
 }
+
+export async function updateCustomerMembership({ customerId, formData }: {
+  customerId: string,
+  formData: FormData
+}): Promise<DatabaseResult> {
+  const supabase = createClient()
+  const startDate = formData.get("start_date") as string
+  const endDate = formData.get("end_date") as string
+  const membershipType = formData.get("membership_type") as string
+  const payment = formData.get("payment") as 'on' | null
+  const isPaid = payment === 'on' ? true : false
+  const { data: updatedMembership, error: updateError } = await supabase
+    .from("customer_membership")
+    .update({
+      membership_type: membershipType,
+      last_payment_date: isPaid ? startDate : null,
+      expiration_date: isPaid ? endDate : null
+    })
+    .eq("customer_id", customerId)
+    .select()
+    .single()
+
+  if (updateError) {
+    return {
+      success: false,
+      error_code: "UPDATE_MEMBERSHIP_ERROR",
+      message: "Error al actualizar la membresía: " + updateError.message,
+      operation: "update"
+    }
+  }
+  
+  return {
+    success: true,
+    operation: "updated",
+    message: "Membresía actualizada correctamente",
+    data: updatedMembership
+  }
+
+}
