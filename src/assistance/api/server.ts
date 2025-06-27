@@ -52,6 +52,7 @@ interface AssistanceByDate {
     person_id: string
     phone: string | null
     email: string | null
+    id: string
   }
 }
 
@@ -73,6 +74,7 @@ export async function getAssistancesByDate(date: Date): Promise<AssistanceByDate
       id,
       assistance_date,
       customers (
+        id,
         first_name,
         last_name,
         person_id,
@@ -137,6 +139,7 @@ export async function getAssistancesByWeek(startDate: Date, endDate: Date) {
       id,
       assistance_date,
       customers (
+        id,
         first_name,
         last_name,
         person_id,

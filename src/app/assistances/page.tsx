@@ -3,7 +3,7 @@ import { DateDisplay } from '@/components/date-display'
 import FooterNavigation from '@/components/nav'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { HOME } from '@/consts/routes'
+import { HOME, REGISTER_ASSISTANCE } from '@/consts/routes'
 import { ArrowLeftIcon, CalendarCheck } from 'lucide-react'
 import Link from 'next/link'
 
@@ -47,9 +47,11 @@ export default async function page() {
                     <span className='text-xs font-bold text-white/70'>#{index + 1}</span>
                   </div>
                   <div>
-                    <p className='font-medium text-gray-300'>
-                      {item.customers.first_name} {item.customers.last_name}
-                    </p>
+                    <Link href={`${REGISTER_ASSISTANCE}/${item.customers.id}`}>
+                      <p className='font-medium text-gray-300 hover:cursor-pointer'>
+                        {item.customers.first_name} {item.customers.last_name}
+                      </p>
+                    </Link>
                     <DateDisplay
                       className='text-xs text-gray-500'
                       date={item.assistance_date}
