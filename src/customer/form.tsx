@@ -1,33 +1,52 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import { CustomerComplete } from '@/customer/types'
 import { DatabaseResult } from '@/types/database-errors'
 import { handleDatabaseError } from '@/customer/errors'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PersonIdInput } from '@/components/ui/input-person-id'
-import { upsertCustomer } from '@/customer/api/client'
-import SelectMembership from '@/components/select-membership'
+import { updateCustomer } from '@/customer/api/client'
 import { CUSTOMER } from '@/consts/routes'
+import { Button } from '@/components/ui/button'
+import ArrowLeftIcon from '@/components/icons/arrow-left'
 
-export default function CustomerForm({ customer }: { customer?: CustomerComplete }) {
+interface Props {
+  customer?: CustomerComplete
+  multiStepForm?: boolean
+  errors?: Record<string, string>
+  defaultValues?: FormData
+  callbackSubmitMultiStep?: (customer: FormData) => Promise<void>
+}
+
+export default function CustomerForm({
+  errors: errorProps,
+  customer,
+  multiStepForm,
+  defaultValues: defaultValuesProps,
+  callbackSubmitMultiStep,
+}: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [errors, setErrors] = useState<DatabaseResult['data']>()
+  const [innerErrors, setInnerErrors] = useState<DatabaseResult['data']>()
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setErrors(undefined)
+    setInnerErrors(undefined)
     const formData = new FormData(event.currentTarget)
+
+    if (multiStepForm) {
+      callbackSubmitMultiStep?.(formData)
+
+      return
+    }
 
     setLoading(true)
 
-    const response = await upsertCustomer({
+    const response = await updateCustomer({
       customerId: customer?.id || '',
       formData,
     })
@@ -38,7 +57,7 @@ export default function CustomerForm({ customer }: { customer?: CustomerComplete
       const errors = handleDatabaseError(response, router)
 
       if (errors) {
-        setErrors(errors)
+        setInnerErrors(errors)
       }
 
       return
@@ -49,23 +68,66 @@ export default function CustomerForm({ customer }: { customer?: CustomerComplete
     }
   }
 
+  const errors = useMemo(() => {
+    if (errorProps) {
+      return errorProps
+    }
+
+    return innerErrors || {}
+  }, [errorProps, innerErrors])
+
+  const defaultValues = useMemo(() => {
+    if (customer) return customer
+    if (defaultValuesProps) {
+      const values: Record<string, string> = {}
+
+      defaultValuesProps.forEach((value, key) => {
+        values[key] = value as string
+      })
+
+      return values
+    }
+
+    return {
+      first_name: 'Juan Fernando',
+      last_name: 'Quinteros',
+      person_id: '35647890',
+      phone: '',
+    }
+  }, [customer, defaultValuesProps])
+
   return (
     <>
-      <form id='form-edit' onSubmit={handleSubmit}>
+      {!multiStepForm && (
+        <header className='max-w-3xl mx-auto w-full px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
+          <div className='flex gap-4 items-center'>
+            <Button
+              className='size-6 rounded-full'
+              size='icon'
+              variant='ghost'
+              onClick={() => router.back()}
+            >
+              <ArrowLeftIcon className='size-6' />
+            </Button>
+            <h5 className='font-medium text-sm'>Editar Cliente</h5>
+          </div>
+        </header>
+      )}
+      <form id='form-customer' onSubmit={handleSubmit}>
         <section className='max-w-3xl mx-auto w-full px-4 overflow-auto pb-4 pt-12'>
           <h3 className='text-sm sm:text-md mb-4'>
             {customer
               ? 'Puedes modificar el formulario para actualizar la información de este cliente.'
-              : 'Completá el formulario para dar de alta un nuevo cliente.'}
+              : 'Para comenzar, vamos a pedirte los datos personales del cliente.'}
           </h3>
-          <div className='grid gap-y-4'>
+          <div className='grid gap-y-2'>
             <div className='grid gap-y-2'>
               <Label className='font-light' htmlFor='assistance'>
                 Nombre
               </Label>
               <Input
                 className='w-full font-light'
-                defaultValue={customer?.first_name || ''}
+                defaultValue={defaultValues.first_name}
                 helperText={errors?.first_name}
                 isInvalid={!!errors?.first_name}
                 name={'first_name'}
@@ -77,7 +139,7 @@ export default function CustomerForm({ customer }: { customer?: CustomerComplete
               </Label>
               <Input
                 className='w-full font-light'
-                defaultValue={customer?.last_name || ''}
+                defaultValue={defaultValues.last_name}
                 helperText={errors?.last_name}
                 isInvalid={!!errors?.last_name}
                 name={'last_name'}
@@ -89,7 +151,7 @@ export default function CustomerForm({ customer }: { customer?: CustomerComplete
               </Label>
               <PersonIdInput
                 className='w-full font-light'
-                defaultValue={customer?.person_id || ''}
+                defaultValue={defaultValues.person_id}
                 helperText={errors?.person_id}
                 isInvalid={!!errors?.person_id}
                 name={'person_id'}
@@ -97,49 +159,33 @@ export default function CustomerForm({ customer }: { customer?: CustomerComplete
             </div>
             <div className='grid gap-y-2'>
               <Label className='font-light' htmlFor='assistance'>
-                Tipo de membresía
-              </Label>
-              <SelectMembership
-                className='font-light'
-                defaultValue={customer?.customer_membership?.membership_type || ''}
-                helperText={errors?.membership_type}
-                isInvalid={!!errors?.membership_type}
-                name={'membership_type'}
-              />
-            </div>
-            <div className='grid gap-y-2'>
-              <Label className='font-light' htmlFor='assistance'>
                 Contacto telefónico
               </Label>
-              <Input defaultValue={customer?.phone || ''} name={'phone'} />
-            </div>
-            <div className='flex items-center gap-3'>
-              <Checkbox className='size-6' id='first-assistance' name='first-assistance' />
-              <Label className='text-xs text-white' htmlFor='first-assistance'>
-                Registrar su primer asistencia
-              </Label>
+              <Input defaultValue={defaultValues.phone || ''} name={'phone'} />
             </div>
           </div>
         </section>
       </form>
-      <footer className='flex justify-between max-w-3xl gap-2 mx-auto w-full px-4 pb-9'>
-        <Button
-          className='w-36 h-12 sm:w-44 sm:h-14'
-          loading={loading}
-          variant='outline'
-          onClick={() => router.back()}
-        >
-          Cancelar
-        </Button>
-        <Button
-          className='w-36 h-12 sm:w-44 sm:h-14'
-          form='form-edit'
-          loading={loading}
-          type='submit'
-        >
-          Guardar
-        </Button>
-      </footer>
+      {!multiStepForm && (
+        <footer className='flex justify-between max-w-3xl gap-2 mx-auto w-full px-4 pb-9'>
+          <Button
+            className='w-36 h-12 sm:w-44 sm:h-14'
+            loading={loading}
+            variant='outline'
+            onClick={() => router.back()}
+          >
+            Cancelar
+          </Button>
+          <Button
+            className='w-36 h-12 sm:w-44 sm:h-14'
+            form='form-customer'
+            loading={loading}
+            type='submit'
+          >
+            Confirmar
+          </Button>
+        </footer>
+      )}
     </>
   )
 }

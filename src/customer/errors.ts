@@ -27,6 +27,17 @@ export function handleDatabaseError(error: DatabaseError, router?: AppRouterInst
       },
     })
 
-    return
+    return {
+      person_id: "Este DNI ya esta registrado"
+    }
+  }
+  if (error.error_code === "UNEXPECTED_ERROR") {
+    toast.error(error.message)
+  }
+  if (error.error_code === "CREATE_MEMBERSHIP_ERROR") {
+    toast.error(error.message)
+  }
+  if (error.error_code === "MISSING_FORM_DATA") {
+    toast.error(error.message)
   }
 }

@@ -1,20 +1,20 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 :root {
   --primary: #ff1168;
-  --primary200: #FF6398;
+  --primary200: #ff6398;
   --background: #260210;
   --foreground: #ffffff;
   --inputhover: #3c3839;
-  --textsecondary: #FFBDD3;
+  --textsecondary: #ffbdd3;
   --accent: oklch(0.37 0.04 355.12);
   --ring: oklch(0.708 0 0);
-  --destructive: #FB0817;
-  
+  --destructive: #fb0817;
+
   /* TODO: refactorizarlos */
   --input: #322d2f;
-  --membership-card: #4D2331;
+  --membership-card: #4d2331;
   --alert: #010101;
   --popover: #322d2f;
   --inputactive: rgba(255, 255, 255, 0.8);
@@ -25,7 +25,7 @@
   --label: rgba(255, 255, 255, 0.3);
   --muted-foreground: rgba(255, 255, 255, 0.3);
   /* **** */
-  
+
   --card-foreground: oklch(0.145 0 0);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
@@ -94,8 +94,8 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  --font-sans: "unbounded", "system-ui", sans-serif;
-  --font-secondary: "Inter", "system-ui", sans-serif;
+  --font-sans: 'unbounded', 'system-ui', sans-serif;
+  --font-secondary: 'Inter', 'system-ui', sans-serif;
 }
 
 @layer base {
@@ -104,35 +104,35 @@
 
     @font-face {
       font-family: unbounded;
-      src: url("/fonts/unbounded/bold.woff2") format("woff2");
+      src: url('/fonts/unbounded/bold.woff2') format('woff2');
       font-weight: bold;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: unbounded;
-      src: url("/fonts/unbounded/extraBold.woff2") format("woff2");
+      src: url('/fonts/unbounded/extraBold.woff2') format('woff2');
       font-weight: 800;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: unbounded;
-      src: url("/fonts/unbounded/light.woff2") format("woff2");
+      src: url('/fonts/unbounded/light.woff2') format('woff2');
       font-weight: light;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: unbounded;
-      src: url("/fonts/unbounded/medium.woff2") format("woff2");
+      src: url('/fonts/unbounded/medium.woff2') format('woff2');
       font-weight: normal;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: unbounded;
-      src: url("/fonts/unbounded/semiBold.woff2") format("woff2");
+      src: url('/fonts/unbounded/semiBold.woff2') format('woff2');
       font-weight: 500;
       font-style: normal;
       font-display: swap;
@@ -140,35 +140,35 @@
 
     @font-face {
       font-family: poppins;
-      src: url("/fonts/poppins/bold.woff2") format("woff2");
+      src: url('/fonts/poppins/bold.woff2') format('woff2');
       font-weight: bold;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: poppins;
-      src: url("/fonts/poppins/extraBold.woff2") format("woff2");
+      src: url('/fonts/poppins/extraBold.woff2') format('woff2');
       font-weight: 800;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: poppins;
-      src: url("/fonts/poppins/light.woff2") format("woff2");
+      src: url('/fonts/poppins/light.woff2') format('woff2');
       font-weight: light;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: poppins;
-      src: url("/fonts/poppins/regular.woff2") format("woff2");
+      src: url('/fonts/poppins/regular.woff2') format('woff2');
       font-weight: normal;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: poppins;
-      src: url("/fonts/poppins/semiBold.woff2") format("woff2");
+      src: url('/fonts/poppins/semiBold.woff2') format('woff2');
       font-weight: semiBold;
       font-style: normal;
       font-display: swap;
@@ -177,6 +177,36 @@
   body {
     @apply bg-background text-foreground;
     letter-spacing: 0.64px;
+    /* 
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideInLeft {
+      from {
+        transform: translateX(-100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .slide-enter {
+      animation: slideInRight 0.3s ease-out;
+    }
+
+    .slide-enter-reverse {
+      animation: slideInLeft 0.3s ease-out;
+    } */
   }
 }
 

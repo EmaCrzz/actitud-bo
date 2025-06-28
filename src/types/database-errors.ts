@@ -7,18 +7,20 @@ export type DatabaseErrorCode =
   | "INVALID_MEMBERSHIP_TYPE"
   | "UNEXPECTED_ERROR"
   | "UPDATE_MEMBERSHIP_ERROR"
+  | "MISSING_FORM_DATA"
+  | "CREATE_MEMBERSHIP_ERROR"
 
 export interface DatabaseError {
   success: false
   error_code: DatabaseErrorCode
   message: string
-  operation: "create" | "update"
+  operation: "create" | "update" | "check_data"
   data?: Record<string, any>
 }
 
 export interface DatabaseSuccess<T = any> {
   success: true
-  operation: "created" | "updated"
+  operation: "created" | "updated" | "check_data"
   message: string
   data: T
 }

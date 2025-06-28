@@ -1,13 +1,13 @@
 'use client'
 
-import { Button } from "@/components/ui/button";
-import { CUSTOMER_EDIT } from "@/consts/routes";
-import Link from "next/link";
-import { CustomerComplete } from "./types";
-import { useMemo } from "react";
-import { ChevronRight } from "lucide-react";
+import { Button } from '@/components/ui/button'
+import { CUSTOMER_EDIT } from '@/consts/routes'
+import Link from 'next/link'
+import { CustomerComplete } from './types'
+import { useMemo } from 'react'
+import { ChevronRight } from 'lucide-react'
 
-export default function BtnEditMembership({customer}: { customer: CustomerComplete }) {
+export default function BtnEditMembership({ customer }: { customer: CustomerComplete }) {
   const today = new Date()
   const isExpired = useMemo(() => {
     if (!customer.customer_membership?.expiration_date) return true
@@ -25,11 +25,16 @@ export default function BtnEditMembership({customer}: { customer: CustomerComple
 
     return expirationDate > today && expirationDate <= fiveDaysFromNow
   }, [])
+  const hasMembership = customer.customer_membership?.membership_type
 
   return (
     <Link href={`${CUSTOMER_EDIT}/${customer.id}/membership`}>
       <Button className='h-14 w-full mt-4' variant={'outline'}>
-        {isExpired || aboutToExpire ? 'Renovar membresía' : 'Modificar membresía'}
+        {!hasMembership
+          ? 'Crear membresía'
+          : isExpired || aboutToExpire
+            ? 'Renovar membresía'
+            : 'Modificar membresía'}
         <ChevronRight className='size-6' />
       </Button>
     </Link>

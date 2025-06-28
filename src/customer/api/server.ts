@@ -39,7 +39,7 @@ export const searchCustomersById = async (id: string): Promise<CustomerComplete 
   // Consulta 2: Membresía (sabemos que es única)
   const { data: membership } = await supabase
     .from("customer_membership")
-    .select("membership_type, expiration_date")
+    .select()
     .eq("customer_id", id)
     .single()
 

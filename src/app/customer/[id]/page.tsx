@@ -5,6 +5,7 @@ import { searchCustomersById } from "@/customer/api/server";
 import BtnEditMembership from "@/customer/btn-edit-membership";
 import InfoResume from "@/customer/info-resume";
 import CustomerMembership from "@/customer/membership";
+import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 export default async function CustomerDetailPage({
@@ -23,6 +24,8 @@ export default async function CustomerDetailPage({
     );
   }
 
+  const hasMembership = customer.customer_membership?.membership_type
+
   return (
     <>
       <header className="max-w-3xl mx-auto w-full px-4 py-3 flex justify-between items-center border-b border-primary pt-4">
@@ -36,10 +39,10 @@ export default async function CustomerDetailPage({
         </div>
       </header>
       <section className="max-w-3xl mx-auto w-full px-4 overflow-auto pb-4 flex flex-col gap-y-5">
-        <h2 className="text-2xl font-semibold mt-6 mb-12">
+        <h2 className={cn("text-2xl font-semibold mt-6 mb-4", hasMembership && 'mb-12')}>
           {customer.first_name} {customer.last_name}
         </h2>
-        <CustomerMembership customer={customer} />
+        {hasMembership && <CustomerMembership customer={customer} />}
         <BtnEditMembership customer={customer} />
         <InfoResume customer={customer} />
       </section>
