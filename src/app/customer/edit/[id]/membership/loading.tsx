@@ -26,8 +26,12 @@ export default function EditMembershipLoading() {
               <Skeleton className='h-6 w-1/2' />
             </div>
           </div>
-          <Skeleton className='h-[50px] w-full mb-4' />
-          <Skeleton className='h-[50px] w-full mb-4' />
+          <Skeleton className='h-[50px] col-span-2 sm:col-span-1 w-full mb-4' />
+          <Skeleton className='h-[50px] col-span-2 sm:col-span-1 w-full mb-4' />
+          <div className='flex items-center gap-3'>
+            <Skeleton className='size-6' />
+            <Skeleton className='h-6 w-3/4 sm:w-1/2' />
+          </div>
         </div>
       </section>
       <footer className='flex justify-between max-w-3xl gap-2 mx-auto w-full px-4 pb-9'>

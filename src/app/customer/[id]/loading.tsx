@@ -18,7 +18,7 @@ export default function CustomerDetailPageLoading() {
         </div>
       </header>
       <section className='max-w-3xl mx-auto w-full px-4 overflow-auto pb-4 flex flex-col gap-y-5'>
-        <Skeleton className='mt-6 h-9 w-1/2 sm:w-1/3 mb-11' />
+        <Skeleton className='mt-6 h-9 w-1/2 sm:w-1/3' />
         <div className='grid grid-cols-3 gap-x-3 font-secondary'>
           <Skeleton className='col-span-1 min-h-[118px] rounded-[4px] border border-white/20' />
           <Skeleton className='col-span-1 min-h-[118px] rounded-[4px] border border-white/20' />

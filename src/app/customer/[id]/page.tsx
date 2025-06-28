@@ -35,7 +35,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
         </div>
       </header>
       <section className='max-w-3xl mx-auto w-full px-4 overflow-auto pb-4 flex flex-col gap-y-5'>
-        <h2 className={cn('text-2xl font-semibold mt-6 mb-4', hasMembership && 'mb-12')}>
+        <h2 className={cn('text-2xl font-semibold mt-6')}>
           {customer.first_name} {customer.last_name}
         </h2>
         {hasMembership && <CustomerMembership customer={customer} />}

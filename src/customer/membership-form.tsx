@@ -16,6 +16,8 @@ import { handleDatabaseError } from './errors'
 import { CUSTOMER } from '@/consts/routes'
 import { InfoIcon } from 'lucide-react'
 import { TooltipTrigger, Tooltip, TooltipContent } from '@/components/ui/tooltip'
+import AssistanceToday from '@/assistance/assistance-today'
+import { cn } from '@/lib/utils'
 
 interface Props {
   pathBack?: string
@@ -94,6 +96,10 @@ export default function MembershipForm({
     return innerErrors || {}
   }, [errorProps, innerErrors])
 
+  const hasAssistanceToday = customer?.assistance.some(
+    (assistance) => new Date(assistance.assistance_date).toDateString() === today.toDateString()
+  )
+
   return (
     <>
       {!multiStepForm && (
@@ -146,6 +152,7 @@ export default function MembershipForm({
             <UncontrolledDatePicker
               className='w-full col-span-2 sm:col-span-1'
               dateFormat='short'
+              defaultValue={customer?.customer_membership?.last_payment_date || ''}
               helperText={errors?.start_date}
               isDisabled={payment !== true || loading}
               isInvalid={!!errors?.start_date}
@@ -155,6 +162,7 @@ export default function MembershipForm({
             <UncontrolledDatePicker
               className='w-full col-span-2 sm:col-span-1'
               dateFormat='short'
+              defaultValue={customer?.customer_membership?.expiration_date || ''}
               helperText={errors?.end_date}
               isDisabled={payment !== true || loading}
               isInvalid={!!errors?.end_date}
@@ -164,12 +172,18 @@ export default function MembershipForm({
             <div className='flex items-center gap-3 col-span-2'>
               <Checkbox
                 className='size-6'
-                disabled={!payment}
+                disabled={!payment || hasAssistanceToday || loading}
                 id='first_assistance'
                 name='first_assistance'
               />
               <span className='flex items-center gap-2'>
-                <Label className='text-xs text-white' htmlFor='first_assistance'>
+                <Label
+                  className={cn(
+                    'text-xs text-white',
+                    (!payment || hasAssistanceToday || loading) && 'text-white/30'
+                  )}
+                  htmlFor='first_assistance'
+                >
                   Registrar su primer asistencia
                 </Label>
                 {!payment && (
@@ -193,6 +207,7 @@ export default function MembershipForm({
               </small>
             )}
           </div>
+          <AssistanceToday assistance={customer?.assistance} />
         </section>
       </form>
       {!multiStepForm && (

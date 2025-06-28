@@ -10,10 +10,10 @@ import { CustomerComplete } from '@/customer/types'
 import { HOME } from '@/consts/routes'
 import { useRouter } from 'next/navigation'
 import { Alert, AlertTitle } from '@/components/ui/alert'
-import AlertContainedIcon from '@/components/icons/alert-contained'
 import { InfoIcon } from 'lucide-react'
 import CustomerMembership from '@/customer/membership'
 import BtnEditMembership from '@/customer/btn-edit-membership'
+import AssistanceToday from './assistance-today'
 
 export default function CustomerAssistance({ customer }: { customer: CustomerComplete }) {
   const [isPending, setIsPending] = useState(false)
@@ -85,17 +85,7 @@ export default function CustomerAssistance({ customer }: { customer: CustomerCom
             selectedDay={daySelected}
           />
         )}
-        {hasAssistanceToday && (
-          <Alert
-            className='mt-6 items-center has-[>svg]:grid-cols-[calc(var(--spacing)*6)_1fr] [&>svg]:size-6'
-            variant='destructive'
-          >
-            <AlertContainedIcon />
-            <AlertTitle className='font-secondary font-bold tracking-[0.48px]'>
-              Ya se registro una asistencia el dia de hoy
-            </AlertTitle>
-          </Alert>
-        )}
+        <AssistanceToday assistance={customer.assistance} />
         {fullMembership && (
           <Alert
             className='mt-6 items-center has-[>svg]:grid-cols-[calc(var(--spacing)*6)_1fr] [&>svg]:size-6'
