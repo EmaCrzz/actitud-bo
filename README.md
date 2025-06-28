@@ -28,7 +28,6 @@ Backoffice de actitud
 ## 🔧 Desarrollo (In Progress)
 - [ ] Loading del perfil del cliente con los nuevo bloques
 - [ ] Crear formulario multi step para crear cliente
-- [ ] Loading para page editar membresia
 - [ ] Verificar proteccion de todas las rutas de la app 🔝 🚩
 - [ ] Implementar agregar pase adicional si la semana esta completa
 - [ ] Implementar delete de asistencia del dia
@@ -40,6 +39,7 @@ Backoffice de actitud
 - [ ] Implementar delete de cliente
 - [ ] Implementar rol admin
 - [ ] Verificar porque la fuente no se ve en mobiles
+- [X] Loading para page editar membresia
 - [X] Implementar manejo de errores con mas ayuda en crar cliente
 - [X] Mostrar en el listado de asistencias del dia la hs en la que se registro
 - [X] Implementar registar primera asistencia al momento de crear cliente
