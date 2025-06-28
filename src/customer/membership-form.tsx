@@ -144,7 +144,7 @@ export default function MembershipForm({
               </div>
             </div>
             <UncontrolledDatePicker
-              className='w-full col-span-2'
+              className='w-full col-span-2 sm:col-span-1'
               dateFormat='short'
               helperText={errors?.start_date}
               isDisabled={payment !== true || loading}
@@ -153,7 +153,7 @@ export default function MembershipForm({
               name='start_date'
             />
             <UncontrolledDatePicker
-              className='w-full col-span-2'
+              className='w-full col-span-2 sm:col-span-1'
               dateFormat='short'
               helperText={errors?.end_date}
               isDisabled={payment !== true || loading}
