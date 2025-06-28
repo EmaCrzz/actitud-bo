@@ -64,11 +64,7 @@ export async function getCustomerBasic(id: string): Promise<Customer | null> {
   const supabase = await createClient();
   const { data, error } = await supabase.from("customers").select("*").eq("id", id).single()
 
-  if (error || !data) {
-    console.error("Error fetching customer:", error)
-
-    return null
-  }
+  if (error || !data) return null
 
   return data as Customer
 }
