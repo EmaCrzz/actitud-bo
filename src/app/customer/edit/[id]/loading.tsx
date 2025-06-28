@@ -37,10 +37,7 @@ export default function EditCustomerLoading() {
         </div>
       </section>
       <footer className='flex justify-between max-w-3xl gap-2 mx-auto w-full px-4 pb-9'>
-        <Button disabled className='w-36 h-12 sm:w-44 sm:h-14' variant='outline'>
-          Cancelar
-        </Button>
-        <Button disabled className='w-36 h-12 sm:w-44 sm:h-14'>
+        <Button disabled className='w-full h-12'>
           Confirmar
         </Button>
       </footer>
