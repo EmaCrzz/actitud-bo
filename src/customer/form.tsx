@@ -89,9 +89,9 @@ export default function CustomerForm({
     }
 
     return {
-      first_name: 'Juan Fernando',
-      last_name: 'Quinteros',
-      person_id: '35647890',
+      first_name: '',
+      last_name: '',
+      person_id: '',
       phone: '',
     }
   }, [customer, defaultValuesProps])

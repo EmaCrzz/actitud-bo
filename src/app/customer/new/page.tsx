@@ -180,7 +180,7 @@ export default function SimpleMultiStepForm() {
         {currentStep < totalSteps ? (
           <Button
             // onClick={nextStep}
-            className='w-full h-12 sm:w-44 sm:h-14'
+            className='w-full h-12'
             disabled={isAnimating}
             form='form-customer'
             loading={loading}
@@ -190,7 +190,7 @@ export default function SimpleMultiStepForm() {
           </Button>
         ) : (
           <Button
-            className='w-full h-12 sm:w-44 sm:h-14'
+            className='w-full h-12'
             disabled={isAnimating}
             form='form-membership'
             loading={loading}
