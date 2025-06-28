@@ -11,8 +11,8 @@ export const searchAllCustomers = async (): Promise<CustomerWithMembership[]> =>
     .select(SEARCH_CUSTOMER)
     .order('first_name', {
       ascending: true
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }) as unknown as { data: any[]}; // TODO fix this
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }) as unknown as { data: any[] }; // TODO fix this
 
   const customers = data?.map((customer) => {
     const membership_type = customer.customer_membership?.membership_type || null;
@@ -50,6 +50,7 @@ export const searchCustomersById = async (id: string): Promise<CustomerComplete 
     .eq("customer_id", id)
     .gte("assistance_date", week.start.toISOString())
     .lte("assistance_date", week.end.toISOString())
+    .order("assistance_date", { ascending: true })
 
   return {
     ...customer,

@@ -19,6 +19,7 @@ export default function CustomerAssistance({ customer }: { customer: CustomerCom
   const [isPending, setIsPending] = useState(false)
   const [daySelected, setDaySelected] = useState<string>()
   const router = useRouter()
+  const today = new Date()
 
   const handleSelectedDay = (day: string) => {
     setDaySelected((prev) => {
@@ -44,7 +45,7 @@ export default function CustomerAssistance({ customer }: { customer: CustomerCom
     toast.success('¡Listo, asistencia registrada!')
     router.push(HOME)
   }
-  const today = new Date()
+
   const hasAssistanceToday = customer.assistance.some(
     (assistance) => new Date(assistance.assistance_date).toDateString() === today.toDateString()
   )
@@ -52,7 +53,15 @@ export default function CustomerAssistance({ customer }: { customer: CustomerCom
     if (!customer.customer_membership?.membership_type) return false
     const { membership_type } = customer.customer_membership
 
-    if (membership_type === MEMBERSHIP_TYPE_3_DAYS && customer.assistance.length === 3) return true
+    if (membership_type === MEMBERSHIP_TYPE_3_DAYS && customer.assistance.length === 3) {
+      if (
+        new Date(customer.assistance[2].assistance_date).toDateString() === today.toDateString()
+      ) {
+        return false
+      }
+
+      return true
+    }
 
     return false
   }, [customer])
