@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 // 🤖 GENERADO AUTOMÁTICAMENTE - NO EDITAR MANUALMENTE
-const CACHE_VERSION = "v1751297202898-xpyfib"
+const CACHE_VERSION = "v1751299175235-99uhwm"
 const STATIC_CACHE = `actitud-static-${CACHE_VERSION}`
 const DYNAMIC_CACHE = `actitud-dynamic-${CACHE_VERSION}`
 const RUNTIME_CACHE = `actitud-runtime-${CACHE_VERSION}`
