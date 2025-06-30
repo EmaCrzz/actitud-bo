@@ -27,7 +27,7 @@ export default function CustomerCounter({
     <>
       <p className='text-lg mt-6 font-secondary tracking-[0.72px]'>Asistencias de la semana</p>
       <hr className='mt-2 mb-4 border-primary' />
-      <div className='flex gap-6 items-center'>
+      <div className='flex gap-4 sm:gap-6 items-center'>
         {Array.from({ length: items }).map((_, index) => {
           const isChecked = index < assistanceCount || index + 1 === Number(selectedDay)
           const enabled = assistanceCount + 1 === index + 1 && !isDisabled
@@ -36,7 +36,7 @@ export default function CustomerCounter({
             <span
               key={index}
               className={cn(
-                'size-[53px] rounded-full flex items-center justify-center transition-colors',
+                'size-[43px] sm:size-[53px] rounded-full flex items-center justify-center transition-colors',
                 isChecked
                   ? enabled
                     ? 'bg-primary text-white hover:cursor-pointer border border-white'
@@ -50,7 +50,7 @@ export default function CustomerCounter({
                 handleSelectedDay?.(String(index + 1))
               }}
             >
-              <span className='font-medium text-[22px]'>{index + 1}</span>
+              <span className='font-medium text-lg sm:text-[22px]'>{index + 1}</span>
             </span>
           )
         })}
