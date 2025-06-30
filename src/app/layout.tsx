@@ -4,19 +4,6 @@ import { Toaster } from 'sonner'
 import PWAInstaller from '@/components/pwa-installer'
 import SWUpdateManager from '@/components/sw-update-manager'
 
-// export const metadata: Metadata = {
-//   title: "Actitud",
-//   description: "PWA para Actitud",
-//   manifest: "/manifest.json",
-//   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
-//   icons: {
-//     apple: "/icon/apple-icon.png"
-//   }
-// }
-// export const viewport: Viewport = {
-//   themeColor: "#ff1168"
-// }
-
 export const metadata: Metadata = {
   title: 'Actitud - Backoffice',
   description: 'Backoffice para Actitud',
@@ -41,46 +28,6 @@ export const metadata: Metadata = {
     description: 'Backoffice para Actitud',
   },
 }
-// export const metadata: Metadata = {
-//   title: 'Actitud',
-//   description: 'Backoffice Actitud',
-//   generator: 'Next.js',
-//   applicationName: 'Actitud',
-//   referrer: 'origin-when-cross-origin',
-//   keywords: ['Next.js', 'React', 'PWA', 'Progressive Web App'],
-//   authors: [{ name: 'Tu Nombre' }],
-//   creator: 'Tu Nombre',
-//   publisher: 'Tu Nombre',
-//   formatDetection: {
-//     email: false,
-//     address: false,
-//     telephone: false,
-//   },
-//   metadataBase: new URL('https://actitud-bo.vercel.app'),
-//   alternates: {
-//     canonical: '/',
-//   },
-//   openGraph: {
-//     type: 'website',
-//     siteName: 'Actitud',
-//     title: {
-//       default: 'Actitud',
-//       template: '%s | Actitud',
-//     },
-//     description: 'Backoffice Actitud',
-//   },
-//   twitter: {
-//     card: 'summary_large_image',
-//     title: 'Actitud',
-//     description: 'Backoffice Actitud',
-//     creator: '@tu_usuario',
-//   },
-//   appleWebApp: {
-//     capable: true,
-//     statusBarStyle: 'default',
-//     title: 'Actitud',
-//   },
-// }
 
 export const viewport: Viewport = {
   themeColor: '#260210',
@@ -89,6 +36,73 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
 }
+
+// fonts.ts
+import localFont from 'next/font/local'
+
+export const unbounded = localFont({
+  src: [
+    {
+      path: '../public/fonts/unbounded/light.woff2',
+      weight: '300',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/unbounded/medium.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/unbounded/semiBold.woff2',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/unbounded/bold.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/unbounded/extraBold.woff2',
+      weight: '800',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-unbounded',
+  display: 'swap',
+})
+
+export const poppins = localFont({
+  src: [
+    {
+      path: '../public/fonts/poppins/light.woff2',
+      weight: '300',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/poppins/regular.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/poppins/semiBold.woff2',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/poppins/bold.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/poppins/extraBold.woff2',
+      weight: '800',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-poppins',
+  display: 'swap',
+})
 
 export default function RootLayout({
   children,
@@ -292,7 +306,9 @@ export default function RootLayout({
           rel='apple-touch-startup-image'
         />
       </head>
-      <body className='h-screen grid grid-rows-[auto_1fr_auto]'>
+      <body
+        className={`${unbounded.variable} ${poppins.variable} h-screen grid grid-rows-[auto_1fr_auto]`}
+      >
         {children}
         <PWAInstaller />
         <SWUpdateManager />
