@@ -177,36 +177,6 @@
   body {
     @apply bg-background text-foreground;
     letter-spacing: 0.64px;
-    /* 
-    @keyframes slideInRight {
-      from {
-        transform: translateX(100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-
-    @keyframes slideInLeft {
-      from {
-        transform: translateX(-100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-
-    .slide-enter {
-      animation: slideInRight 0.3s ease-out;
-    }
-
-    .slide-enter-reverse {
-      animation: slideInLeft 0.3s ease-out;
-    } */
   }
 }
 

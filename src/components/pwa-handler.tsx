@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
+
 "use client"
 
 import type React from "react"
-
 import { useEffect, useState } from "react"
 
 interface PWAHandlerProps {
@@ -10,69 +10,169 @@ interface PWAHandlerProps {
 }
 
 export default function PWAHandler({ children }: PWAHandlerProps) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [installPrompt, setInstallPrompt] = useState<any>(null)
   const [isInstalled, setIsInstalled] = useState(false)
   const [showInstallBanner, setShowInstallBanner] = useState(false)
+  const [debugInfo, setDebugInfo] = useState<any>({})
 
   useEffect(() => {
     // Verificar si ya está instalado
-    if (window.matchMedia("(display-mode: standalone)").matches) {
-      setIsInstalled(true)
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches
+    const isInWebAppiOS = (window.navigator as any).standalone === true
+    const isInstalled = isStandalone || isInWebAppiOS
+
+    setIsInstalled(isInstalled)
+
+    if (isInstalled) {
+      console.log("✅ App ya está instalada")
 
       return
     }
 
-    // Verificar manifest (solo para debugging)
+    // Debug info
+    const debug = {
+      userAgent: navigator.userAgent,
+      isStandalone,
+      isInWebAppiOS,
+      hasServiceWorker: "serviceWorker" in navigator,
+      protocol: window.location.protocol,
+    }
+
+    setDebugInfo(debug)
+    console.log("🔍 Debug PWA:", debug)
+
+    // Verificar manifest
     fetch("/manifest.json")
       .then((res) => res.json())
-      .then((data) => console.log("✅ Manifest cargado:", data))
+      .then((data) => {
+        console.log("✅ Manifest cargado:", data)
+        // Verificar si el theme color cambió
+        const metaTheme = document.querySelector('meta[name="theme-color"]')
+
+        if (metaTheme && metaTheme.getAttribute("content") !== data.theme_color) {
+          console.log("🎨 Actualizando theme color:", data.theme_color)
+          metaTheme.setAttribute("content", data.theme_color)
+        }
+      })
       .catch((err) => console.error("❌ Error manifest:", err))
 
     // Registrar Service Worker
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/sw.js")
-        .then((registration) => console.log("SW registrado:", registration))
+        .then((registration) => {
+          console.log("SW registrado:", registration)
+
+          // Verificar actualizaciones
+          registration.addEventListener("updatefound", () => {
+            console.log("🔄 Nueva versión del SW disponible")
+            const newWorker = registration.installing
+
+            if (newWorker) {
+              newWorker.addEventListener("statechange", () => {
+                if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+                  console.log("✅ Nueva versión instalada, recarga para aplicar")
+                  // Opcional: mostrar notificación de actualización
+                }
+              })
+            }
+          })
+        })
         .catch((error) => console.log("Error SW:", error))
     }
 
     // Capturar evento de instalación
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log("🎯 Evento beforeinstallprompt capturado:", e)
       e.preventDefault()
       setInstallPrompt(e)
       setShowInstallBanner(true)
-      console.log("Prompt de instalación disponible")
+    }
+
+    // Detectar si la app fue instalada
+    const handleAppInstalled = () => {
+      console.log("✅ App instalada exitosamente")
+      setIsInstalled(true)
+      setShowInstallBanner(false)
+      setInstallPrompt(null)
     }
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt)
+    window.addEventListener("appinstalled", handleAppInstalled)
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt)
+      window.removeEventListener("appinstalled", handleAppInstalled)
     }
   }, [])
 
   const handleInstall = async () => {
+    console.log({installPrompt});
+    
     if (installPrompt) {
-      installPrompt.prompt()
-      const { outcome } = await installPrompt.userChoice
+      try {
+        installPrompt.prompt()
+        const { outcome } = await installPrompt.userChoice
 
-      console.log("Resultado instalación:", outcome)
-      setInstallPrompt(null)
-      setShowInstallBanner(false)
+        console.log("Resultado instalación:", outcome)
+
+        if (outcome === "accepted") {
+          console.log("✅ Usuario aceptó la instalación")
+        } else {
+          console.log("❌ Usuario rechazó la instalación")
+        }
+
+        setInstallPrompt(null)
+        setShowInstallBanner(false)
+      } catch (error) {
+        console.error("Error durante instalación:", error)
+      }
     }
   }
 
   const dismissBanner = () => {
     setShowInstallBanner(false)
+    console.log("Banner de instalación cerrado por el usuario")
+  }
+
+  // Forzar mostrar banner (solo para desarrollo)
+  const forceShowBanner = () => {
+    if (process.env.NODE_ENV === "development") {
+      setShowInstallBanner(true)
+      console.log("🔧 Banner forzado (solo desarrollo)")
+    }
   }
 
   const isIOS = typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent)
 
   return (
     <>
+      {/* Debug panel (solo en desarrollo) */}
+      {process.env.NODE_ENV === "development" && (
+        <div className="fixed top-0 right-0 bg-black text-white p-2 text-xs z-50 max-w-xs">
+          <details>
+            <summary>PWA Debug</summary>
+            <pre className="mt-2 text-xs overflow-auto max-h-32">
+              {JSON.stringify(
+                {
+                  showInstallBanner,
+                  hasInstallPrompt: !!installPrompt,
+                  isInstalled,
+                  ...debugInfo,
+                },
+                null,
+                2,
+              )}
+            </pre>
+            <button className="bg-blue-500 text-white px-2 py-1 rounded text-xs mt-2" onClick={forceShowBanner}>
+              Forzar Banner
+            </button>
+          </details>
+        </div>
+      )}
+
       {/* Banner de instalación flotante */}
-      {showInstallBanner && installPrompt && (
+      {showInstallBanner && (installPrompt || process.env.NODE_ENV === "development") && (
         <div className="fixed top-0 left-0 right-0 bg-gradient-to-r from-pink-500 to-red-500 text-white p-4 shadow-lg z-50">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -110,7 +210,6 @@ export default function PWAHandler({ children }: PWAHandlerProps) {
         </div>
       )}
 
-      {/* Contenido principal */}
       {children}
     </>
   )
