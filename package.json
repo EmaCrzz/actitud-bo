@@ -6,7 +6,7 @@
     "dev": "node ./src/scripts/generate-sw.js && next dev --turbopack",
     "build": "node ./src/scripts/generate-sw.js && next build",
     "start": "next start",
-    "prebuild": "node scripts/generate-sw.js",
+    "prebuild": "node ./src/scripts/generate-sw.js",
     "type-check": "tsc --pretty --noEmit",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix && prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",

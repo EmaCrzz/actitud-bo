@@ -1,7 +1,7 @@
 import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-  // Configuración PWA
+  // Solo las configuraciones esenciales para PWA
   async headers() {
     return [
       {
@@ -24,28 +24,22 @@ const nextConfig: NextConfig = {
             key: "Service-Worker-Allowed",
             value: "/",
           },
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
         ],
       },
     ]
   },
-
-  // Optimizaciones para PWA
-  experimental: {
-    optimizeCss: true,
-  },
-
-  // Configuración de imágenes
-  images: {
-    formats: ["image/webp", "image/avif"],
-    unoptimized: true,
-  },
-
-  // Ignorar errores durante la construcción
   eslint: {
     ignoreDuringBuilds: true,
   },
   typescript: {
     ignoreBuildErrors: true,
+  },
+  images: {
+    unoptimized: true,
   },
 }
 

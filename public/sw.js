@@ -1,11 +1,11 @@
 /* eslint-disable no-console */
-// �� GENERADO AUTOMÁTICAMENTE - NO EDITAR MANUALMENTE
-const CACHE_VERSION = "v1751296731284-kqm2a4"
+// 🤖 GENERADO AUTOMÁTICAMENTE - NO EDITAR MANUALMENTE
+const CACHE_VERSION = "v1751297202898-xpyfib"
 const STATIC_CACHE = `actitud-static-${CACHE_VERSION}`
 const DYNAMIC_CACHE = `actitud-dynamic-${CACHE_VERSION}`
 const RUNTIME_CACHE = `actitud-runtime-${CACHE_VERSION}`
 
-console.log(`🔧 SW: Iniciando versión ${CACHE_VERSION}`)
+console.log("🔧 SW: Iniciando versión " + CACHE_VERSION)
 
 const CRITICAL_ASSETS = [
   "/",
@@ -16,7 +16,7 @@ const CRITICAL_ASSETS = [
 
 // Instalación
 self.addEventListener("install", (event) => {
-  console.log(`🔧 SW: Instalando versión ${CACHE_VERSION}`)
+  console.log("🔧 SW: Instalando versión " + CACHE_VERSION)
   
   event.waitUntil(
     caches
@@ -37,7 +37,7 @@ self.addEventListener("install", (event) => {
 
 // Activación
 self.addEventListener("activate", (event) => {
-  console.log(`🚀 SW: Activando versión ${CACHE_VERSION}`)
+  console.log("🚀 SW: Activando versión " + CACHE_VERSION)
 
   event.waitUntil(
     Promise.all([
@@ -77,6 +77,7 @@ self.addEventListener("fetch", (event) => {
     return
   }
 
+  // Network First para HTML y Next.js assets
   if (request.destination === "document" || request.url.includes("/_next/")) {
     event.respondWith(
       fetch(request)
@@ -98,6 +99,7 @@ self.addEventListener("fetch", (event) => {
     return
   }
 
+  // Cache First para imágenes y iconos
   if (request.destination === "image" || request.url.includes("/icons/")) {
     event.respondWith(
       caches.match(request).then((response) => {
@@ -112,6 +114,29 @@ self.addEventListener("fetch", (event) => {
           return fetchResponse
         })
       }),
+    )
+    return
+  }
+
+  // Network First para APIs
+  if (request.url.includes("/api/")) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.status === 200 && request.method === "GET") {
+            const responseClone = response.clone()
+            caches.open(RUNTIME_CACHE).then((cache) => {
+              cache.put(request, responseClone)
+            })
+          }
+          return response
+        })
+        .catch(() => {
+          if (request.method === "GET") {
+            return caches.match(request)
+          }
+          throw new Error("Network error and no cache available")
+        }),
     )
     return
   }
