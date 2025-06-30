@@ -307,7 +307,7 @@ export default function RootLayout({
         {children}
         <PWAInstaller />
         <SWUpdateManager />
-        <Toaster richColors />
+        <Toaster richColors expand={true} />
       </body>
     </html>
   )
