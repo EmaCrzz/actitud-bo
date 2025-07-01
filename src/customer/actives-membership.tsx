@@ -1,0 +1,98 @@
+import { DateDisplay } from '@/components/date-display'
+import AlertTriangleContained from '@/components/icons/alert-triangle-contained'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getActiveMemberships } from '@/customer/api/server'
+import { BicepsFlexed, CalendarCheck } from 'lucide-react'
+
+export default async function ActivesMembership() {
+  const { data, error } = await getActiveMemberships()
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className='flex items-center gap-2 text-white/70'>
+            <BicepsFlexed className='h-5 w-5 text-yellow-600' />
+            Clientes con membresia activa
+          </CardTitle>
+        </CardHeader>
+        <CardContent className='text-red-500'>
+          <p>Error al cargar los clientes activos.</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className='flex items-center gap-2 text-white/70'>
+          <BicepsFlexed className='h-5 w-5 text-yellow-600' />
+          Clientes con membresia activa
+        </CardTitle>
+      </CardHeader>
+      <CardContent className='space-y-3'>
+        {data.map(({ customers, expiration_date }, index) => {
+          const today = new Date()
+          const expirationDate = new Date(expiration_date)
+          const fiveDaysFromNow = new Date(today)
+
+          fiveDaysFromNow.setDate(today.getDate() + 5)
+          const aboutToExpire = expirationDate > today && expirationDate <= fiveDaysFromNow
+
+          return (
+            <div
+              key={customers.id}
+              className='flex items-center justify-between p-3 bg-inputhover rounded'
+            >
+              <div className='flex items-center gap-3 w-full'>
+                <div className='flex items-center justify-center size-10 bg-primary200 rounded-full'>
+                  <span className='text-sm font-bold text-white/70'>#{index + 1}</span>
+                </div>
+                <div className='flex justify-between items-start w-full'>
+                  <div>
+                    <p className='font-medium text-gray-300'>
+                      {customers.first_name} {customers.last_name}
+                    </p>
+
+                    <div className='flex gap-2 text-xs text-gray-500 items-center'>
+                      {expiration_date && 'Fecha de finalización:'}
+                      {expiration_date ? <DateDisplay date={expiration_date} /> : '-'}
+                    </div>
+                  </div>
+                  {!aboutToExpire && <CalendarCheck className='size-6 text-green-500' />}
+                  {aboutToExpire && <AlertTriangleContained className='size-6 text-amber-400' />}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+        {data.length === 0 && (
+          <div className='text-center text-gray-500'>
+            <p className='text-sm'>No hay clientes activos.</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+export const ActivesMembershipSkeleton = () => {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className='flex items-center gap-2 text-white/70'>
+          <BicepsFlexed className='h-5 w-5 text-yellow-600' />
+          Clientes con membresia activa
+        </CardTitle>
+      </CardHeader>
+      <CardContent className='space-y-3'>
+        <div className='animate-pulse'>
+          <div className='h-8 bg-gray-200 rounded mb-2' />
+          <div className='h-8 bg-gray-200 rounded mb-2' />
+          <div className='h-8 bg-gray-200 rounded' />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}

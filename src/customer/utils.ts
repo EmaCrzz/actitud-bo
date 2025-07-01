@@ -70,7 +70,7 @@ export function basicMembershipValidation(formData: FormData) {
   const oneMonthLater = new Date(startDateObj)
 
   oneMonthLater.setMonth(oneMonthLater.getMonth() + 1)
-  
+
   if (endDateObj > oneMonthLater) {
     errors.end_date = "La fecha de finalización no puede ser mayor a un mes después de la fecha de inicio"
   }

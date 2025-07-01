@@ -13,7 +13,7 @@ import { Alert, AlertTitle } from '@/components/ui/alert'
 import { InfoIcon } from 'lucide-react'
 import CustomerMembership from '@/customer/membership'
 import BtnEditMembership from '@/customer/btn-edit-membership'
-import AssistanceToday from './assistance-today'
+import AssistanceToday from './assistance-alert-today'
 
 export default function CustomerAssistance({ customer }: { customer: CustomerComplete }) {
   const [isPending, setIsPending] = useState(false)

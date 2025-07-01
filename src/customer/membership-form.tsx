@@ -16,7 +16,7 @@ import { handleDatabaseError } from './errors'
 import { CUSTOMER } from '@/consts/routes'
 import { InfoIcon } from 'lucide-react'
 import { TooltipTrigger, Tooltip, TooltipContent } from '@/components/ui/tooltip'
-import AssistanceToday from '@/assistance/assistance-today'
+import AssistanceToday from '@/assistance/assistance-alert-today'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -84,6 +84,7 @@ export default function MembershipForm({
 
     return true
   })
+
   const handleChangeCheckBox = (checked: CheckedState) => {
     setPayment(checked)
   }
