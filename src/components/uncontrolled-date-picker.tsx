@@ -116,6 +116,7 @@ export const UncontrolledDatePicker = React.forwardRef<
           name={name}
           required={required}
           type='hidden'
+          value={date ? date.toISOString().split('T')[0] : ''}
         />
 
         <Popover open={open} onOpenChange={setOpen}>
