@@ -1,6 +1,7 @@
 import { DateDisplay } from '@/components/date-display'
 import AlertTriangleContained from '@/components/icons/alert-triangle-contained'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { getActiveMemberships } from '@/customer/api/server'
 import { BicepsFlexed, CalendarCheck } from 'lucide-react'
 
@@ -87,11 +88,20 @@ export const ActivesMembershipSkeleton = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className='space-y-3'>
-        <div className='animate-pulse'>
-          <div className='h-8 bg-gray-200 rounded mb-2' />
-          <div className='h-8 bg-gray-200 rounded mb-2' />
-          <div className='h-8 bg-gray-200 rounded' />
-        </div>
+        {[0, 1, 2].map((index) => (
+          <div
+            key={index}
+            className='flex items-center justify-between p-2 sm:p-3 bg-inputhover rounded'
+          >
+            <div className='flex items-center gap-3'>
+              <Skeleton className='bg-card w-8 h-8 rounded-full' />
+              <div>
+                <Skeleton className='bg-card h-6 w-52 mb-1' />
+                <Skeleton className='bg-card h-4 w-32' />
+              </div>
+            </div>
+          </div>
+        ))}
       </CardContent>
     </Card>
   )

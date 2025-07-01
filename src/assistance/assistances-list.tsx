@@ -65,10 +65,10 @@ export const AssistancesListSkeleton = () => {
             className='flex items-center justify-between p-2 sm:p-3 bg-inputhover rounded'
           >
             <div className='flex items-center gap-3'>
-              <Skeleton className='bg-alert w-8 h-8 rounded-full' />
+              <Skeleton className='bg-card w-8 h-8 rounded-full' />
               <div>
-                <Skeleton className='bg-alert h-6 w-52 mb-1' />
-                <Skeleton className='bg-alert h-4 w-32' />
+                <Skeleton className='bg-card h-6 w-52 mb-1' />
+                <Skeleton className='bg-card h-4 w-32' />
               </div>
             </div>
           </div>
