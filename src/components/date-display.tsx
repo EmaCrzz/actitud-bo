@@ -22,6 +22,7 @@ export function formatToLocalTime(utcDateString: string): string {
   if (isDateOnly(utcDateString)) {
     return (
       date.toLocaleDateString("es-AR", {
+        timeZone: "UTC",
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
