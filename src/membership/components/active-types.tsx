@@ -7,6 +7,7 @@ import {
   MEMBERSHIP_TYPE_DAILY,
   MembershipTranslation,
 } from '@/membership/consts'
+import { Skeleton } from '@/components/ui/skeleton'
 
 function Progress({ value, className = '' }: { value: number; className?: string }) {
   return (
@@ -41,7 +42,7 @@ export default async function ActiveTypes() {
     {} as Record<string, { name: string; count: number }>
   )
 
-  if(!Object.keys(membershipsByType).includes(MEMBERSHIP_TYPE_DAILY)) {
+  if (!Object.keys(membershipsByType).includes(MEMBERSHIP_TYPE_DAILY)) {
     membershipsByType[MEMBERSHIP_TYPE_DAILY] = { name: MEMBERSHIP_TYPE_DAILY, count: 0 }
   }
 
@@ -94,6 +95,33 @@ export default async function ActiveTypes() {
           <p className='text-xs sm:text-sm text-white/70'>
             Total: <span className='font-medium'>{length} membresías activas</span>
           </p>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+export const ActiveTypesSkeleton = () => {
+  return (
+    <Card className='py-3 sm:py-6'>
+      <CardHeader className='px-2 sm:px-6'>
+        <CardTitle className='flex items-center gap-2 text-white/70 text-sm sm:text-base'>
+          <Users className='h-5 w-5 text-primary' />
+          Membresías por Tipo
+        </CardTitle>
+      </CardHeader>
+      <CardContent className='space-y-3 px-2 sm:px-6'>
+        {[...Array(3)].map((_, index) => (
+          <div key={index} className='space-y-2'>
+            <div className='flex justify-between items-center'>
+              <span className='text-xs sm:text-sm font-medium text-white/70'>Cargando...</span>
+              <Skeleton className='w-24 h-4' />
+            </div>
+            <Skeleton className='w-full h-2 rounded-full' />
+          </div>
+        ))}
+        <div className='pt-2 border-t border-primary200'>
+          <p className='text-xs sm:text-sm text-white/70'>Total: Cargando...</p>
         </div>
       </CardContent>
     </Card>
