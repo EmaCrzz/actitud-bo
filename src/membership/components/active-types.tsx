@@ -41,6 +41,10 @@ export default async function ActiveTypes() {
     {} as Record<string, { name: string; count: number }>
   )
 
+  if(!Object.keys(membershipsByType).includes(MEMBERSHIP_TYPE_DAILY)) {
+    membershipsByType[MEMBERSHIP_TYPE_DAILY] = { name: MEMBERSHIP_TYPE_DAILY, count: 0 }
+  }
+
   return (
     <Card className='py-3 sm:py-6'>
       <CardHeader className='px-2 sm:px-6'>
@@ -56,11 +60,11 @@ export default async function ActiveTypes() {
               {MembershipTranslation[MEMBERSHIP_TYPE_5_DAYS]}
             </span>
             <span className='text-xs sm:text-sm text-white/70'>
-              {`${membershipsByType[MEMBERSHIP_TYPE_5_DAYS].count} (
-                ${((membershipsByType[MEMBERSHIP_TYPE_5_DAYS].count / length) * 100).toFixed(2)}%)`}
+              {`${membershipsByType?.[MEMBERSHIP_TYPE_5_DAYS]?.count} (
+                ${((membershipsByType?.[MEMBERSHIP_TYPE_5_DAYS]?.count / length) * 100).toFixed(2)}%)`}
             </span>
           </div>
-          <Progress value={(membershipsByType[MEMBERSHIP_TYPE_5_DAYS].count / length) * 100} />
+          <Progress value={(membershipsByType?.[MEMBERSHIP_TYPE_5_DAYS]?.count / length) * 100} />
         </div>
         <div key={MEMBERSHIP_TYPE_3_DAYS} className='space-y-2'>
           <div className='flex justify-between items-center'>
@@ -68,11 +72,11 @@ export default async function ActiveTypes() {
               {MembershipTranslation[MEMBERSHIP_TYPE_3_DAYS]}
             </span>
             <span className='text-xs sm:text-sm text-white/70'>
-              {`${membershipsByType[MEMBERSHIP_TYPE_3_DAYS].count} (
-                ${((membershipsByType[MEMBERSHIP_TYPE_3_DAYS].count / length) * 100).toFixed(2)}%)`}
+              {`${membershipsByType?.[MEMBERSHIP_TYPE_3_DAYS]?.count} (
+                ${((membershipsByType?.[MEMBERSHIP_TYPE_3_DAYS]?.count / length) * 100).toFixed(2)}%)`}
             </span>
           </div>
-          <Progress value={(membershipsByType[MEMBERSHIP_TYPE_3_DAYS].count / length) * 100} />
+          <Progress value={(membershipsByType?.[MEMBERSHIP_TYPE_3_DAYS]?.count / length) * 100} />
         </div>
         <div key={MEMBERSHIP_TYPE_DAILY} className='space-y-2'>
           <div className='flex justify-between items-center'>
@@ -80,11 +84,11 @@ export default async function ActiveTypes() {
               {MembershipTranslation[MEMBERSHIP_TYPE_DAILY]}
             </span>
             <span className='text-xs sm:text-sm text-white/70'>
-              {`${membershipsByType[MEMBERSHIP_TYPE_DAILY].count} (
-                ${((membershipsByType[MEMBERSHIP_TYPE_DAILY].count / length) * 100).toFixed(2)}%)`}
+              {`${membershipsByType?.[MEMBERSHIP_TYPE_DAILY]?.count} (
+                ${((membershipsByType?.[MEMBERSHIP_TYPE_DAILY]?.count / length) * 100).toFixed(2)}%)`}
             </span>
           </div>
-          <Progress value={(membershipsByType[MEMBERSHIP_TYPE_DAILY].count / length) * 100} />
+          <Progress value={(membershipsByType?.[MEMBERSHIP_TYPE_DAILY]?.count / length) * 100} />
         </div>
         <div className='pt-2 border-t border-primary200'>
           <p className='text-xs sm:text-sm text-white/70'>
