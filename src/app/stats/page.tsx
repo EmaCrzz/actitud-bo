@@ -1,7 +1,5 @@
 import type React from 'react'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Calendar, Users, TrendingUp } from 'lucide-react'
 import { HOME } from '@/consts/routes'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -16,69 +14,69 @@ import ActivesMembership, { ActivesMembershipSkeleton } from '@/customer/actives
 import TopMonthlyAssintant, { TopMonthlyAssintantSkeleton } from '@/assistance/top-monthly-assintant'
 
 // Mock data completamente independiente basado en tu esquema SQL
-const mockData = {
-  todayAssistances: {
-    count: 23,
-    date: 'Viernes, 21 de junio de 2024',
-    growth: 12,
-  },
-  topAssistants: [
-    { name: 'María González', personId: '12.345.678', count: 18 },
-    { name: 'Juan Pérez', personId: '23.456.789', count: 16 },
-    { name: 'Ana Rodríguez', personId: '34.567.890', count: 15 },
-    { name: 'Carlos López', personId: '45.678.901', count: 14 },
-    { name: 'Laura Martín', personId: '56.789.012', count: 12 },
-  ],
-  membershipsByType: [
-    {
-      type: 'MEMBERSHIP_TYPE_5_DAYS',
-      name: '5 Días',
-      count: 45,
-      percentage: 56,
-    },
-    {
-      type: 'MEMBERSHIP_TYPE_3_DAYS',
-      name: '3 Días',
-      count: 25,
-      percentage: 31,
-    },
-    {
-      type: 'MEMBERSHIP_TYPE_UNLIMITED',
-      name: 'Ilimitado',
-      count: 10,
-      percentage: 13,
-    },
-  ],
-  monthlyComparison: [
-    { month: 'Ene', memberships: 65 },
-    { month: 'Feb', memberships: 72 },
-    { month: 'Mar', memberships: 68 },
-    { month: 'Abr', memberships: 80 },
-    { month: 'May', memberships: 75 },
-    { month: 'Jun', memberships: 80 }, // Mes actual
-  ],
-}
+// const mockData = {
+//   todayAssistances: {
+//     count: 23,
+//     date: 'Viernes, 21 de junio de 2024',
+//     growth: 12,
+//   },
+//   topAssistants: [
+//     { name: 'María González', personId: '12.345.678', count: 18 },
+//     { name: 'Juan Pérez', personId: '23.456.789', count: 16 },
+//     { name: 'Ana Rodríguez', personId: '34.567.890', count: 15 },
+//     { name: 'Carlos López', personId: '45.678.901', count: 14 },
+//     { name: 'Laura Martín', personId: '56.789.012', count: 12 },
+//   ],
+//   membershipsByType: [
+//     {
+//       type: 'MEMBERSHIP_TYPE_5_DAYS',
+//       name: '5 Días',
+//       count: 45,
+//       percentage: 56,
+//     },
+//     {
+//       type: 'MEMBERSHIP_TYPE_3_DAYS',
+//       name: '3 Días',
+//       count: 25,
+//       percentage: 31,
+//     },
+//     {
+//       type: 'MEMBERSHIP_TYPE_UNLIMITED',
+//       name: 'Ilimitado',
+//       count: 10,
+//       percentage: 13,
+//     },
+//   ],
+//   monthlyComparison: [
+//     { month: 'Ene', memberships: 65 },
+//     { month: 'Feb', memberships: 72 },
+//     { month: 'Mar', memberships: 68 },
+//     { month: 'Abr', memberships: 80 },
+//     { month: 'May', memberships: 75 },
+//     { month: 'Jun', memberships: 80 }, // Mes actual
+//   ],
+// }
 
 // Componente Progress simple
-function Progress({ value, className = '' }: { value: number; className?: string }) {
-  return (
-    <div className={`w-full bg-gray-200 rounded-full h-2 ${className}`}>
-      <div
-        className='bg-primary h-2 rounded-full transition-all duration-300'
-        style={{ width: `${value}%` }}
-      />
-    </div>
-  )
-}
+// function Progress({ value, className = '' }: { value: number; className?: string }) {
+//   return (
+//     <div className={`w-full bg-gray-200 rounded-full h-2 ${className}`}>
+//       <div
+//         className='bg-primary h-2 rounded-full transition-all duration-300'
+//         style={{ width: `${value}%` }}
+//       />
+//     </div>
+//   )
+// }
 
 export default async function DashboardStats() {
-  const currentMonth = mockData.monthlyComparison[mockData.monthlyComparison.length - 1]
-  const previousMonth = mockData.monthlyComparison[mockData.monthlyComparison.length - 2]
-  const monthlyGrowth =
-    ((currentMonth.memberships - previousMonth.memberships) / previousMonth.memberships) * 100
+  // const currentMonth = mockData.monthlyComparison[mockData.monthlyComparison.length - 1]
+  // const previousMonth = mockData.monthlyComparison[mockData.monthlyComparison.length - 2]
+  // const monthlyGrowth =
+  //   ((currentMonth.memberships - previousMonth.memberships) / previousMonth.memberships) * 100
 
-  const totalMemberships = mockData.membershipsByType.reduce((sum, m) => sum + m.count, 0)
-  const maxMonthlyValue = Math.max(...mockData.monthlyComparison.map((m) => m.memberships))
+  // const totalMemberships = mockData.membershipsByType.reduce((sum, m) => sum + m.count, 0)
+  // const maxMonthlyValue = Math.max(...mockData.monthlyComparison.map((m) => m.memberships))
 
   return (
     <>
@@ -93,7 +91,7 @@ export default async function DashboardStats() {
         </div>
       </header>
 
-      <section className='mt-6 px-4 max-w-3xl mx-auto w-full pb-4 grid gap-y-4 overflow-auto'>
+      <section className='mt-6 px-4 max-w-3xl mx-auto w-full pb-4 grid gap-y-4 overflow-auto auto-rows-max'>
         <Suspense fallback={<AssistanceCardTodaySkeleton />}>
           <AssistanceCardToday />
         </Suspense>
@@ -108,7 +106,7 @@ export default async function DashboardStats() {
         </Suspense>
 
         {/* Membresías por Tipo */}
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle className='flex items-center gap-2 text-white/70'>
               <Users className='h-5 w-5 text-primary' />
@@ -133,10 +131,10 @@ export default async function DashboardStats() {
               </p>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Comparación Mensual */}
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle className='flex items-center gap-2 text-white/70'>
               <TrendingUp className='h-5 w-5 text-green-600' />
@@ -144,7 +142,6 @@ export default async function DashboardStats() {
             </CardTitle>
           </CardHeader>
           <CardContent className='space-y-4'>
-            {/* Gráfico simple con barras */}
             <div className='space-y-3'>
               {mockData.monthlyComparison.map((month, index) => {
                 const isCurrentMonth = index === mockData.monthlyComparison.length - 1
@@ -181,7 +178,6 @@ export default async function DashboardStats() {
               })}
             </div>
 
-            {/* Resumen del crecimiento */}
             <div className='pt-3 border-t bg-green-50 p-3 rounded-lg'>
               <div className='flex items-center justify-between'>
                 <span className='text-sm text-gray-600'>Crecimiento mensual</span>
@@ -196,10 +192,10 @@ export default async function DashboardStats() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Estadísticas Adicionales */}
-        <div className='grid grid-cols-2 gap-4'>
+        {/* <div className='grid grid-cols-2 gap-4'>
           <Card>
             <CardContent className='p-4 text-center'>
               <div className='text-2xl font-bold text-indigo-600'>80</div>
@@ -212,10 +208,10 @@ export default async function DashboardStats() {
               <p className='text-sm text-gray-600'>Membresías Activas</p>
             </CardContent>
           </Card>
-        </div>
+        </div> */}
 
         {/* Membresías que vencen pronto */}
-        <Card className='border-l-4 border-l-orange-500'>
+        {/* <Card className='border-l-4 border-l-orange-500'>
           <CardHeader>
             <CardTitle className='flex items-center gap-2 text-orange-700'>
               <Calendar className='h-5 w-5' />
@@ -238,10 +234,10 @@ export default async function DashboardStats() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Placeholder para futuras estadísticas */}
-        <Card className='border-2 border-dashed border-gray-300'>
+        {/* <Card className='border-2 border-dashed border-gray-300'>
           <CardContent className='flex flex-col items-center justify-center py-8 text-center'>
             <div className='w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3'>
               <TrendingUp className='h-6 w-6 text-gray-400' />
@@ -252,12 +248,7 @@ export default async function DashboardStats() {
               pico, etc.
             </p>
           </CardContent>
-        </Card>
-
-        {/* Footer con última actualización */}
-        <div className='text-center pt-4'>
-          <p className='text-xs text-gray-500'>Última actualización: 14:30</p>
-        </div>
+        </Card> */}
       </section>
       <FooterNavigation />
     </>
