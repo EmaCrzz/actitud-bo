@@ -22,13 +22,20 @@ function Progress({ value, className = '' }: { value: number; className?: string
 
 export default async function ActiveTypes() {
   const { data, error } = await getActiveMemberships()
+  // getDailyMembershipsThisMonth incluye a los clientes que podrian tener una membresia diaria que su
+  // expiration_date sea en el mes actual y esas getActiveMemberships no las contempla
   const { data: dataDaily = [] } = await getDailyMembershipsThisMonth()
 
   if (!data || error) return null
 
   const allData = [...data, ...dataDaily]
+  // Quizas las configuraciones de fechas de las membresias son diarias
+  // podrian no estar bien y se incluirian en getActiveMemberships
+  // y getDailyMembershipsThisMonth, por lo que se filtran los clientes duplicados
+  const uniqueCustomers = new Map(allData.map((m) => [m.customers.id, m]))
+  const allDataFiltered = Array.from(uniqueCustomers.values())
   const length = allData.length
-  const membershipsByType = allData.reduce(
+  const membershipsByType = allDataFiltered.reduce(
     (acc, membership) => {
       const type = membership.membership_type
 
