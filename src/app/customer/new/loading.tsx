@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 export default function NewCustomerLoading() {
   return (
     <>
-      <header className='max-w-3xl mx-auto w-full px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
+      <header className='max-w-3xl mx-auto w-full px-2 sm:px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
         <div className='flex gap-4 items-center'>
           <Button className='size-6 rounded-full' size='icon' variant='ghost'>
             <ArrowLeftIcon className='size-6' />
@@ -13,7 +13,7 @@ export default function NewCustomerLoading() {
           <h5 className='font-medium text-sm'>Crear un nuevo cliente</h5>
         </div>
       </header>
-      <section className='max-w-3xl mx-auto w-full px-4 overflow-auto pb-4 pt-12'>
+      <section className='max-w-3xl mx-auto w-full px-2 sm:px-4 overflow-auto pb-4 pt-12'>
         <h3 className='text-sm sm:text-md mb-4'>
           Para comenzar, vamos a pedirte los datos personales del cliente.
         </h3>

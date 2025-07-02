@@ -25,7 +25,7 @@ export default async function TopMonthlyAssintant() {
   if (!data || data?.length === 0) return null
 
   return (
-    <Card className='py-4 sm:py-6'>
+    <Card className='py-3 sm:py-6'>
       <Accordion collapsible type='single'>
         <AccordionItem value='item-1'>
           <AccordionTrigger className='py-0 px-2 sm:px-6 hover:cursor-pointer'>
@@ -64,7 +64,7 @@ export default async function TopMonthlyAssintant() {
 
 export const TopMonthlyAssintantSkeleton = () => {
   return (
-    <Card className='py-4 sm:py-6'>
+    <Card className='py-3 sm:py-6'>
       <Accordion collapsible type='single'>
         <AccordionItem value='item-1'>
           <AccordionTrigger className='py-0 px-2 sm:px-6 hover:cursor-pointer'>

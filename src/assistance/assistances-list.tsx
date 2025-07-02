@@ -14,7 +14,7 @@ export default async function AssistancesList({ collapsible = true }: { collapsi
   const assistances = await getTodayAssistances()
 
   return (
-    <Card className='py-4 sm:py-6'>
+    <Card className='py-3 sm:py-6'>
       <Accordion
         collapsible={collapsible}
         defaultValue={collapsible ? undefined : 'item-1'}
@@ -70,7 +70,7 @@ export default async function AssistancesList({ collapsible = true }: { collapsi
 
 export const AssistancesListSkeleton = ({ collapsible = true }: { collapsible?: boolean }) => {
   return (
-    <Card className='py-4 sm:py-6'>
+    <Card className='py-3 sm:py-6'>
       <Accordion
         collapsible={collapsible}
         defaultValue={collapsible ? undefined : 'item-1'}

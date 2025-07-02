@@ -14,7 +14,7 @@ export default async function ActivesMembership() {
 
   if (error) {
     return (
-      <Card className='py-4 sm:py-6'>
+      <Card className='py-3 sm:py-6'>
         <CardHeader className='px-4 sm:px-6'>
           <CardTitle className='flex items-center gap-2 text-white/70'>
             <BicepsFlexed className='h-5 w-5 text-yellow-600' />
@@ -29,7 +29,7 @@ export default async function ActivesMembership() {
   }
 
   return (
-    <Card className='py-4 sm:py-6'>
+    <Card className='py-3 sm:py-6'>
       <Accordion collapsible type='single'>
         <AccordionItem value='item-1'>
           <AccordionTrigger className='py-0 px-2 sm:px-6 hover:cursor-pointer'>
@@ -99,7 +99,7 @@ export default async function ActivesMembership() {
 
 export const ActivesMembershipSkeleton = () => {
   return (
-    <Card className='py-4 sm:py-6'>
+    <Card className='py-3 sm:py-6'>
     <Accordion collapsible type='single'>
       <AccordionItem value='item-1'>
         <AccordionTrigger className='py-0 px-2 sm:px-6 hover:cursor-pointer'>

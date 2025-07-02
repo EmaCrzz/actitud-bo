@@ -18,7 +18,7 @@ export default async function AssintanceRegisterPage({
   
   if (!customer) {
     return (
-      <div className="max-w-3xl mx-auto w-full px-4 py-6">
+      <div className="max-w-3xl mx-auto w-full px-2 sm:px-4 py-6">
         <h2 className="text-lg font-semibold">Cliente no encontrado</h2>
       </div>
     );
@@ -26,7 +26,7 @@ export default async function AssintanceRegisterPage({
 
   return (
     <>
-      <header className="max-w-3xl mx-auto w-full px-4 py-3 flex justify-between items-center border-b border-primary pt-4">
+      <header className="max-w-3xl mx-auto w-full px-2 sm:px-4 py-3 flex justify-between items-center border-b border-primary pt-4">
         <div className="flex gap-4 items-center">
           <Button className="size-6 rounded-full" size="icon" variant="ghost">
             <Link href={HOME}>

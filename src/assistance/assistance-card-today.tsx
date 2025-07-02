@@ -12,7 +12,7 @@ export default async function AssistanceCardToday() {
   }).format(new Date())
 
   return (
-    <Card className='py-4 sm:py-6 border-l-4 border-l-primary bg-gradient-to-r from-input to-inputhover'>
+    <Card className='py-3 sm:py-4 sm:py-6 border-l-4 border-l-primary bg-gradient-to-r from-input to-inputhover'>
       <CardHeader className='px-2 sm:px-6'>
         <CardTitle className='flex items-center gap-2 text-lg text-white/70'>
           <Calendar className='h-5 w-5 text-primary' />
@@ -35,7 +35,7 @@ export const AssistanceCardTodaySkeleton = () => {
   }).format(new Date())
 
   return (
-    <Card className='py-4 sm:py-6 border-l-4 border-l-primary bg-gradient-to-r from-input to-inputhover'>
+    <Card className='py-3 sm:py-4 sm:py-6 border-l-4 border-l-primary bg-gradient-to-r from-input to-inputhover'>
       <CardHeader className='px-2 sm:px-6'>
         <CardTitle className='flex items-center gap-2 text-lg text-white/70'>
           <Calendar className='h-9 w-5 text-primary' />

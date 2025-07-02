@@ -31,7 +31,7 @@ export default async function AuthHeader() {
   }).format(new Date());
 
   return (
-    <header className="max-w-3xl mx-auto w-full px-4 flex gap-2 justify-between items-center pt-4">
+    <header className="max-w-3xl mx-auto w-full px-2 sm:px-4 flex gap-2 justify-between items-center pt-4">
       <div className="flex gap-4 items-center">
         <div className="size-12 sm:size-14 rounded-full bg-primary">
           <IsoBlanco className="size-12 sm:size-14" />
@@ -59,7 +59,7 @@ export default async function AuthHeader() {
 
 export const AuthHeaderLoader = () => {
   return (
-    <header className="max-w-3xl mx-auto w-full px-4 flex justify-between items-center pt-4">
+    <header className="max-w-3xl mx-auto w-full px-2 sm:px-4 flex justify-between items-center pt-4">
       <div className="flex gap-4 items-center">
         <Skeleton className="size-14 rounded-full" />
         <div>
