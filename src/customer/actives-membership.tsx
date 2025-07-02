@@ -32,14 +32,14 @@ export default async function ActivesMembership() {
     <Card className='py-4 sm:py-6'>
       <Accordion collapsible type='single'>
         <AccordionItem value='item-1'>
-          <AccordionTrigger className='py-0 px-4 sm:px-6 hover:cursor-pointer'>
+          <AccordionTrigger className='py-0 px-2 sm:px-6 hover:cursor-pointer'>
             <div className='flex gap-2 items-center text-white/70'>
               <BicepsFlexed className='h-5 w-5 text-yellow-600' />
               Clientes con membresia activa
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            <CardContent className='space-y-3 px-4 sm:px-6 pt-6'>
+            <CardContent className='space-y-3 px-2 sm:px-6 pt-6'>
               {data.map(({ customers, expiration_date }, index) => {
                 const today = new Date()
                 const expirationDate = new Date(expiration_date)
@@ -102,7 +102,7 @@ export const ActivesMembershipSkeleton = () => {
     <Card className='py-4 sm:py-6'>
     <Accordion collapsible type='single'>
       <AccordionItem value='item-1'>
-        <AccordionTrigger className='py-0 px-4 sm:px-6 hover:cursor-pointer'>
+        <AccordionTrigger className='py-0 px-2 sm:px-6 hover:cursor-pointer'>
           <div className='flex gap-2 items-center text-white/70'>
             <BicepsFlexed className='h-5 w-5 text-yellow-600' />
             Clientes con membresia activa

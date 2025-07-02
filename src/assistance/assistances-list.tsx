@@ -22,7 +22,7 @@ export default async function AssistancesList({ collapsible = true }: { collapsi
       >
         <AccordionItem value='item-1'>
           <AccordionTrigger
-            className='py-0 px-4 sm:px-6 hover:cursor-pointer'
+            className='py-0 px-2 sm:px-6 hover:cursor-pointer'
             hiddeSvg={!collapsible}
           >
             <div className='flex gap-2 items-center text-white/70 text-sm'>
@@ -31,7 +31,7 @@ export default async function AssistancesList({ collapsible = true }: { collapsi
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            <CardContent className={'space-y-3 px-4 sm:px-6 pt-6'}>
+            <CardContent className={'space-y-3 px-2 sm:px-6 pt-6'}>
               {assistances.length === 0 && (
                 <div className='text-center text-gray-500'>
                   <p className='text-sm'>No hay asistencias registradas hoy.</p>
@@ -78,7 +78,7 @@ export const AssistancesListSkeleton = ({ collapsible = true }: { collapsible?: 
       >
         <AccordionItem value='item-1'>
           <AccordionTrigger
-            className='py-0 px-4 sm:px-6 hover:cursor-pointer'
+            className='py-0 px-2 sm:px-6 hover:cursor-pointer'
             hiddeSvg={!collapsible}
           >
             <div className='flex gap-2 items-center text-white/70 text-sm'>
@@ -88,7 +88,7 @@ export const AssistancesListSkeleton = ({ collapsible = true }: { collapsible?: 
           </AccordionTrigger>
           <AccordionContent>
             {!collapsible && (
-              <CardContent className='space-y-3 px-4 sm:px-6 pt-6'>
+              <CardContent className='space-y-3 px-2 sm:px-6 pt-6'>
                 {[0, 1, 2].map((index) => (
                   <div
                     key={index}

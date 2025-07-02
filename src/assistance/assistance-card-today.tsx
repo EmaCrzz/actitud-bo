@@ -13,13 +13,13 @@ export default async function AssistanceCardToday() {
 
   return (
     <Card className='py-4 sm:py-6 border-l-4 border-l-primary bg-gradient-to-r from-input to-inputhover'>
-      <CardHeader className='px-4 sm:px-6'>
+      <CardHeader className='px-2 sm:px-6'>
         <CardTitle className='flex items-center gap-2 text-lg text-white/70'>
           <Calendar className='h-5 w-5 text-primary' />
           Asistencias de Hoy
         </CardTitle>
       </CardHeader>
-      <CardContent className='space-y-2 px-4 sm:px-6'>
+      <CardContent className='space-y-2 px-2 sm:px-6'>
         <div className='text-3xl font-bold text-primary'>{count === 0 ? '-' : count}</div>
         <p className='text-sm text-gray-600'>{today}</p>
       </CardContent>
@@ -36,13 +36,13 @@ export const AssistanceCardTodaySkeleton = () => {
 
   return (
     <Card className='py-4 sm:py-6 border-l-4 border-l-primary bg-gradient-to-r from-input to-inputhover'>
-      <CardHeader className='px-4 sm:px-6'>
+      <CardHeader className='px-2 sm:px-6'>
         <CardTitle className='flex items-center gap-2 text-lg text-white/70'>
           <Calendar className='h-9 w-5 text-primary' />
           Asistencias de Hoy
         </CardTitle>
       </CardHeader>
-      <CardContent className='space-y-2 px-4 sm:px-6'>
+      <CardContent className='space-y-2 px-2 sm:px-6'>
         <Skeleton className='h-8 w-16' />
         <p className='text-sm text-gray-600'>{today}</p>
       </CardContent>
