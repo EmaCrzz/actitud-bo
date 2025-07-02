@@ -1,6 +1,6 @@
 'use client'
 
-import { MembershipTranslationTwoLines } from '@/assistance/consts'
+import { MembershipTranslationTwoLines } from '@/membership/consts'
 import AlertContainedIcon from '@/components/icons/alert-contained'
 import AlertTriangleContained from '@/components/icons/alert-triangle-contained'
 import CheckCircleContained from '@/components/icons/check-circle-contained'

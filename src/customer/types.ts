@@ -1,4 +1,5 @@
-import { MembershipType } from "@/assistance/consts";
+import { MembershipType } from "@/membership/consts";
+import { MembershipData } from "@/membership/types";
 import type { DatabaseSuccess, DatabaseError } from "@/types/database-errors"
 
 export interface Customer {
@@ -31,8 +32,6 @@ export interface CustomerComplete extends Customer {
   assistance: Assistance[]
 }
 
-
-
 // Tipos específicos para el formulario de cliente
 export interface CustomerData {
   id: string
@@ -42,15 +41,6 @@ export interface CustomerData {
   phone?: string
   email?: string
   assistance_count: number
-  created_at: string
-}
-
-export interface MembershipData {
-  id: string
-  customer_id: string
-  membership_type: string
-  last_payment_date?: string
-  expiration_date?: string
   created_at: string
 }
 

@@ -10,8 +10,9 @@ import AssistanceCardToday, {
 } from '@/assistance/assistance-card-today'
 import { Suspense } from 'react'
 import AssistancesList, { AssistancesListSkeleton } from '@/assistance/assistances-list'
-import ActivesMembership, { ActivesMembershipSkeleton } from '@/customer/actives-membership'
+import ActivesMembership, { ActivesMembershipSkeleton } from '@/membership/components/actives'
 import TopMonthlyAssintant, { TopMonthlyAssintantSkeleton } from '@/assistance/top-monthly-assintant'
+import ActiveTypes from '@/membership/components/active-types'
 
 // Mock data completamente independiente basado en tu esquema SQL
 // const mockData = {
@@ -104,6 +105,7 @@ export default async function DashboardStats() {
         <Suspense fallback={<ActivesMembershipSkeleton />}>
           <ActivesMembership />
         </Suspense>
+        <ActiveTypes />
 
         {/* Membresías por Tipo */}
         {/* <Card>

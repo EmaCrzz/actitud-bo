@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { MembershipTranslation, type MembershipType } from '@/assistance/consts'
+import { MembershipTranslation, type MembershipType } from '@/membership/consts'
 import { Skeleton } from '@/components/ui/skeleton'
 import { HybridSelect } from '@/components/ui/select-hybrid'
 import { useMediaQuery } from 'usehooks-ts'

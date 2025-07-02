@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { MEMBERSHIP_TYPE_3_DAYS, MEMBERSHIP_TYPE_5_DAYS, MembershipType } from '@/assistance/consts'
+import { MEMBERSHIP_TYPE_3_DAYS, MEMBERSHIP_TYPE_5_DAYS, MembershipType } from '@/membership/consts'
 
 interface Porps {
   membershipType: MembershipType

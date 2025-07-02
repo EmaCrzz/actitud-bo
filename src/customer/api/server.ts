@@ -85,59 +85,6 @@ export async function getCustomerMembership(customerId: string): Promise<Custome
   return data as CustomerMembership
 }
 
-
-// Tipo TypeScript para el resultado
-export interface ActiveMembership {
-  id: string
-  membership_type: string
-  last_payment_date: string | null
-  expiration_date: string
-  created_at: string
-  customers: Customer
-  types_memberships: {
-    type: string
-  }
-}
-
-// Función para obtener membresías activas
-export async function getActiveMemberships() {
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('customer_membership')
-    .select(`
-      id,
-      membership_type,
-      last_payment_date,
-      expiration_date,
-      created_at,
-      customers (
-        id,
-        first_name,
-        last_name,
-        person_id,
-        phone,
-        email,
-        assistance_count,
-        created_at
-      ),
-      types_memberships (
-        type
-      )
-    `)
-    .gt('expiration_date', new Date().toISOString())
-    .order('expiration_date', { ascending: true })
-
-  if (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error fetching active memberships:', error)
-
-    return { data: null, error }
-  }
-
-  return { data: data as unknown as ActiveMembership[], error: null }
-}
-
-
 // export async function deleteCustomer(customerId: string) {
 //   const supabase = await createClient()
 

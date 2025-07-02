@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import SearchIcon from "@/components/icons/search";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { MembershipTranslation } from "@/assistance/consts";
+import { MembershipTranslation } from "@/membership/consts";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import EyeIcon from "@/components/icons/eye";

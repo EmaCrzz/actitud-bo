@@ -1,4 +1,4 @@
-import { MembershipTranslation } from '@/assistance/consts'
+import { MembershipTranslation } from '@/membership/consts'
 import PencilIcon from '@/components/icons/pencil'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'

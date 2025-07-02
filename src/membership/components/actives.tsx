@@ -1,7 +1,7 @@
 import { DateDisplay } from '@/components/date-display'
 import AlertTriangleContained from '@/components/icons/alert-triangle-contained'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { getActiveMemberships } from '@/customer/api/server'
+import { getActiveMemberships } from '@/membership/api/server'
 import { BicepsFlexed, CalendarCheck } from 'lucide-react'
 import {
   Accordion,
@@ -27,7 +27,7 @@ export default async function ActivesMembership() {
       </Card>
     )
   }
-
+  
   return (
     <Card className='py-3 sm:py-6'>
       <Accordion collapsible type='single'>

@@ -2,7 +2,7 @@
 
 import CustomerCounter from '@/assistance/customer-counter'
 import RegistryBtn from '@/assistance/registry-button'
-import { MEMBERSHIP_TYPE_3_DAYS } from '@/assistance/consts'
+import { MEMBERSHIP_TYPE_3_DAYS } from '@/membership/consts'
 import { useMemo, useState } from 'react'
 import { createAssistance } from './api/client'
 import { toast } from 'sonner'
