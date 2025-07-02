@@ -18,7 +18,7 @@ export default async function ActivesMembership() {
         <CardHeader className='px-4 sm:px-6'>
           <CardTitle className='flex items-center gap-2 text-white/70'>
             <BicepsFlexed className='h-5 w-5 text-yellow-600' />
-            Clientes con membresia activa
+            Clientes activos
           </CardTitle>
         </CardHeader>
         <CardContent className='space-y-3 px-4 sm:px-6 text-red-500'>
@@ -100,17 +100,17 @@ export default async function ActivesMembership() {
 export const ActivesMembershipSkeleton = () => {
   return (
     <Card className='py-3 sm:py-6'>
-    <Accordion collapsible type='single'>
-      <AccordionItem value='item-1'>
-        <AccordionTrigger className='py-0 px-2 sm:px-6 hover:cursor-pointer'>
-          <div className='flex gap-2 items-center text-white/70'>
-            <BicepsFlexed className='h-5 w-5 text-yellow-600' />
-            Clientes con membresia activa
-          </div>
-        </AccordionTrigger>
-        <AccordionContent />
-      </AccordionItem>
-    </Accordion>
-  </Card>
+      <Accordion collapsible type='single'>
+        <AccordionItem value='item-1'>
+          <AccordionTrigger className='py-0 px-2 sm:px-6 hover:cursor-pointer'>
+            <div className='flex gap-2 items-center text-white/70'>
+              <BicepsFlexed className='h-5 w-5 text-yellow-600' />
+              Clientes activos
+            </div>
+          </AccordionTrigger>
+          <AccordionContent />
+        </AccordionItem>
+      </Accordion>
+    </Card>
   )
 }
