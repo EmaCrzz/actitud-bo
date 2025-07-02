@@ -20,8 +20,8 @@ export default async function page() {
         </div>
       </header>
       <section className='max-w-3xl mx-auto w-full px-4 overflow-auto py-4'>
-        <Suspense fallback={<AssistancesListSkeleton />}>
-          <AssistancesList />
+        <Suspense fallback={<AssistancesListSkeleton collapsible={false} />}>
+          <AssistancesList collapsible={false} />
         </Suspense>
       </section>
       <FooterNavigation />
