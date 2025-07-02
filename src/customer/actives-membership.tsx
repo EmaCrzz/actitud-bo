@@ -35,7 +35,7 @@ export default async function ActivesMembership() {
           <AccordionTrigger className='py-0 px-2 sm:px-6 hover:cursor-pointer'>
             <div className='flex gap-2 items-center text-white/70'>
               <BicepsFlexed className='h-5 w-5 text-yellow-600' />
-              Clientes con membresia activa
+              Clientes activos
             </div>
           </AccordionTrigger>
           <AccordionContent>
