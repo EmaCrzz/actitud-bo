@@ -14,3 +14,4 @@ export const createAssistance = async ({ customer_id }: CreateAssistanceParams) 
 
   return { error, data }
 }
+

@@ -95,6 +95,28 @@ export function formatDateOnly(utcDateString: string): string {
 }
 
 /**
+ * Formato personalizado para mostrar solo dia y mes
+ */
+export function formatShortDate(utcDateString: string): string {
+  const date = new Date(utcDateString)
+
+  // Si es solo fecha (medianoche UTC), usar UTC para evitar cambio de día
+  if (isDateOnly(utcDateString)) {
+    return date.toLocaleDateString("es-AR", {
+      timeZone: "UTC",
+      month: "numeric",
+      day: "numeric",
+    })
+  }
+
+  // Para fechas con hora, usar zona horaria local
+  return date.toLocaleDateString("es-AR", {
+    month: "numeric",
+    day: "numeric",
+  })
+}
+
+/**
  * Formato personalizado para mostrar solo hora
  */
 export function formatTimeOnly(utcDateString: string): string {
@@ -180,7 +202,7 @@ export function getCurrentDateOnlyUTC(): string {
 
 interface DateDisplayProps {
   date: string
-  format?: "full" | "date" | "time" | "relative"
+  format?: "full" | "date" | "time" | "relative" | "short"
   className?: string
 }
 
@@ -193,6 +215,8 @@ export function DateDisplay({ date, format = "full", className }: DateDisplayPro
         return formatTimeOnly(date)
       case "relative":
         return formatRelativeTime(date)
+      case "short":
+        return formatShortDate(date)
       default:
         return formatToLocalTime(date)
     }

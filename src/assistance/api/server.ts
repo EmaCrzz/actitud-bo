@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { createClient } from "@/lib/supabase/server";
 
 export const getTotalAssistancesToday = async () => {
@@ -94,21 +95,6 @@ export async function getAssistancesByDate(date: Date): Promise<AssistanceByDate
     return []
   }
 
-  // const response: { assistance_date: string, customers: AssistanceByDate['customers'][] } = { assistance_date: data[0]?.assistance_date || '', customers: [] }
-  // assistances.forEach((item) => {
-  //   if (item.customers) {
-  //     response.customers.push({
-  //       first_name: item.customers.first_name || '',
-  //       last_name: item.customers.last_name || '',
-  //       person_id: item.customers.person_id || '',
-  //       phone: item.customers.phone || null,
-  //       email: item.customers.email || null,
-  //     })
-
-  //   }
-  // })
-
-  // return response
   return assistances
 }
 
@@ -158,4 +144,85 @@ export async function getAssistancesByWeek(startDate: Date, endDate: Date) {
   }
 
   return data || []
+}
+
+// // Función para obtener el top 10 de clientes del mes
+// export async function getTop10CustomersThisMonth() {
+//   // Obtener el primer día del mes actual
+//   const now = new Date()
+//   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+//   const firstDayOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+
+//   const { data, error } = await supabase
+//     .from('assistance')
+//     .select(`
+//       customer_id,
+//       customers (
+//         id,
+//         first_name,
+//         last_name,
+//         person_id,
+//         phone,
+//         email,
+//         assistance_count
+//       )
+//     `)
+//     .gte('assistance_date', firstDayOfMonth.toISOString())
+//     .lt('assistance_date', firstDayOfNextMonth.toISOString())
+
+//   if (error) {
+//     console.error('Error fetching monthly assistance data:', error)
+//     return { data: null, error }
+//   }
+
+//   // Procesar los datos para contar asistencias por cliente
+//   const customerAssistanceMap = new Map()
+  
+//   data?.forEach((assistance) => {
+//     const customerId = assistance.customer_id
+//     const customer = assistance.customers
+    
+//     if (customerAssistanceMap.has(customerId)) {
+//       customerAssistanceMap.get(customerId).monthly_assistance_count++
+//     } else {
+//       customerAssistanceMap.set(customerId, {
+//         ...customer,
+//         monthly_assistance_count: 1
+//       })
+//     }
+//   })
+
+//   // Convertir a array y ordenar por asistencias del mes
+//   const topCustomers = Array.from(customerAssistanceMap.values())
+//     .sort((a, b) => b.monthly_assistance_count - a.monthly_assistance_count)
+//     .slice(0, 10)
+
+//   return { data: topCustomers, error: null }
+// }
+
+// Función para obtener el top 10 de clientes del mes
+export async function getTop10CustomersThisMonthRPC() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .rpc('get_top_customers_current_month', { limit_count: 10 })
+
+  if (error) {
+    console.error('Error fetching top customers:', error)
+
+    return { data: null, error }
+  }
+
+  return { data: data as unknown as TopCustomer[], error: null }
+}
+
+// Tipo TypeScript para el resultado
+export interface TopCustomer {
+  id: string
+  first_name: string
+  last_name: string
+  person_id: string
+  phone: string | null
+  email: string | null
+  assistance_count: number
+  monthly_assistance_count: number
 }

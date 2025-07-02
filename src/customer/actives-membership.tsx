@@ -10,14 +10,14 @@ export default async function ActivesMembership() {
 
   if (error) {
     return (
-      <Card>
-        <CardHeader>
+      <Card className='py-4 sm:py-6'>
+        <CardHeader className='px-4 sm:px-6'>
           <CardTitle className='flex items-center gap-2 text-white/70'>
             <BicepsFlexed className='h-5 w-5 text-yellow-600' />
             Clientes con membresia activa
           </CardTitle>
         </CardHeader>
-        <CardContent className='text-red-500'>
+        <CardContent className='space-y-3 px-4 sm:px-6 text-red-500'>
           <p>Error al cargar los clientes activos.</p>
         </CardContent>
       </Card>
@@ -25,14 +25,14 @@ export default async function ActivesMembership() {
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className='py-4 sm:py-6'>
+      <CardHeader className='px-4 sm:px-6'>
         <CardTitle className='flex items-center gap-2 text-white/70'>
           <BicepsFlexed className='h-5 w-5 text-yellow-600' />
           Clientes con membresia activa
         </CardTitle>
       </CardHeader>
-      <CardContent className='space-y-3'>
+      <CardContent className='space-y-3 px-4 sm:px-6'>
         {data.map(({ customers, expiration_date }, index) => {
           const today = new Date()
           const expirationDate = new Date(expiration_date)
@@ -44,26 +44,27 @@ export default async function ActivesMembership() {
           return (
             <div
               key={customers.id}
-              className='flex items-center justify-between p-3 bg-inputhover rounded'
+              className='flex items-center justify-between gap-3 p-3 bg-inputhover rounded'
             >
-              <div className='flex items-center gap-3 w-full'>
-                <div className='flex items-center justify-center size-10 bg-primary200 rounded-full'>
-                  <span className='text-sm font-bold text-white/70'>#{index + 1}</span>
-                </div>
-                <div className='flex justify-between items-start w-full'>
-                  <div>
-                    <p className='font-medium text-gray-300'>
-                      {customers.first_name} {customers.last_name}
-                    </p>
+              <div className='flex items-center justify-center size-10 bg-primary200 rounded-full'>
+                <span className='text-sm font-bold text-white/70'>#{index + 1}</span>
+              </div>
+              <div className='flex items-start justify-between grow'>
+                <div>
+                  <p className='text-sm sm:text-base text-gray-300'>
+                    {customers.first_name} {customers.last_name}
+                  </p>
 
-                    <div className='flex gap-2 text-xs text-gray-500 items-center'>
+                  <div className='flex gap-2 text-xs text-gray-500 items-center'>
+                    <span className='block sm:hidden'>{expiration_date && 'Finalización:'}</span>
+                    <span className='hidden sm:block'>
                       {expiration_date && 'Fecha de finalización:'}
-                      {expiration_date ? <DateDisplay date={expiration_date} /> : '-'}
-                    </div>
+                    </span>
+                    {expiration_date ? <DateDisplay date={expiration_date} format='short' /> : '-'}
                   </div>
-                  {!aboutToExpire && <CalendarCheck className='size-6 text-green-500' />}
-                  {aboutToExpire && <AlertTriangleContained className='size-6 text-amber-400' />}
                 </div>
+                {!aboutToExpire && <CalendarCheck className='size-6 text-green-500' />}
+                {aboutToExpire && <AlertTriangleContained className='size-6 text-amber-400' />}
               </div>
             </div>
           )
@@ -80,14 +81,14 @@ export default async function ActivesMembership() {
 
 export const ActivesMembershipSkeleton = () => {
   return (
-    <Card>
-      <CardHeader>
+    <Card className='py-4 sm:py-6'>
+      <CardHeader className='px-4 sm:px-6'>
         <CardTitle className='flex items-center gap-2 text-white/70'>
           <BicepsFlexed className='h-5 w-5 text-yellow-600' />
           Clientes con membresia activa
         </CardTitle>
       </CardHeader>
-      <CardContent className='space-y-3'>
+      <CardContent className='space-y-3 px-4 sm:px-6'>
         {[0, 1, 2].map((index) => (
           <div
             key={index}

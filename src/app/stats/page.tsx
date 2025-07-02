@@ -1,7 +1,7 @@
 import type React from 'react'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Calendar, Users, TrendingUp, Award } from 'lucide-react'
+import { Calendar, Users, TrendingUp } from 'lucide-react'
 import { HOME } from '@/consts/routes'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -13,6 +13,7 @@ import AssistanceCardToday, {
 import { Suspense } from 'react'
 import AssistancesList, { AssistancesListSkeleton } from '@/assistance/assistances-list'
 import ActivesMembership, { ActivesMembershipSkeleton } from '@/customer/actives-membership'
+import TopMonthlyAssintant from '@/assistance/top-monthly-assintant'
 
 // Mock data completamente independiente basado en tu esquema SQL
 const mockData = {
@@ -56,17 +57,6 @@ const mockData = {
     { month: 'May', memberships: 75 },
     { month: 'Jun', memberships: 80 }, // Mes actual
   ],
-}
-
-// Componente Badge simple
-function Badge({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-primary200 text-white/70 ${className}`}
-    >
-      {children}
-    </span>
-  )
 }
 
 // Componente Progress simple
@@ -113,34 +103,9 @@ export default async function DashboardStats() {
         <Suspense fallback={<ActivesMembershipSkeleton />}>
           <ActivesMembership />
         </Suspense>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className='flex items-center gap-2 text-white/70'>
-              <Award className='h-5 w-5 text-yellow-600' />
-              Top Asistentes del Mes (fake)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className='space-y-3'>
-            {mockData.topAssistants.map((assistant, index) => (
-              <div
-                key={assistant.personId}
-                className='flex items-center justify-between p-3 bg-inputhover rounded'
-              >
-                <div className='flex items-center gap-3'>
-                  <div className='flex items-center justify-center w-8 h-8 bg-primary200 rounded-full'>
-                    <span className='text-sm font-bold text-white/70'>#{index + 1}</span>
-                  </div>
-                  <div>
-                    <p className='font-medium text-gray-300'>{assistant.name}</p>
-                    <p className='text-xs text-gray-500'>ID: {assistant.personId}</p>
-                  </div>
-                </div>
-                <Badge>{assistant.count} días</Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        <Suspense fallback={<AssistancesListSkeleton />}>
+          <TopMonthlyAssintant />
+        </Suspense>
 
         {/* Membresías por Tipo */}
         <Card>
