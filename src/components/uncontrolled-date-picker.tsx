@@ -23,6 +23,42 @@ interface UncontrolledDatePickerProps {
   helperText?: string
 }
 
+/**
+ * Detecta si una fecha es "solo fecha" (medianoche UTC)
+ */
+const isDateOnly = (dateString: string): boolean => {
+  const date = new Date(dateString)
+
+  return date.getUTCHours() === 0 && date.getUTCMinutes() === 0 && date.getUTCSeconds() === 0
+}
+
+/**
+ * Convierte una fecha string a Date object manejando correctamente las fechas "solo fecha"
+ */
+const parseDate = (dateString: string): Date => {
+  if (isDateOnly(dateString)) {
+    // Para fechas "solo fecha", usar los componentes UTC para evitar conversión de zona horaria
+    const date = new Date(dateString)
+
+    return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+  }
+
+  // Para fechas con hora específica, usar conversión normal
+  return new Date(dateString)
+}
+
+/**
+ * Convierte un Date object a string ISO para fechas "solo fecha"
+ */
+const dateToISOString = (date: Date): string => {
+  // Siempre devolver en formato YYYY-MM-DD para fechas "solo fecha"
+  const year = date.getFullYear()
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const day = date.getDate().toString().padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
 const formatDate = (date: Date, format: 'long' | 'short') => {
   const day = date.getDate().toString().padStart(2, '0')
   const month = (date.getMonth() + 1).toString().padStart(2, '0')
@@ -56,7 +92,7 @@ export const UncontrolledDatePicker = React.forwardRef<
   ) => {
     const [open, setOpen] = React.useState(false)
     const [date, setDate] = React.useState<Date | undefined>(
-      defaultValue ? new Date(defaultValue) : undefined
+      defaultValue ? parseDate(defaultValue) : undefined
     )
 
     // Referencia interna para el input hidden
@@ -85,7 +121,7 @@ export const UncontrolledDatePicker = React.forwardRef<
 
       // Actualizar el valor del input hidden
       if (hiddenInputRef.current) {
-        hiddenInputRef.current.value = selectedDate ? selectedDate.toISOString().split('T')[0] : ''
+        hiddenInputRef.current.value = selectedDate ? dateToISOString(selectedDate) : ''
 
         // Disparar evento change para compatibilidad con librerías de formularios
         const event = new Event('change', { bubbles: true })
@@ -111,12 +147,11 @@ export const UncontrolledDatePicker = React.forwardRef<
         {/* Input hidden para el formulario */}
         <input
           ref={inputRef}
-          defaultValue={defaultValue}
           id={id || name}
           name={name}
           required={required}
           type='hidden'
-          value={date ? date.toISOString().split('T')[0] : ''}
+          value={date ? dateToISOString(date) : defaultValue || ''}
         />
 
         <Popover open={open} onOpenChange={setOpen}>
