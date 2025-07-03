@@ -8,7 +8,6 @@ import PersonPlus from "@/components/icons/person-plus";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { ROUTES } from "@/consts/routes";
-import { LucideListChecks } from "lucide-react";
 
 const navigationItems = [
   {
@@ -32,13 +31,7 @@ const navigationItems = [
     icon: PersonPlus,
     href: ROUTES.CUSTOMER_NEW,
     disabled: false,
-  },
-  {
-    id: ROUTES.ASSISTANCES,
-    icon: LucideListChecks,
-    href: ROUTES.ASSISTANCES,
-    disabled: false,
-  },
+  }
 ];
 
 export default function FooterNavigation() {
