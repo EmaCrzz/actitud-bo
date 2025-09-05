@@ -60,8 +60,11 @@ if [ -n "$(git status --porcelain)" ]; then
     exit 1
 fi
 
-# Obtener el último tag
-LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+# Obtener el último tag (buscar globalmente)
+LAST_TAG=$(git tag -l "v*" | sort -V | tail -n1)
+if [ -z "$LAST_TAG" ]; then
+    LAST_TAG="v0.0.0"
+fi
 echo -e "${BLUE}📋 Último tag: $LAST_TAG${NC}"
 
 # Extraer números de versión
