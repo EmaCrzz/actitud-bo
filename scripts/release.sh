@@ -112,6 +112,12 @@ fi
 echo -e "${BLUE}📥 Actualizando rama develop...${NC}"
 git pull origin develop
 
+# Actualizar versión en package.json
+echo -e "${BLUE}📝 Actualizando versión en package.json...${NC}"
+sed -i '' "s/\"version\": \".*\"/\"version\": \"${NEW_VERSION#v}\"/" package.json
+git add package.json
+git commit -m "Bump version to $NEW_VERSION"
+
 # Mergear develop a main
 echo -e "${BLUE}🔄 Cambiando a main y mergeando develop...${NC}"
 git checkout main
