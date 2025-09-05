@@ -77,7 +77,7 @@ export function LoginForm() {
                 componentRight={
                   <Button
                     aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                    className="h-4 w-4"
+                    className="h-6 w-4"
                     size="icon"
                     type="button"
                     variant="ghost"
