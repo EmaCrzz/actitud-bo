@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import LogoBlanco from "@/assets/logos/blanco/logo";
 import { signUp } from "@/auth/api/client";
 import { HOME } from "@/consts/routes";
@@ -15,6 +16,7 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const { executeWithRateLimit } = useRateLimitHandler();
 
@@ -71,9 +73,26 @@ export function LoginForm() {
               </div>
               <Input
                 required
+                className="py-0 px-1 m-0"
+                componentRight={
+                  <Button
+                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    className="h-6 w-4"
+                    size="icon"
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                }
                 id="password"
                 placeholder="********"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />

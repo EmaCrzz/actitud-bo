@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { InfoIcon } from "lucide-react";
 
 const inputVariants = cva(
-  "placeholder:text-muted-foreground selection:text-primary-foreground flex w-full min-w-0 text-base transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm px-2 py-3 sm:py-4",
+  "placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground flex w-full min-w-0 text-base transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm px-2 py-3 sm:py-4",
   {
     variants: {
       variant: {
@@ -26,7 +26,7 @@ const inputVariants = cva(
 );
 
 const inputFieldVariants = cva(
-  "flex-1 bg-transparent border-0 outline-none placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
+  "flex-1 bg-transparent border-0 outline-none placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -34,6 +34,10 @@ const inputFieldVariants = cva(
         line: "px-0 py-1",
       },
       hasComponentLeft: {
+        true: "",
+        false: "",
+      },
+      hasComponentRight: {
         true: "",
         false: "",
       },
@@ -49,10 +53,33 @@ const inputFieldVariants = cva(
         hasComponentLeft: true,
         class: "pl-0 pr-0 py-[0.5px]",
       },
+      {
+        variant: "default",
+        hasComponentRight: true,
+        class: "pl-2 pr-0 py-4",
+      },
+      {
+        variant: "line",
+        hasComponentRight: true,
+        class: "pl-0 pr-0 py-[0.5px]",
+      },
+      {
+        variant: "default",
+        hasComponentLeft: true,
+        hasComponentRight: true,
+        class: "pl-0 pr-0 py-4",
+      },
+      {
+        variant: "line",
+        hasComponentLeft: true,
+        hasComponentRight: true,
+        class: "pl-0 pr-0 py-[0.5px]",
+      },
     ],
     defaultVariants: {
       variant: "default",
       hasComponentLeft: false,
+      hasComponentRight: false,
     },
   }
 );
@@ -77,9 +104,11 @@ function InputComponent({
 }) {
   return (
     <div
-      className={`flex items-center justify-center text-muted-foreground shrink-0 ${position}`}
+      className={`flex items-center justify-center text-muted-foreground shrink-0 pointer-events-none ${position}`}
     >
-      {children}
+      <div className="pointer-events-auto">
+        {children}
+      </div>
     </div>
   );
 }
@@ -124,7 +153,7 @@ function Input({
       className={cn(
         !isInvalid && !helperText ? "mb-[20px]" : "",
         hasComponents
-          ? inputFieldVariants({ variant, hasComponentLeft: !!componentLeft })
+          ? inputFieldVariants({ variant, hasComponentLeft: !!componentLeft, hasComponentRight: !!componentRight })
           : inputVariants({ variant }),
           className
       )}
