@@ -1,10 +1,12 @@
 import { createClient } from "@/lib/supabase/client";
+import { withRateLimit } from "@/lib/rate-limit";
 
 interface CreateAssistanceParams {
   customer_id: string
 }
 
-export const createAssistance = async ({ customer_id }: CreateAssistanceParams) => {
+// Función interna sin rate limiting
+async function _createAssistance({ customer_id }: CreateAssistanceParams) {
   if (!customer_id) throw new Error("Customer ID is required");
 
   const supabase = createClient();
@@ -14,4 +16,7 @@ export const createAssistance = async ({ customer_id }: CreateAssistanceParams) 
 
   return { error, data }
 }
+
+// Función exportada con rate limiting
+export const createAssistance = withRateLimit('assistance', _createAssistance)
 

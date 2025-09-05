@@ -6,8 +6,10 @@ import { toast } from "sonner";
 import { removeFormatPersonId } from "@/lib/format-person-id";
 import { DatabaseResult } from "@/types/database-errors";
 import { basicCustomerValidation, basicMembershipValidation } from "../utils";
+import { withRateLimit } from "@/lib/rate-limit";
 
-export const searchCustomer = async (query?: string) => {
+// Función interna de búsqueda sin rate limiting
+async function _searchCustomer(query?: string) {
   if (!query) return []
   const supabase = createClient();
   const { data } = await supabase
@@ -29,6 +31,9 @@ export const searchCustomer = async (query?: string) => {
 
   return customers;
 }
+
+// Función exportada con rate limiting
+export const searchCustomer = withRateLimit('search', _searchCustomer)
 
 export async function checkCustomerPersonId({ formData }: { formData: FormData }): Promise<DatabaseResult & { enable: boolean }> {
   const { valid, errors } = basicCustomerValidation(formData)
@@ -139,7 +144,8 @@ interface UpsertCustomerParams {
   formDataMembership?: FormData
 }
 
-export async function upsertCustomer({ customerId, formDataCustomer, formDataMembership }: UpsertCustomerParams): Promise<DatabaseResult & { customer?: Customer }> {
+// Función interna para upsert sin rate limiting
+async function _upsertCustomer({ customerId, formDataCustomer, formDataMembership }: UpsertCustomerParams): Promise<DatabaseResult & { customer?: Customer }> {
   if (!formDataCustomer) {
     return {
       success: false,
@@ -208,6 +214,9 @@ export async function upsertCustomer({ customerId, formDataCustomer, formDataMem
 
   return result
 }
+
+// Función exportada con rate limiting
+export const upsertCustomer = withRateLimit('createCustomer', _upsertCustomer)
 
 export async function upsertCustomerMembership({ customerId, formData }: {
   customerId: string,

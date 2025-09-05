@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import { UserProfile } from "@/auth/types";
+import { withRateLimit } from "@/lib/rate-limit";
 
 interface SignUp {
   email: string;
@@ -7,7 +8,8 @@ interface SignUp {
 
 }
 
-export async function signUp({ email, password }: SignUp) {
+// Función interna sin rate limiting
+async function _signUp({ email, password }: SignUp) {
   const supabase = createClient();
   const { error } = await supabase.auth.signInWithPassword({
     email,
@@ -20,6 +22,9 @@ export async function signUp({ email, password }: SignUp) {
 
   return { success: true, message: "User signed up successfully" }
 }
+
+// Función exportada con rate limiting
+export const signUp = withRateLimit('login', _signUp)
 
 export async function signOut() {
   const supabase = createClient();

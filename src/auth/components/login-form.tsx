@@ -8,6 +8,7 @@ import { useState } from "react";
 import LogoBlanco from "@/assets/logos/blanco/logo";
 import { signUp } from "@/auth/api/client";
 import { HOME } from "@/consts/routes";
+import { useRateLimitHandler } from "@/components/rate-limit-handler";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -15,23 +16,27 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { executeWithRateLimit } = useRateLimitHandler();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
 
-    try {
-      await signUp({
-        email,
-        password,
-      });
-      router.push(HOME);
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
-    } finally {
-      setIsLoading(false);
-    }
+    await executeWithRateLimit(
+      () => signUp({ email, password }),
+      {
+        onSuccess: () => {
+          router.push(HOME);
+        },
+        onError: (error) => {
+          setError(error instanceof Error ? error.message : "Ocurrió un error");
+        },
+        fallbackErrorMessage: "Error al iniciar sesión"
+      }
+    );
+
+    setIsLoading(false);
   };
 
   return (
