@@ -3,7 +3,6 @@ import './globals.css'
 import { Toaster } from 'sonner'
 import PWAInstaller from '@/components/pwa-installer'
 import SWUpdateManager from '@/components/sw-update-manager'
-import VersionBadge from '@/components/version-badge'
 
 export const metadata: Metadata = {
   title: 'Actitud - Backoffice',
@@ -248,7 +247,6 @@ export default function RootLayout({
         {children}
         <PWAInstaller />
         <SWUpdateManager />
-        <VersionBadge position="fixed" />
         <Toaster richColors expand={true} />
       </body>
     </html>
