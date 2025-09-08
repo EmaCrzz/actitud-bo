@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 // 🤖 GENERADO AUTOMÁTICAMENTE - NO EDITAR MANUALMENTE
-const CACHE_VERSION = "v1757093078865-l0fmpq"
+const CACHE_VERSION = "v1757334608311-c4jsm7"
 const STATIC_CACHE = `actitud-static-${CACHE_VERSION}`
 const DYNAMIC_CACHE = `actitud-dynamic-${CACHE_VERSION}`
 const RUNTIME_CACHE = `actitud-runtime-${CACHE_VERSION}`
@@ -23,10 +23,12 @@ self.addEventListener("install", (event) => {
       .open(STATIC_CACHE)
       .then((cache) => {
         console.log("📦 SW: Cacheando recursos críticos")
+
         return cache.addAll(CRITICAL_ASSETS)
       })
       .then(() => {
         console.log("✅ SW: Instalación completada")
+
         return self.skipWaiting()
       })
       .catch((error) => {
@@ -48,6 +50,7 @@ self.addEventListener("activate", (event) => {
             cacheNames.map((cacheName) => {
               if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE && cacheName !== RUNTIME_CACHE) {
                 console.log("🗑️ SW: Eliminando cache viejo:", cacheName)
+
                 return caches.delete(cacheName)
               }
             }),
@@ -56,6 +59,7 @@ self.addEventListener("activate", (event) => {
       self.clients.claim(),
     ]).then(() => {
       console.log("✅ SW: Activación completada")
+
       return self.clients.matchAll().then((clients) => {
         clients.forEach((client) => {
           client.postMessage({
@@ -84,10 +88,12 @@ self.addEventListener("fetch", (event) => {
         .then((response) => {
           if (response.status === 200) {
             const responseClone = response.clone()
+
             caches.open(DYNAMIC_CACHE).then((cache) => {
               cache.put(request, responseClone)
             })
           }
+
           return response
         })
         .catch(() => {
@@ -96,6 +102,7 @@ self.addEventListener("fetch", (event) => {
           })
         }),
     )
+
     return
   }
 
@@ -106,15 +113,19 @@ self.addEventListener("fetch", (event) => {
         if (response) {
           return response
         }
+
         return fetch(request).then((fetchResponse) => {
           const responseClone = fetchResponse.clone()
+
           caches.open(STATIC_CACHE).then((cache) => {
             cache.put(request, responseClone)
           })
+
           return fetchResponse
         })
       }),
     )
+
     return
   }
 
@@ -125,10 +136,12 @@ self.addEventListener("fetch", (event) => {
         .then((response) => {
           if (response.status === 200 && request.method === "GET") {
             const responseClone = response.clone()
+
             caches.open(RUNTIME_CACHE).then((cache) => {
               cache.put(request, responseClone)
             })
           }
+
           return response
         })
         .catch(() => {
@@ -138,6 +151,7 @@ self.addEventListener("fetch", (event) => {
           throw new Error("Network error and no cache available")
         }),
     )
+
     return
   }
 
