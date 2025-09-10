@@ -42,7 +42,7 @@ export function HybridSelect({
       <Select value={value} onValueChange={setValue}>
         <SelectTrigger
           className={cn(
-            'w-full max-w-full', // Asegura que no exceda el ancho del contenedor
+            'w-full max-w-full border-input-border hover:bg-input-hover-background', // Asegura que no exceda el ancho del contenedor
             isInvalid && 'border-red-500',
             className
           )}
@@ -50,7 +50,7 @@ export function HybridSelect({
         >
           <SelectValue className='truncate max-w-full' placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className='border-input-border p-0'>
           {options.map((option) => (
             <SelectItem key={option.value} value={option.value}>
               {option.label}

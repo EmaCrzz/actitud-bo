@@ -1,8 +1,13 @@
-import type { Metadata, Viewport } from 'next'
 import './globals.css'
+
+import type { Metadata, Viewport } from 'next'
 import { Toaster } from 'sonner'
 import PWAInstaller from '@/components/pwa-installer'
 import SWUpdateManager from '@/components/sw-update-manager'
+import { getTenantFontVariables } from '@/lib/themes/fonts'
+import { TENANT } from '@/lib/envs'
+import type { TenantsType } from '@/lib/tenants'
+import { generateThemeStyles } from '@/lib/themes'
 
 export const metadata: Metadata = {
   title: 'Actitud - Backoffice',
@@ -37,7 +42,7 @@ export const viewport: Viewport = {
   userScalable: false,
 }
 
-import { unbounded, poppins } from '@/lib/fonts'
+const tenantFontVariables = getTenantFontVariables(TENANT as TenantsType)
 
 export default function RootLayout({
   children,
@@ -45,7 +50,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang='en'>
+    <html lang='en' style={generateThemeStyles()}>
       <head>
         <link href='/icons/favicon-196.png' rel='icon' sizes='196x196' type='image/png' />
         <link href='/icons/apple-icon-180.png' rel='apple-touch-icon' />
@@ -241,9 +246,7 @@ export default function RootLayout({
           rel='apple-touch-startup-image'
         />
       </head>
-      <body
-        className={`${unbounded.variable} ${poppins.variable} h-screen grid grid-rows-[auto_1fr_auto]`}
-      >
+      <body className={`${tenantFontVariables} h-screen grid grid-rows-[auto_1fr_auto]`}>
         {children}
         <PWAInstaller />
         <SWUpdateManager />

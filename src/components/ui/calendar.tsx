@@ -25,7 +25,7 @@ function Calendar({
     <DayPicker
       captionLayout={captionLayout}
       className={cn(
-        'bg-background group/calendar p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent',
+        'group/calendar p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent',
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className
@@ -53,11 +53,11 @@ function Calendar({
           defaultClassNames.month_caption
         ),
         dropdowns: cn(
-          'w-full flex items-center text-sm font-medium justify-center h-(--cell-size) gap-1.5',
+          'w-full flex items-center text-sm font-medium justify-center h-(--cell-size) gap-1.5 ',
           defaultClassNames.dropdowns
         ),
         dropdown_root: cn(
-          'relative has-focus:border-ring border border-input shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] rounded-md',
+          'relative shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] rounded-md border-none',
           defaultClassNames.dropdown_root
         ),
         dropdown: cn('absolute inset-0 opacity-0', defaultClassNames.dropdown),

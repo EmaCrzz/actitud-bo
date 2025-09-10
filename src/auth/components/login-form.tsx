@@ -73,11 +73,11 @@ export function LoginForm() {
               </div>
               <Input
                 required
-                className="py-0 px-1 m-0"
+                className="p-0 m-0"
                 componentRight={
                   <Button
                     aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                    className="h-6 w-4"
+                    className="h-4 w-4"
                     size="icon"
                     type="button"
                     variant="ghost"

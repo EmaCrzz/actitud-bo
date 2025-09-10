@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "private": true,
   "scripts": {
-    "dev": "node ./src/scripts/generate-sw.js && next dev",
+    "dev": "node ./src/scripts/generate-sw.js && next dev -p 3001",
     "build": "node ./src/scripts/generate-sw.js && next build",
     "start": "next start",
     "prebuild": "node ./src/scripts/generate-sw.js",

@@ -434,7 +434,7 @@ export default function PWAInstallManager() {
         !installDismissed && (
           <button
             data-pwa-installer
-            className='fixed bottom-4 left-4 bg-[#ff1168] text-white size-10 rounded-full shadow-lg z-40 hover:bg-[#e00e5a] transition-colors'
+            className='fixed bottom-4 left-4 bg-primary text-primary-foreground size-10 rounded-full shadow-lg z-40 hover:bg-primary/80 transition-colors'
             title='Instalar aplicación'
             onClick={() => setShowInstallMenu(true)}
           >
