@@ -104,7 +104,7 @@ function InputComponent({
 }) {
   return (
     <div
-      className={`flex items-center  justify-center text-muted-foreground shrink-0 pointer-events-none ${position}`}
+      className={`flex items-center justify-center text-muted-foreground shrink-0 h-fit ${position}`}
     >
       {children}
     </div>
