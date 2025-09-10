@@ -246,7 +246,7 @@ export default function RootLayout({
           rel='apple-touch-startup-image'
         />
       </head>
-      <body className={`${tenantFontVariables} h-screen grid grid-rows-[auto_1fr_auto]`}>
+      <body className={`${tenantFontVariables} h-dvh grid grid-rows-[auto_1fr_auto]`}>
         {children}
         <PWAInstaller />
         <SWUpdateManager />
