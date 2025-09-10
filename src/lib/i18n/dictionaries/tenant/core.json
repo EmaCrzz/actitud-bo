@@ -1,0 +1,11 @@
+{
+  "auth": {
+    "welcomeMessage": "Bienvenido a Core Fitness"
+  },
+  "customer": {
+    "welcome": "¡Hola {name}! Te damos la bienvenida a Core"
+  },
+  "assistance": {
+    "greeting": "¡Perfecto {customerName}! Tu entrenamiento en Core ha sido registrado"
+  }
+}
