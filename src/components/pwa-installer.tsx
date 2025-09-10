@@ -365,7 +365,7 @@ export default function PWAInstallManager() {
     <>
       {/* Banner de instalación nativo */}
       {showInstallBanner && deferredPrompt && (
-        <Alert className='items-center fixed bottom-32 z-50 max-w-[95%] left-1/2 -translate-x-1/2 w-full sm:right-4 sm:max-w-lg bg-input border-[0.3px] border-white/20'>
+        <Alert className='items-center fixed bottom-32 z-50 max-w-[95%] left-1/2 -translate-x-1/2 w-full sm:right-4 sm:max-w-lg bg-input-background border-[0.3px] border-white/20'>
           <Smartphone className='text-primary!' />
           <AlertTitle className='text-white flex justify-between items-center'>
             ¡Instala Actitud!
@@ -389,7 +389,7 @@ export default function PWAInstallManager() {
 
       {/* Menú de instalación alternativo */}
       {showInstallMenu && !showInstallBanner && (
-        <Alert className='items-center fixed bottom-32 z-50 max-w-[95%] left-1/2 -translate-x-1/2 w-full sm:right-4 sm:max-w-lg bg-input border-[0.3px] border-white/20'>
+        <Alert className='items-center fixed bottom-32 z-50 max-w-[95%] left-1/2 -translate-x-1/2 w-full sm:right-4 sm:max-w-lg bg-input-background border-[0.3px] border-white/20'>
           <Smartphone className='text-primary!' />
           <AlertTitle className='text-white flex justify-between items-center'>
             ¡Instala Actitud!
@@ -412,7 +412,7 @@ export default function PWAInstallManager() {
           data-pwa-installer
           className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4'
         >
-          <div className='bg-input rounded-[4px] p-6 max-w-md w-full text-white'>
+          <div className='bg-input-background rounded-[4px] p-6 max-w-md w-full text-white'>
             <h3 className='text-lg font-semibold mb-4'>{getInstallInstructions().title}</h3>
             <div className='space-y-2 mb-4'>
               {getInstallInstructions().steps.map((step, index) => (
