@@ -158,7 +158,7 @@ export const UncontrolledDatePicker = React.forwardRef<
           <PopoverTrigger asChild>
             <Button
               className={cn(
-                'w-full text-base font-light px-2 py-3 sm:py-4 h-[50px]',
+                'w-full text-base font-light px-2 py-3 sm:py-4 h-[50px] hover:bg-input-hover-background',
                 date ? 'justify-between' : 'justify-end',
                 isInvalid && 'border-red-500'
               )}

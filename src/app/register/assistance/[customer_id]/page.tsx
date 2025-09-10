@@ -28,16 +28,16 @@ export default async function AssintanceRegisterPage({
     <>
       <header className="max-w-3xl mx-auto w-full px-2 sm:px-4 py-3 flex justify-between items-center border-b border-primary pt-4">
         <div className="flex gap-4 items-center">
-          <Button className="size-6 rounded-full" size="icon" variant="ghost">
+          <Button className="size-6 rounded-full" variant="ghost">
             <Link href={HOME}>
               <ArrowLeftIcon className="size-6" />
             </Link>
           </Button>
-          <h5 className="font-medium text-sm">Registro de asistencias</h5>
+          <h5 className="font-medium text-sm font-headline">Registro de asistencias</h5>
         </div>
       </header>
       <section className="mt-6 px-4 flex flex-col max-w-3xl mx-auto w-full pb-4">
-        <h3 className="text-2xl">
+        <h3 className="text-2xl font-headline">
           {customer.first_name} {customer.last_name}
         </h3>
         <Tabs className="mt-10 grow" defaultValue="assistance">

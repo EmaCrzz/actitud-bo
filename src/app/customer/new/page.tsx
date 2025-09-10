@@ -148,7 +148,6 @@ export default function SimpleMultiStepForm() {
         <div className='flex gap-4 items-center'>
           <Button
             className='size-6 rounded-full'
-            size='icon'
             variant='ghost'
             onClick={() => {
               if (currentStep === 2) {

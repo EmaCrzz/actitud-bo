@@ -22,7 +22,7 @@ export default async function AssistancesList({ collapsible = true }: { collapsi
       >
         <AccordionItem value='item-1'>
           <AccordionTrigger
-            className='py-0 px-2 sm:px-6 hover:cursor-pointer'
+            className='py-0 px-2 sm:px-6 hover:cursor-pointer border-none hover:no-underline'
             hiddeSvg={!collapsible}
           >
             <div className='flex gap-2 items-center text-white/70 text-sm'>
@@ -41,7 +41,7 @@ export default async function AssistancesList({ collapsible = true }: { collapsi
               {assistances.map((item, index) => (
                 <div
                   key={item.id}
-                  className='flex items-center justify-between p-2 sm:p-3 bg-inputhover rounded'
+                  className='flex items-center justify-between p-2 sm:p-3 bg-input-hover-background rounded'
                 >
                   <div className='flex items-center gap-3'>
                     <div className='flex items-center justify-center size-10 bg-primary200 rounded-full'>
@@ -92,7 +92,7 @@ export const AssistancesListSkeleton = ({ collapsible = true }: { collapsible?: 
                 {[0, 1, 2].map((index) => (
                   <div
                     key={index}
-                    className='flex items-center justify-between p-2 sm:p-3 bg-inputhover rounded'
+                    className='flex items-center justify-between p-2 sm:p-3 bg-input-hover-background rounded'
                   >
                     <div className='flex items-center gap-3'>
                       <Skeleton className='bg-card w-8 h-8 rounded-full' />

@@ -11,7 +11,7 @@ export default async function page() {
     <>
       <header className='max-w-3xl mx-auto w-full px-2 sm:px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
         <div className='flex gap-4 items-center'>
-          <Button className='size-6 rounded-full' size='icon' variant='ghost'>
+          <Button className='size-6 rounded-full' variant='ghost'>
             <Link href={HOME}>
               <ArrowLeftIcon className='size-6' />
             </Link>

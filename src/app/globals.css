@@ -2,100 +2,55 @@
 @import 'tw-animate-css';
 
 :root {
-  --primary: #ff1168;
-  --primary200: #ff6398;
-  --background: #260210;
-  --foreground: #ffffff;
-  --inputhover: #3c3839;
-  --textsecondary: #ffbdd3;
   --accent: oklch(0.37 0.04 355.12);
-  --ring: oklch(0.708 0 0);
-  --destructive: #fb0817;
-
-  /* TODO: refactorizarlos */
-  --input: #322d2f;
-  --membership-card: #4d2331;
-  --alert: #010101;
-  --popover: #322d2f;
-  --inputactive: rgba(255, 255, 255, 0.8);
-  --popover-foreground: rgba(255, 255, 255, 0.8);
-  --muted: #272325;
-  --card: #272325;
-  --borderinput: rgba(255, 255, 255, 0.3);
-  --label: rgba(255, 255, 255, 0.3);
-  --muted-foreground: rgba(255, 255, 255, 0.3);
-  /* **** */
-
-  --card-foreground: oklch(0.145 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
   --accent-foreground: oklch(0.205 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --muted: #272325;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-primary200: var(--primary200);
-  --color-label: var(--label);
-  --color-borderinput: var(--borderinput);
-  --color-inputactive: var(--inputactive);
-  --color-inputhover: var(--inputhover);
-  --color-card: var(--card);
-  --color-alert: var(--alert);
-  --color-textsecondary: var(--textsecondary);
-  --color-membership-card: var(--membership-card);
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-text);
+  --color-primary200: var(--color-primary-200);
+  --color-primary300: var(--color-primary-300);
+  --color-primary400: var(--color-primary-400);
+  --color-primary: var(--color-primary-500);
+  --color-primary600: var(--color-primary-600);
+  --color-primary700: var(--color-primary-700);
+  --color-primary-contrast: var(--color-primary-contrast);
+  --color-secondary200: var(--color-secondary-200);
+  --color-secondary300: var(--color-secondary-300);
+  --color-secondary400: var(--color-secondary-400);
+  --color-secondary: var(--color-secondary-500);
+  --color-secondary600: var(--color-secondary-600);
+  --color-secondary700: var(--color-secondary-700);
+  --color-secondary-contrast: var(--color-secondary-contrast);
 
-  --font-sans: var(--font-geist-sans);
+  --font-headline: var(--font-family-headline), system-ui, sans-serif;
+  --font-sans: var(--font-family-primary), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
+
+  --color-input-placeholder: var(--color-input-placeholder);
+  --color-input-border: var(--color-input-border);
+  --color-input-background: var(--color-input-background);
+  --color-input-label: var(--color-input-label);
+  --color-input-hover-border: var(--color-input-hover-border);
+  --color-input-hover-background: var(--color-input-hover-background);
+
+  --color-popover-background: var(--color-popover-background);
+  --color-popover-text: var(--color-popover-text);
+  --color-popover-border: var(--color-popover-border);
+
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--muted);
+
+  --color-ring: var(--ring);
+  --color-border: var(--border);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-
-  --font-sans: 'unbounded', 'system-ui', sans-serif;
-  --font-secondary: 'Inter', 'system-ui', sans-serif;
 }
 
 @layer base {
@@ -108,14 +63,20 @@
   }
 }
 
+@layer utilities {
+  .font-headline {
+    font-family: var(--font-headline);
+  }
+
+  .font-primary {
+    font-family: var(--font-sans);
+  }
+}
+
 /* Estilos personalizados para el scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--background);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -123,21 +84,8 @@
   border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--input);
-}
-
-::-webkit-scrollbar-corner {
-  background: var(--background);
-}
-
 /* Para Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--muted) var(--background);
-}
-
-/* Asegurar que el body tenga el background correcto */
-html {
-  background-color: var(--background);
+  scrollbar-color: var(--muted) var(--color-background);
 }

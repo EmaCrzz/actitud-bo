@@ -32,7 +32,7 @@ export default function CustomerMembership({ customer }: { customer: CustomerCom
   return (
     <div className='grid grid-cols-3 gap-x-3 font-secondary'>
       {membershipTransaltionTowLines && (
-        <div className='col-span-1 px-1 py-4 bg-membership-card rounded-[4px] border border-white/20 flex flex-col gap-y-2 items-center justify-start'>
+        <div className='col-span-1 px-1 py-4 bg-input-background rounded-[4px] border border-white/20 flex flex-col gap-y-2 items-center justify-start'>
           <span className='text-3xl font-sans font-semibold tracking-[1.28px]'>
             {membershipTransaltionTowLines?.one}
           </span>
@@ -41,7 +41,7 @@ export default function CustomerMembership({ customer }: { customer: CustomerCom
           </span>
         </div>
       )}
-      <div className='col-span-1 px-1 py-4 bg-membership-card rounded-[4px] border border-white/20 flex flex-col gap-y-2 items-center justify-start'>
+      <div className='col-span-1 px-1 py-4 bg-input-background rounded-[4px] border border-white/20 flex flex-col gap-y-2 items-center justify-start'>
         {!isExpired && !aboutToExpire && (
           <>
             <CheckCircleContained className='text-green-400 size-10' />
@@ -50,7 +50,7 @@ export default function CustomerMembership({ customer }: { customer: CustomerCom
         )}
         {isExpired && (
           <>
-            <AlertContainedIcon className='text-destructive size-10' />
+            <AlertContainedIcon className='text-red-500 size-10' />
             <span className='text-sm font-bold'>Vencido</span>
           </>
         )}
@@ -61,7 +61,7 @@ export default function CustomerMembership({ customer }: { customer: CustomerCom
           </>
         )}
       </div>
-      <div className='col-span-1 px-1 py-4 bg-membership-card rounded-[4px] border border-white/20 flex flex-col gap-y-2 items-center justify-start'>
+      <div className='col-span-1 px-1 py-4 bg-input-background rounded-[4px] border border-white/20 flex flex-col gap-y-2 items-center justify-start'>
         <span className='text-3xl font-sans font-semibold tracking-[1.28px]'>
           {customer.assistance_count ?? '-'}
         </span>

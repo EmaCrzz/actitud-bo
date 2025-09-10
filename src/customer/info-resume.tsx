@@ -11,8 +11,16 @@ import Link from 'next/link'
 export default function InfoResume({ customer }: { customer: CustomerComplete }) {
   return (
     <section>
-      <Label className='font-light text-xs leading-6 text-[#FF91B6]'>Datos Personales</Label>
-      <section className='p-4 grid gap-y-8 bg-card rounded-[4px]'>
+      <section className='p-4 grid gap-y-8 bg-input-background rounded-[4px] border-[0.5px] border-input-border'>
+        <div className='flex justify-between'>
+          <Label className='font-light text-xl leading-6 text-primary300'>Datos Personales</Label>
+          <Button size={'icon'} variant='icon'>
+            <Link href={`${CUSTOMER_EDIT}/${customer.id}`}>
+              <PencilIcon className='size-6' />
+            </Link>
+          </Button>
+
+        </div>
         <div className='flex justify-between'>
           <div className='grid gap-y-2'>
             <Label className='font-light text-xs leading-6'>Nombre y apellido</Label>
@@ -20,11 +28,6 @@ export default function InfoResume({ customer }: { customer: CustomerComplete })
               {customer.first_name} {customer.last_name}
             </span>
           </div>
-          <Button className='size-6' size='icon' variant='ghost'>
-            <Link href={`${CUSTOMER_EDIT}/${customer.id}`}>
-              <PencilIcon className='size-6' />
-            </Link>
-          </Button>
         </div>
         <div className='grid gap-y-2'>
           <Label className='font-light text-xs leading-6'>DNI</Label>

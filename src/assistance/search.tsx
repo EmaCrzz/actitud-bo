@@ -152,10 +152,10 @@ export default function AutocompleteInput() {
           {isOpen && (
             <ul
               ref={listRef}
-              className="absolute z-50 w-full mt-1 bg-input border border-borderinput shadow-lg max-h-60 overflow-auto font-light text-md rounded-[4px]"
+              className="absolute z-50 w-full mt-1 bg-input-background border border-input-border shadow-lg max-h-60 overflow-auto font-light text-md rounded-[4px]"
             >
               {loading && (
-                <li className="px-2 py-4 text-white/30 flex items-center justify-center border-b border-borderinput">
+                <li className="px-2 py-4 text-white/30 flex items-center justify-center border-b border-input-border">
                   Buscando...
                 </li>
               )}
@@ -166,9 +166,9 @@ export default function AutocompleteInput() {
                     <li
                       key={option.id}
                       className={cn(
-                        "px-2 py-4 cursor-pointer flex items-center justify-between hover:bg-inputhover border-b border-borderinput",
-                        highlightedIndex === index && "bg-inputhover",
-                        selectedValue === option.id && "bg-inputhover"
+                        "px-2 py-4 cursor-pointer flex items-center justify-between hover:bg-input-hover-background border-b border-input-border",
+                        highlightedIndex === index && "bg-input-hover-background",
+                        selectedValue === option.id && "bg-input-hover-background"
                       )}
                       onClick={() => handleOptionSelect(option)}
                       onMouseEnter={() => setHighlightedIndex(index)}
@@ -183,7 +183,7 @@ export default function AutocompleteInput() {
               {!loading && customers.length === 0 && (
                 <li
                   className={cn(
-                    "px-2 py-4 hover:cursor-default text-white/30 flex items-center justify-between border-b border-borderinput"
+                    "px-2 py-4 hover:cursor-default text-white/30 flex items-center justify-between border-b border-input-border"
                   )}
                 >
                   <span>No se encontraron resultados</span>
@@ -191,7 +191,7 @@ export default function AutocompleteInput() {
               )}
               <li
                 className={cn(
-                  "px-2 py-4 cursor-pointer hover:bg-inputhover gap-2"
+                  "px-2 py-4 cursor-pointer hover:bg-input-hover-background gap-2"
                 )}
               >
                 <Link

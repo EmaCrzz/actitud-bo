@@ -50,7 +50,7 @@ export default function SWUpdateManager() {
   if (!showUpdateBanner) return null
 
   return (
-    <Alert className='items-center fixed bottom-32 right-4 z-50 max-w-lg bg-input border-[0.3px] border-white/20'>
+    <Alert className='items-center fixed bottom-32 right-4 z-50 max-w-lg bg-input-background border-[0.3px] border-white/20'>
       <RefreshCcw className='text-primary!' />
       <AlertTitle className='text-white flex justify-between items-center'>
         Nueva versión disponible
