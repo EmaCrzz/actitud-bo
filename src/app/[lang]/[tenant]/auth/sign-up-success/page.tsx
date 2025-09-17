@@ -5,8 +5,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import api from "@/lib/i18n/api";
+import type { Language } from "@/lib/i18n/types";
+import type { TenantsType } from "@/lib/tenants";
 
-export default function Page() {
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ lang: string; tenant: string }>;
+}) {
+  const { lang, tenant } = await params;
+  const { t } = await api.fetch(lang as Language, tenant as TenantsType);
+
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10 pt-4">
       <div className="w-full max-w-sm">
@@ -14,14 +24,13 @@ export default function Page() {
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl">
-                Thank you for signing up!
+                {t('auth.signUpSuccess.title')}
               </CardTitle>
-              <CardDescription>Check your email to confirm</CardDescription>
+              <CardDescription>{t('auth.signUpSuccess.description')}</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                You&apos;ve successfully signed up. Please check your email to
-                confirm your account before signing in.
+                {t('auth.signUpSuccess.message')}
               </p>
             </CardContent>
           </Card>

@@ -8,6 +8,9 @@ import { getTenantFontVariables } from '@/lib/themes/fonts'
 import { TENANT } from '@/lib/envs'
 import type { TenantsType } from '@/lib/tenants'
 import { generateThemeStyles } from '@/lib/themes'
+import api from '@/lib/i18n/api'
+import { I18nServerProvider } from '@/lib/i18n/server-provider'
+import { Language } from '@/lib/i18n/types'
 
 export const metadata: Metadata = {
   title: 'Actitud - Backoffice',
@@ -44,13 +47,18 @@ export const viewport: Viewport = {
 
 const tenantFontVariables = getTenantFontVariables(TENANT as TenantsType)
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
+  params,
 }: Readonly<{
   children: React.ReactNode
+  params: Promise<{ lang: Language; tenant: TenantsType }>
 }>) {
+  const { tenant, lang } = await params
+  const { t } = await api.fetch(lang, tenant)
+
   return (
-    <html lang='en' style={generateThemeStyles()}>
+    <html lang={lang} style={generateThemeStyles()}>
       <head>
         <link href='/icons/favicon-196.png' rel='icon' sizes='196x196' type='image/png' />
         <link href='/icons/apple-icon-180.png' rel='apple-touch-icon' />
@@ -247,10 +255,15 @@ export default function RootLayout({
         />
       </head>
       <body className={`${tenantFontVariables} h-screen grid grid-rows-[auto_1fr_auto]`}>
-        {children}
+        <I18nServerProvider lang={lang} tenant={tenant}>
+          {children}
+        </I18nServerProvider>
         <PWAInstaller />
         <SWUpdateManager />
         <Toaster richColors expand={true} />
+        <footer className='text-muted py-4 text-center text-sm'>
+          {t('common.copyright', { year: new Date().getFullYear() })}
+        </footer>
       </body>
     </html>
   )

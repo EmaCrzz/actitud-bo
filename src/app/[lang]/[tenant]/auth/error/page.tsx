@@ -1,11 +1,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import api from "@/lib/i18n/api";
+import type { Language } from "@/lib/i18n/types";
+import type { TenantsType } from "@/lib/tenants";
 
 export default async function Page({
+  params,
   searchParams,
 }: {
+  params: Promise<{ lang: string; tenant: string }>;
   searchParams: Promise<{ error: string }>;
 }) {
-  const params = await searchParams;
+  const { lang, tenant } = await params;
+  const searchParamsResolved = await searchParams;
+  const { t } = await api.fetch(lang as Language, tenant as TenantsType);
 
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10 pt-4">
@@ -14,17 +21,17 @@ export default async function Page({
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl">
-                Sorry, something went wrong.
+                {t('auth.error.title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {params?.error ? (
+              {searchParamsResolved?.error ? (
                 <p className="text-sm text-muted-foreground">
-                  Code error: {params.error}
+                  {t('auth.error.codeError', { error: searchParamsResolved.error })}
                 </p>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  An unspecified error occurred.
+                  {t('auth.error.unspecifiedError')}
                 </p>
               )}
             </CardContent>
