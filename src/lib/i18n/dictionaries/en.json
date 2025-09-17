@@ -1,6 +1,7 @@
 {
   "common": {
     "loading": "Loading...",
+    "searching": "Searching...",
     "error": "Error",
     "success": "Success",
     "cancel": "Cancel",
@@ -125,10 +126,13 @@
     "title": "Assistance",
     "titlePlural": "Assistances",
     "registerAssistance": "Register Assistance",
+    "searchPlaceholder": "Who would you like to register today?",
+    "findCustomer": "Find customer",
     "todayAssistances": "Today's Assistances",
     "weeklyStats": "Weekly Stats",
     "monthlyStats": "Monthly Stats",
     "noAssistances": "No assistances registered",
+    "noAssistancesShort": "No assistances",
     "registeredAt": "Registered at",
     "registeredBy": "Registered by",
     "customer": "Customer",

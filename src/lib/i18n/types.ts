@@ -27,7 +27,7 @@ type Paths<T, D extends number = 10> = [D] extends [never]
 // Import the type of the Spanish dictionary to infer the structure
 type TranslationDictionary = typeof import("./dictionaries/es.json");
 
-// Generate the typed keys based on the actual structure
+// Generate the typed keys based on the actual structure  
 export type TranslationKey = Paths<TranslationDictionary>;
 
 export type TranslationParams = Record<string, string | number>;

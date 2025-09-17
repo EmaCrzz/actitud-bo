@@ -5,9 +5,19 @@ import IsoBlanco from "@/assets/logos/blanco/iso";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import MenuAuth from "@/auth/components/menu";
+import api from '@/lib/i18n/api'
+import { Language } from '@/lib/i18n/types'
+import { TenantsType } from '@/lib/tenants'
 
-export default async function AuthHeader() {
+export default async function AuthHeader({
+  lang,
+  tenant,
+}: {
+  lang: Language
+  tenant: TenantsType
+}) {
   const supabase = await createClient();
+  const { t } = await api.fetch(lang, tenant);
 
   const { data, error } = await supabase.auth.getUser();
 
@@ -24,7 +34,7 @@ export default async function AuthHeader() {
     ? `${profile?.first_name} ${profile?.last_name}`
     : data.user.email?.charAt(0).toUpperCase();
 
-  const today = new Intl.DateTimeFormat("es-ES", {
+  const today = new Intl.DateTimeFormat(lang === 'es' ? 'es-ES' : 'en-US', {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -37,7 +47,7 @@ export default async function AuthHeader() {
           <IsoBlanco className="size-12 sm:size-14" />
         </div>
         <div>
-          <h3 className="font-medium text-xs sm:text-sm">Hola, {fullName}</h3>
+          <h3 className="font-medium text-xs sm:text-sm">{t('customer.welcome', { name: fullName || '' })}</h3>
           <p className="font-medium text-xs sm:text-sm capitalize">{today}</p>
         </div>
       </div>
