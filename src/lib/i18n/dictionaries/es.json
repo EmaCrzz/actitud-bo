@@ -18,7 +18,8 @@
     "all": "Todo",
     "none": "Ninguno",
     "yes": "Sí",
-    "no": "No"
+    "no": "No",
+    "copyright": "© {year} ActitudTech. Todos los derechos reservados."
   },
   "buttons": {
     "continue": "Continuar",
@@ -90,6 +91,15 @@
       "address": "Ingresa tu dirección",
       "search": "Buscar...",
       "selectOption": "Selecciona una opción"
+    },
+    "errors": {
+      "loginError": "Ocurrió un error",
+      "loginFallback": "Error al iniciar sesión"
+    },
+    "actions": {
+      "showPassword": "Mostrar contraseña",
+      "hidePassword": "Ocultar contraseña",
+      "waitMoment": "Un momento"
     }
   },
   "customer": {
@@ -160,7 +170,17 @@
     "passwordResetSent": "Te hemos enviado un enlace de restablecimiento",
     "invalidCredentials": "Credenciales inválidas",
     "sessionExpired": "Tu sesión ha expirado",
-    "accessDenied": "Acceso denegado"
+    "accessDenied": "Acceso denegado",
+    "signUpSuccess": {
+      "title": "¡Gracias por registrarte!",
+      "description": "Revisa tu email para confirmar",
+      "message": "Te has registrado exitosamente. Por favor, revisa tu email para confirmar tu cuenta antes de iniciar sesión."
+    },
+    "error": {
+      "title": "Lo siento, algo salió mal.",
+      "codeError": "Código de error: {error}",
+      "unspecifiedError": "Ocurrió un error no especificado."
+    }
   },
   "errors": {
     "general": "Ha ocurrido un error inesperado",

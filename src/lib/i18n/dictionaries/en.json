@@ -18,7 +18,8 @@
     "all": "All",
     "none": "None",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "copyright": "© {year} ActitudTech. All rights reserved."
   },
   "buttons": {
     "continue": "Continue",
@@ -90,6 +91,15 @@
       "address": "Enter your address",
       "search": "Search...",
       "selectOption": "Select an option"
+    },
+    "errors": {
+      "loginError": "An error occurred",
+      "loginFallback": "Login error"
+    },
+    "actions": {
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "waitMoment": "Please wait"
     }
   },
   "customer": {
@@ -160,7 +170,17 @@
     "passwordResetSent": "We've sent you a reset link",
     "invalidCredentials": "Invalid credentials",
     "sessionExpired": "Your session has expired",
-    "accessDenied": "Access denied"
+    "accessDenied": "Access denied",
+    "signUpSuccess": {
+      "title": "Thank you for signing up!",
+      "description": "Check your email to confirm",
+      "message": "You've successfully signed up. Please check your email to confirm your account before signing in."
+    },
+    "error": {
+      "title": "Sorry, something went wrong.",
+      "codeError": "Code error: {error}",
+      "unspecifiedError": "An unspecified error occurred."
+    }
   },
   "errors": {
     "general": "An unexpected error occurred",

@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable no-console */
 import type { Language, TranslationKey, TranslationParams } from "./types"
-import { TENANT } from "../envs"
+import { TenantsType } from "../tenants";
 
 const api = {
-  async fetch(lang: Language) {
+  async fetch(lang: Language, tenant: TenantsType) {
     try {
       // Load base dictionary
       const baseDictionary = await import(`./dictionaries/${lang}.json`).then(
@@ -11,13 +13,14 @@ const api = {
 
       // Try to load tenant-specific overrides
       let tenantOverrides = {}
+
       try {
-        tenantOverrides = await import(`./dictionaries/tenant/${TENANT}.json`).then(
+        tenantOverrides = await import(`./dictionaries/tenant/${tenant}.json`).then(
           (module) => module.default,
         );
       } catch (error) {
         // Tenant overrides are optional, continue without them
-        console.warn(`No tenant overrides found for ${TENANT}, using base translations only`)
+        console.warn(`No tenant overrides found for ${tenant}, using base translations only`, { error })
       }
 
       // Deep merge base dictionary with tenant overrides
@@ -37,7 +40,7 @@ const api = {
 // Deep merge utility to combine base and tenant translations
 function deepMerge(base: Record<string, any>, override: Record<string, any>): Record<string, any> {
   const result = { ...base }
-  
+
   for (const key in override) {
     if (override[key] !== null && typeof override[key] === 'object' && !Array.isArray(override[key])) {
       result[key] = deepMerge(result[key] || {}, override[key])
@@ -45,32 +48,34 @@ function deepMerge(base: Record<string, any>, override: Record<string, any>): Re
       result[key] = override[key]
     }
   }
-  
+
   return result
 }
 
-function createTranslator(dictionary: Record<string, any>) {
+export function createTranslator(dictionary: Record<string, any>) {
   return function t(key: TranslationKey, params?: TranslationParams): string {
     // Navigate through nested object using dot notation
     const keys = key.split('.')
     let translation: any = dictionary
-    
+
     for (const k of keys) {
       if (translation && typeof translation === 'object' && k in translation) {
         translation = translation[k]
       } else {
         // Fallback to the key if translation not found
         console.warn(`Translation not found for key: ${key}`)
+
         return key
       }
     }
-    
+
     // If final value is not a string, return the key
     if (typeof translation !== 'string') {
       console.warn(`Translation for key "${key}" is not a string`)
+
       return key
     }
-    
+
     // If no params, return translation as is
     if (!params) return translation;
 
