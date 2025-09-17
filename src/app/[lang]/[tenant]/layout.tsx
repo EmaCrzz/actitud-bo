@@ -8,7 +8,6 @@ import { getTenantFontVariables } from '@/lib/themes/fonts'
 import { TENANT } from '@/lib/envs'
 import type { TenantsType } from '@/lib/tenants'
 import { generateThemeStyles } from '@/lib/themes'
-import api from '@/lib/i18n/api'
 import { I18nServerProvider } from '@/lib/i18n/server-provider'
 import { Language } from '@/lib/i18n/types'
 
@@ -55,7 +54,6 @@ export default async function RootLayout({
   params: Promise<{ lang: Language; tenant: TenantsType }>
 }>) {
   const { tenant, lang } = await params
-  const { t } = await api.fetch(lang, tenant)
 
   return (
     <html lang={lang} style={generateThemeStyles()}>
@@ -261,9 +259,6 @@ export default async function RootLayout({
         <PWAInstaller />
         <SWUpdateManager />
         <Toaster richColors expand={true} />
-        <footer className='text-muted py-4 text-center text-sm'>
-          {t('common.copyright', { year: new Date().getFullYear() })}
-        </footer>
       </body>
     </html>
   )
