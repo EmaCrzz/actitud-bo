@@ -187,7 +187,7 @@ export default function SimpleMultiStepForm() {
             loading={loading}
             type='submit'
           >
-{t('common.next')}
+            {t('common.next')}
           </Button>
         ) : (
           <Button
@@ -198,7 +198,7 @@ export default function SimpleMultiStepForm() {
             loadingText={t('customer.creatingCustomer')}
             type='submit'
           >
-{t('common.confirm')}
+            {t('common.confirm')}
           </Button>
         )}
       </footer>

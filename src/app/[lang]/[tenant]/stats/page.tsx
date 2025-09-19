@@ -11,7 +11,9 @@ import AssistanceCardToday, {
 import { Suspense } from 'react'
 import AssistancesList, { AssistancesListSkeleton } from '@/assistance/assistances-list'
 import ActivesMembership, { ActivesMembershipSkeleton } from '@/membership/components/actives'
-import TopMonthlyAssintant, { TopMonthlyAssintantSkeleton } from '@/assistance/top-monthly-assintant'
+import TopMonthlyAssintant, {
+  TopMonthlyAssintantSkeleton,
+} from '@/assistance/top-monthly-assintant'
 import ActiveTypes, { ActiveTypesSkeleton } from '@/membership/components/active-types'
 import api from '@/lib/i18n/api'
 import { Language } from '@/lib/i18n/types'
@@ -39,20 +41,24 @@ export default async function DashboardStats({
       </header>
 
       <section className='mt-6 px-4 max-w-3xl mx-auto w-full pb-4 grid gap-y-4 overflow-auto auto-rows-max'>
-        <Suspense fallback={<AssistanceCardTodaySkeleton />}>
-          <AssistanceCardToday />
+        <Suspense fallback={<AssistanceCardTodaySkeleton lang={lang} tenant={tenant} />}>
+          <AssistanceCardToday lang={lang} tenant={tenant} />
         </Suspense>
-        <Suspense fallback={<AssistancesListSkeleton todayAssistancesText={t('assistance.todayAssistances')} />}>
+        <Suspense
+          fallback={
+            <AssistancesListSkeleton todayAssistancesText={t('assistance.todayAssistances')} />
+          }
+        >
           <AssistancesList lang={lang} tenant={tenant} />
         </Suspense>
-        <Suspense fallback={<TopMonthlyAssintantSkeleton />}>
-          <TopMonthlyAssintant />
+        <Suspense fallback={<TopMonthlyAssintantSkeleton lang={lang} tenant={tenant} />}>
+          <TopMonthlyAssintant lang={lang} tenant={tenant} />
         </Suspense>
-        <Suspense fallback={<ActivesMembershipSkeleton />}>
-          <ActivesMembership />
+        <Suspense fallback={<ActivesMembershipSkeleton lang={lang} tenant={tenant} />}>
+          <ActivesMembership lang={lang} tenant={tenant} />
         </Suspense>
-        <Suspense fallback={<ActiveTypesSkeleton />}>
-          <ActiveTypes />
+        <Suspense fallback={<ActiveTypesSkeleton lang={lang} tenant={tenant} />}>
+          <ActiveTypes lang={lang} tenant={tenant} />
         </Suspense>
       </section>
       <FooterNavigation />

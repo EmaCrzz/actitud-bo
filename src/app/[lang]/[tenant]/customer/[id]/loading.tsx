@@ -3,17 +3,9 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CUSTOMER } from '@/consts/routes'
 import Link from 'next/link'
-import api from '@/lib/i18n/api'
-import { Language } from '@/lib/i18n/types'
-import { TenantsType } from '@/lib/tenants'
 
-export default async function CustomerDetailPageLoading({
-  params,
-}: {
-  params: Promise<{ lang: Language; tenant: TenantsType }>
-}) {
-  const { lang, tenant } = await params
-  const { t } = await api.fetch(lang, tenant)
+export default async function CustomerDetailPageLoading() {
+
   return (
     <>
       <header className='max-w-3xl mx-auto w-full px-2 sm:px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
@@ -23,7 +15,7 @@ export default async function CustomerDetailPageLoading({
               <ArrowLeftIcon className='size-6' />
             </Link>
           </Button>
-          <h5 className='font-medium text-sm'>{t('customer.customerProfile')}</h5>
+          <Skeleton className='h-5 w-40' />
         </div>
       </header>
       <section className='max-w-3xl mx-auto w-full px-2 sm:px-4 overflow-auto pb-4 flex flex-col gap-y-5'>

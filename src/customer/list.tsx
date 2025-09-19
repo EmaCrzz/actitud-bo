@@ -105,6 +105,8 @@ export default function ListCustomers({ customers }: Props) {
 }
 
 export function CustomerListLoading() {
+  const { t } = useTranslations();
+  
   return (
     <>
       <div className="bg-background sticky top-0 pb-1 mt-6">

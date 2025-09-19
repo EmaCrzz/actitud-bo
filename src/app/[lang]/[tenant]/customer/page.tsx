@@ -1,15 +1,16 @@
-import ArrowLeftIcon from "@/components/icons/arrow-left";
-import PlusRoundedIcon from "@/components/icons/plus-rounded";
+import ArrowLeftIcon from '@/components/icons/arrow-left'
+import PlusRoundedIcon from '@/components/icons/plus-rounded'
 
-import FooterNavigation from "@/components/nav";
-import { Button } from "@/components/ui/button";
-import { CUSTOMER_NEW, HOME } from "@/consts/routes";
-import { searchAllCustomers } from "@/customer/api/server";
-import ListCustomers from "@/customer/list";
-import Link from "next/link";
+import FooterNavigation from '@/components/nav'
+import { Button } from '@/components/ui/button'
+import { CUSTOMER_NEW, HOME } from '@/consts/routes'
+import { searchAllCustomers } from '@/customer/api/server'
+import ListCustomers from '@/customer/list'
+import Link from 'next/link'
 import api from '@/lib/i18n/api'
 import { Language } from '@/lib/i18n/types'
 import { TenantsType } from '@/lib/tenants'
+
 
 export default async function CustomerListPage({
   params,
@@ -19,7 +20,7 @@ export default async function CustomerListPage({
   const { lang, tenant } = await params
   const { t } = await api.fetch(lang, tenant)
   // TODO: Implement pagination infinite scroll
-  const customers = await searchAllCustomers();
+  const customers = await searchAllCustomers()
 
   return (
     <>
