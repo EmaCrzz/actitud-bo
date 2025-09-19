@@ -9,9 +9,21 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
+import api from '@/lib/i18n/api'
+import { Language } from '@/lib/i18n/types'
+import { TenantsType } from '@/lib/tenants'
 
-export default async function AssistancesList({ collapsible = true }: { collapsible?: boolean }) {
+export default async function AssistancesList({ 
+  collapsible = true, 
+  lang, 
+  tenant 
+}: { 
+  collapsible?: boolean
+  lang: Language
+  tenant: TenantsType
+}) {
   const assistances = await getTodayAssistances()
+  const { t } = await api.fetch(lang, tenant)
 
   return (
     <Card className='py-3 sm:py-6'>
@@ -27,14 +39,14 @@ export default async function AssistancesList({ collapsible = true }: { collapsi
           >
             <div className='flex gap-2 items-center text-white/70 text-sm'>
               <CalendarCheck className='h-5 w-5 text-yellow-600' />
-              Asistencias del dia
+              {t('assistance.todayAssistances')}
             </div>
           </AccordionTrigger>
           <AccordionContent>
             <CardContent className={'space-y-3 px-2 sm:px-6 pt-6'}>
               {assistances.length === 0 && (
                 <div className='text-center text-gray-500'>
-                  <p className='text-sm'>No hay asistencias registradas hoy.</p>
+                  <p className='text-sm'>{t('assistance.noAssistances')}</p>
                 </div>
               )}
 
@@ -68,7 +80,13 @@ export default async function AssistancesList({ collapsible = true }: { collapsi
   )
 }
 
-export const AssistancesListSkeleton = ({ collapsible = true }: { collapsible?: boolean }) => {
+export const AssistancesListSkeleton = ({ 
+  collapsible = true,
+  todayAssistancesText = ''
+}: { 
+  collapsible?: boolean
+  todayAssistancesText?: string
+}) => {
   return (
     <Card className='py-3 sm:py-6'>
       <Accordion
@@ -83,7 +101,7 @@ export const AssistancesListSkeleton = ({ collapsible = true }: { collapsible?: 
           >
             <div className='flex gap-2 items-center text-white/70 text-sm'>
               <CalendarCheck className='h-5 w-5 text-yellow-600' />
-              Asistencias del dia
+              {todayAssistancesText}
             </div>
           </AccordionTrigger>
           <AccordionContent>

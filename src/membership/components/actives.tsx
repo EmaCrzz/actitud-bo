@@ -9,8 +9,18 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-export default async function ActivesMembership() {
+import api from '@/lib/i18n/api'
+import { Language } from '@/lib/i18n/types'
+import { TenantsType } from '@/lib/tenants'
+export default async function ActivesMembership({
+  lang,
+  tenant,
+}: {
+  lang: Language
+  tenant: TenantsType
+}) {
   const { data, error } = await getActiveMemberships()
+  const { t } = await api.fetch(lang, tenant)
 
   if (error) {
     return (
@@ -18,11 +28,11 @@ export default async function ActivesMembership() {
         <CardHeader className='px-4 sm:px-6'>
           <CardTitle className='flex items-center gap-2 text-white/70'>
             <BicepsFlexed className='h-5 w-5 text-yellow-600' />
-            Clientes activos
+            {t('membership.activeClients')}
           </CardTitle>
         </CardHeader>
         <CardContent className='space-y-3 px-4 sm:px-6 text-red-500'>
-          <p>Error al cargar los clientes activos.</p>
+          <p>{t('membership.errorLoadingActiveClients')}</p>
         </CardContent>
       </Card>
     )
@@ -35,7 +45,7 @@ export default async function ActivesMembership() {
           <AccordionTrigger className='py-0 px-2 sm:px-6 hover:cursor-pointer'>
             <div className='flex gap-2 items-center text-white/70'>
               <BicepsFlexed className='h-5 w-5 text-yellow-600' />
-              Clientes activos
+              {t('membership.activeClients')}
             </div>
           </AccordionTrigger>
           <AccordionContent>
@@ -64,10 +74,10 @@ export default async function ActivesMembership() {
 
                         <div className='flex gap-2 text-xs text-gray-500 items-center'>
                           <span className='block sm:hidden'>
-                            {expiration_date && 'Finalización:'}
+                            {expiration_date && t('membership.endShort')}
                           </span>
                           <span className='hidden sm:block'>
-                            {expiration_date && 'Fecha de finalización:'}
+                            {expiration_date && t('membership.endDate')}
                           </span>
                           {expiration_date ? (
                             <DateDisplay date={expiration_date} format='short' />
@@ -86,7 +96,7 @@ export default async function ActivesMembership() {
               })}
               {data.length === 0 && (
                 <div className='text-center text-gray-500'>
-                  <p className='text-sm'>No hay clientes activos.</p>
+                  <p className='text-sm'>{t('membership.noActiveClients')}</p>
                 </div>
               )}
             </CardContent>
@@ -97,7 +107,15 @@ export default async function ActivesMembership() {
   )
 }
 
-export const ActivesMembershipSkeleton = () => {
+export const ActivesMembershipSkeleton = async ({
+  lang,
+  tenant,
+}: {
+  lang: Language
+  tenant: TenantsType
+}) => {
+  const { t } = await api.fetch(lang, tenant)
+
   return (
     <Card className='py-3 sm:py-6'>
       <Accordion collapsible type='single'>
@@ -105,7 +123,7 @@ export const ActivesMembershipSkeleton = () => {
           <AccordionTrigger className='py-0 px-2 sm:px-6 hover:cursor-pointer'>
             <div className='flex gap-2 items-center text-white/70'>
               <BicepsFlexed className='h-5 w-5 text-yellow-600' />
-              Clientes activos
+              {t('membership.activeClients')}
             </div>
           </AccordionTrigger>
           <AccordionContent />

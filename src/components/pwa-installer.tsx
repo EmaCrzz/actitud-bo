@@ -365,7 +365,7 @@ export default function PWAInstallManager() {
     <>
       {/* Banner de instalación nativo */}
       {showInstallBanner && deferredPrompt && (
-        <Alert className='items-center fixed bottom-32 z-50 max-w-[95%] left-1/2 -translate-x-1/2 w-full sm:right-4 sm:max-w-lg bg-input-background border-[0.3px] border-white/20'>
+        <Alert className='items-center fixed bottom-32 z-50 max-w-[95%] left-1/2 -translate-x-1/2 w-full sm:right-4 sm:max-w-lg bg-inpu-background border-[0.3px] border-white/20'>
           <Smartphone className='text-primary!' />
           <AlertTitle className='text-white flex justify-between items-center'>
             ¡Instala Actitud!

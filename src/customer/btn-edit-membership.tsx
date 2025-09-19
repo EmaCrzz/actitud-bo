@@ -6,9 +6,11 @@ import Link from 'next/link'
 import { CustomerComplete } from './types'
 import { useMemo } from 'react'
 import { ChevronRight } from 'lucide-react'
+import { useTranslations } from '@/lib/i18n/context'
 
 export default function BtnEditMembership({ customer }: { customer: CustomerComplete }) {
   const today = new Date()
+  const { t } = useTranslations()
   const isExpired = useMemo(() => {
     if (!customer.customer_membership?.expiration_date) return true
     const expirationDate = new Date(customer.customer_membership.expiration_date)
@@ -31,10 +33,10 @@ export default function BtnEditMembership({ customer }: { customer: CustomerComp
     <Link href={`${CUSTOMER_EDIT}/${customer.id}/membership`}>
       <Button className='h-14 w-full mt-4' variant={'outline'} >
         {!hasMembership
-          ? 'Crear membresía'
+          ? t('membership.createMembership')
           : isExpired || aboutToExpire
-            ? 'Renovar membresía'
-            : 'Modificar membresía'}
+            ? t('membership.renewMembership')
+            : t('membership.modifyMembership')}
         <ChevronRight className='size-6' />
       </Button>
     </Link>

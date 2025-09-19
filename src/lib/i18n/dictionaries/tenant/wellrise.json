@@ -1,0 +1,11 @@
+{
+  "auth": {
+    "welcomeMessage": "Welcome to WellRise Health & Wellness"
+  },
+  "customer": {
+    "welcome": "Hello {name}! Welcome to WellRise"
+  },
+  "assistance": {
+    "greeting": "Hello {customerName}! Your wellness session at WellRise has been logged"
+  }
+}

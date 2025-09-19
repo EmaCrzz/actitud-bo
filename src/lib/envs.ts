@@ -1,6 +1,6 @@
 const SUPABASE_URL = String(process.env.NEXT_PUBLIC_SUPABASE_URL || '')
 const SUPABASE_ANON_KEY = String(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '')
-const TENANT = String(process.env.NEXT_PUBLIC_TENANT || '')
+const TENANT = String(process.env.TENANT || '')
 const ENV_DEVELOPMENT = String(process.env.NODE_ENV) === 'development'
 
 export {

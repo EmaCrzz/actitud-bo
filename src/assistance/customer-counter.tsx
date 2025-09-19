@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils'
 import { MEMBERSHIP_TYPE_3_DAYS, MEMBERSHIP_TYPE_5_DAYS, MembershipType } from '@/membership/consts'
+import { useTranslations } from '@/lib/i18n/context'
 
 interface Porps {
   membershipType: MembershipType
@@ -16,6 +17,7 @@ export default function CustomerCounter({
   isDisabled = false,
   handleSelectedDay,
 }: Porps) {
+  const { t } = useTranslations()
   const items =
     membershipType === MEMBERSHIP_TYPE_5_DAYS
       ? 5
@@ -25,7 +27,7 @@ export default function CustomerCounter({
 
   return (
     <>
-      <p className='text-lg mt-6 font-secondary tracking-[0.72px]'>Asistencias de la semana</p>
+      <p className='text-lg mt-6 font-secondary tracking-[0.72px]'>{t('assistance.weeklyAssistances')}</p>
       <hr className='mt-2 mb-4 border-primary' />
       <div className='flex gap-4 sm:gap-6 items-center'>
         {Array.from({ length: items }).map((_, index) => {

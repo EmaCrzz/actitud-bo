@@ -13,6 +13,7 @@ import { X } from "lucide-react";
 import Link from "next/link";
 import { CUSTOMER } from "@/consts/routes";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslations } from "@/lib/i18n/context";
 
 interface Props {
   customers: CustomerWithMembership[];
@@ -20,6 +21,7 @@ interface Props {
 
 export default function ListCustomers({ customers }: Props) {
   const [query, setQuery] = useState("");
+  const { t } = useTranslations();
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
@@ -55,7 +57,7 @@ export default function ListCustomers({ customers }: Props) {
               </Button>
             )
           }
-          placeholder="Búsqueda de clientes"
+          placeholder={t('customer.searchPlaceholder')}
           value={query}
           variant={"line"}
           onChange={onChange}
@@ -64,8 +66,7 @@ export default function ListCustomers({ customers }: Props) {
       <ul className="mt-6">
         {!hasCustomers && (
           <li className="text-center text-sm text-muted-foreground py-4">
-            No se encontraron clientes con el nombre{" "}
-            <span className="font-medium">{query}</span>
+            {t('customer.noCustomersFound', { query })}
           </li>
         )}
         {hasCustomers &&
@@ -87,7 +88,7 @@ export default function ListCustomers({ customers }: Props) {
                   <Label className="font-light text-xs leading-6">
                     {customer.membership_type
                       ? MembershipTranslation[customer.membership_type]
-                      : "Sin membresía"}
+                      : t('customer.noMembership')}
                   </Label>
                 </div>
                 <Button className="size-6" size={"icon"} variant={"ghost"}>
@@ -104,6 +105,8 @@ export default function ListCustomers({ customers }: Props) {
 }
 
 export function CustomerListLoading() {
+  const { t } = useTranslations();
+  
   return (
     <>
       <div className="bg-background sticky top-0 pb-1 mt-6">
@@ -112,7 +115,7 @@ export function CustomerListLoading() {
           autoComplete={"off"}
           className="py-2 pl-0 mb-0"
           componentLeft={<SearchIcon className="size-6 text-primary200" />}
-          placeholder="Búsqueda de clientes"
+          placeholder={t('customer.searchPlaceholder')}
           variant={"line"}
         />
       </div>

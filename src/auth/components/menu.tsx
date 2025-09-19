@@ -10,6 +10,7 @@ import {
 import { signOut } from "@/auth/api/client";
 import { useRouter } from "next/navigation";
 import { useVersion } from "@/lib/version";
+import { useTranslations } from "@/lib/i18n/context";
 
 interface Props {
   children: React.ReactNode;
@@ -18,6 +19,7 @@ interface Props {
 export default function MenuAuth({ children }: Props) {
   const router = useRouter();
   const versionInfo = useVersion();
+  const { t } = useTranslations();
 
   const handleLogout = () => {
     signOut();
@@ -31,7 +33,7 @@ export default function MenuAuth({ children }: Props) {
         {/* Version info - not clickable */}
         <div className="px-2 py-1.5 text-xs text-muted-foreground border-b">
           <div className="flex items-center justify-between">
-            <span>Versión</span>
+            <span>{t('common.version')}</span>
             <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
               versionInfo.isProduction 
                 ? 'bg-green-100 text-green-700' 
@@ -46,7 +48,7 @@ export default function MenuAuth({ children }: Props) {
         </div>
         
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={handleLogout}>Cerrar sesión</DropdownMenuItem>
+          <DropdownMenuItem onClick={handleLogout}>{t('buttons.logout')}</DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

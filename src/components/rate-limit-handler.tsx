@@ -15,8 +15,10 @@ export function useRateLimitHandler() {
           onClick: () => {},
         },
       })
+
       return true // Error manejado
     }
+
     return false // No es error de rate limiting
   }
 
@@ -30,7 +32,9 @@ export function useRateLimitHandler() {
   ): Promise<T | null> => {
     try {
       const result = await fn()
+
       options?.onSuccess?.(result)
+
       return result
     } catch (error) {
       if (!handleRateLimitError(error)) {
@@ -40,6 +44,7 @@ export function useRateLimitHandler() {
         })
         options?.onError?.(error)
       }
+
       return null
     }
   }
@@ -78,10 +83,10 @@ export function RateLimitErrorDisplay({ error, onRetry }: RateLimitErrorDisplayP
           viewBox="0 0 24 24"
         >
           <path
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L4.312 16.5c-.77.833.192 2.5 1.732 2.5z"
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L4.312 16.5c-.77.833.192 2.5 1.732 2.5z"
           />
         </svg>
       </div>
@@ -106,8 +111,8 @@ export function RateLimitErrorDisplay({ error, onRetry }: RateLimitErrorDisplayP
       
       {onRetry && timeToWait <= 0 && (
         <button
-          onClick={onRetry}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+          onClick={onRetry}
         >
           Intentar nuevamente
         </button>
@@ -122,9 +127,11 @@ export function formatWaitTime(seconds: number): string {
     return `${seconds} segundos`
   } else if (seconds < 3600) {
     const minutes = Math.ceil(seconds / 60)
+
     return `${minutes} minuto${minutes > 1 ? 's' : ''}`
   } else {
     const hours = Math.ceil(seconds / 3600)
+
     return `${hours} hora${hours > 1 ? 's' : ''}`
   }
 }

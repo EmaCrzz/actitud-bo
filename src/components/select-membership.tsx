@@ -4,6 +4,7 @@ import { MembershipTranslation, type MembershipType } from '@/membership/consts'
 import { Skeleton } from '@/components/ui/skeleton'
 import { HybridSelect } from '@/components/ui/select-hybrid'
 import { useMediaQuery } from 'usehooks-ts'
+import { useTranslations } from '@/lib/i18n/context'
 
 type Membership = {
   id: number
@@ -39,6 +40,7 @@ export default function SelectMembershipHybrid({
   const [isLoading, setIsLoading] = useState(true)
   const [memberships, setMemberships] = useState<Membership[]>([])
   const isLargerThan430 = useMediaQuery('(min-width: 430px)')
+  const { t } = useTranslations()
 
   useEffect(() => {
     getMemberships().then((data) => {
@@ -65,7 +67,7 @@ export default function SelectMembershipHybrid({
       isInvalid={isInvalid}
       name={name}
       options={options}
-      placeholder={isLargerThan430 ? 'Selecciona un tipo de membresía' : 'Tipo de membresía'}
+      placeholder={isLargerThan430 ? t('membership.selectMembershipType') : t('membership.membershipTypeShort')}
     />
   )
 }
