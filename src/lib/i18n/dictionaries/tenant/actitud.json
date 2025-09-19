@@ -1,0 +1,11 @@
+{
+  "auth": {
+    "welcomeMessage": "Bienvenido a Actitud Gym"
+  },
+  "customer": {
+    "welcome": "¡Hola {name}! Bienvenido a Actitud"
+  },
+  "assistance": {
+    "greeting": "¡Hola {customerName}! Tu asistencia en Actitud ha sido registrada exitosamente"
+  }
+}

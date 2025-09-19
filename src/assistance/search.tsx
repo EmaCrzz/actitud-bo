@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, ChangeEvent, KeyboardEvent } from "react";
+import { useTranslations } from '@/lib/i18n/context';
 import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,6 +16,7 @@ import { CUSTOMER_NEW, REGISTER_ASSISTANCE } from "@/consts/routes";
 import Link from "next/link";
 
 export default function AutocompleteInput() {
+  const { t } = useTranslations();
   const [inputValue, setInputValue] = useState("");
   const [selectedValue, setSelectedValue] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -121,14 +123,14 @@ export default function AutocompleteInput() {
     <div className="px-4 flex flex-col gap-14 w-full mt-16">
       <div className="space-y-2">
         <Label className="font-light" htmlFor="assistance">
-          Registrar asistencia
+          {t('assistance.registerAssistance')}
         </Label>
         <div className="relative">
           <div className="relative">
             <Input
               ref={inputRef}
               className="w-full font-light"
-              placeholder="¿A quien quieres registar hoy?"
+              placeholder={t('assistance.searchPlaceholder')}
               type="text"
               value={inputValue}
               onChange={handleInputChange}
@@ -143,7 +145,7 @@ export default function AutocompleteInput() {
                 onClick={handleClear}
               >
                 <X className="h-4 w-4" />
-                <span className="sr-only">Limpiar</span>
+                <span className="sr-only">{t('common.clear')}</span>
               </Button>
             )}
           </div>
@@ -156,7 +158,7 @@ export default function AutocompleteInput() {
             >
               {loading && (
                 <li className="px-2 py-4 text-white/30 flex items-center justify-center border-b border-input-border">
-                  Buscando...
+                  {t('common.searching')}
                 </li>
               )}
               {!loading &&
@@ -186,7 +188,7 @@ export default function AutocompleteInput() {
                     "px-2 py-4 hover:cursor-default text-white/30 flex items-center justify-between border-b border-input-border"
                   )}
                 >
-                  <span>No se encontraron resultados</span>
+                  <span>{t('messages.noResults')}</span>
                 </li>
               )}
               <li
@@ -199,7 +201,7 @@ export default function AutocompleteInput() {
                   href={CUSTOMER_NEW}
                 >
                   <PlusRoundedIcon className="h-4 w-4 text-white/30" />
-                  <span>Crear nuevo cliente</span>
+                  <span>{t('customer.addNew')}</span>
                 </Link>
               </li>
             </ul>
@@ -208,7 +210,7 @@ export default function AutocompleteInput() {
       </div>
       {selectedValue && (
         <Button className="h-14" onClick={handleNavigation}>
-          Buscar cliente
+          {t('assistance.findCustomer')}
         </Button>
       )}
     </div>

@@ -8,6 +8,9 @@ import {
   MembershipTranslation,
 } from '@/membership/consts'
 import { Skeleton } from '@/components/ui/skeleton'
+import api from '@/lib/i18n/api'
+import { Language } from '@/lib/i18n/types'
+import { TenantsType } from '@/lib/tenants'
 
 function Progress({ value, className = '' }: { value: number; className?: string }) {
   return (
@@ -20,11 +23,18 @@ function Progress({ value, className = '' }: { value: number; className?: string
   )
 }
 
-export default async function ActiveTypes() {
+export default async function ActiveTypes({
+  lang,
+  tenant,
+}: {
+  lang: Language
+  tenant: TenantsType
+}) {
   const { data, error } = await getActiveMemberships()
   // getDailyMembershipsThisMonth incluye a los clientes que podrian tener una membresia diaria que su
   // expiration_date sea en el mes actual y esas getActiveMemberships no las contempla
   const { data: dataDaily = [] } = await getDailyMembershipsThisMonth()
+  const { t } = await api.fetch(lang, tenant)
 
   if (!data || error) return null
 
@@ -58,7 +68,7 @@ export default async function ActiveTypes() {
       <CardHeader className='px-2 sm:px-6'>
         <CardTitle className='flex items-center gap-2 text-white/70 text-sm sm:text-base'>
           <Users className='h-5 w-5 text-primary' />
-          Membresías por Tipo
+{t('membership.membershipsByType')}
         </CardTitle>
       </CardHeader>
       <CardContent className='space-y-3 px-2 sm:px-6'>
@@ -100,7 +110,7 @@ export default async function ActiveTypes() {
         </div>
         <div className='pt-2 border-t border-primary200'>
           <p className='text-xs sm:text-sm text-white/70'>
-            Total: <span className='font-medium'>{length} membresías activas</span>
+            Total: <span className='font-medium'>{length} {t('membership.activeMemberships')}</span>
           </p>
         </div>
       </CardContent>
@@ -108,27 +118,35 @@ export default async function ActiveTypes() {
   )
 }
 
-export const ActiveTypesSkeleton = () => {
+export const ActiveTypesSkeleton = async ({
+  lang,
+  tenant,
+}: {
+  lang: Language
+  tenant: TenantsType
+}) => {
+  const { t } = await api.fetch(lang, tenant)
+
   return (
     <Card className='py-3 sm:py-6'>
       <CardHeader className='px-2 sm:px-6'>
         <CardTitle className='flex items-center gap-2 text-white/70 text-sm sm:text-base'>
           <Users className='h-5 w-5 text-primary' />
-          Membresías por Tipo
+          {t('membership.membershipsByType')}
         </CardTitle>
       </CardHeader>
       <CardContent className='space-y-3 px-2 sm:px-6'>
         {[...Array(3)].map((_, index) => (
           <div key={index} className='space-y-2'>
             <div className='flex justify-between items-center'>
-              <span className='text-xs sm:text-sm font-medium text-white/70'>Cargando...</span>
+              <span className='text-xs sm:text-sm font-medium text-white/70'>{t('membership.loading')}</span>
               <Skeleton className='w-24 h-4' />
             </div>
             <Skeleton className='w-full h-2 rounded-full' />
           </div>
         ))}
         <div className='pt-2 border-t border-primary200'>
-          <p className='text-xs sm:text-sm text-white/70'>Total: Cargando...</p>
+          <p className='text-xs sm:text-sm text-white/70'>{t('membership.totalLoading')}</p>
         </div>
       </CardContent>
     </Card>

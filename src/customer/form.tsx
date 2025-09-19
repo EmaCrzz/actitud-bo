@@ -13,6 +13,7 @@ import { updateCustomer } from '@/customer/api/client'
 import { CUSTOMER } from '@/consts/routes'
 import { Button } from '@/components/ui/button'
 import ArrowLeftIcon from '@/components/icons/arrow-left'
+import { useTranslations } from '@/lib/i18n/context'
 
 interface Props {
   customer?: CustomerComplete
@@ -30,6 +31,7 @@ export default function CustomerForm({
   callbackSubmitMultiStep,
 }: Props) {
   const router = useRouter()
+  const { t } = useTranslations()
   const [loading, setLoading] = useState(false)
   const [innerErrors, setInnerErrors] = useState<DatabaseResult['data']>()
 
@@ -104,7 +106,7 @@ export default function CustomerForm({
             <Button className='size-6 rounded-full' variant={'ghost'} onClick={() => router.back()}>
               <ArrowLeftIcon className='size-6' />
             </Button>
-            <h5 className='font-medium text-sm'>Editar Cliente</h5>
+            <h5 className='font-medium text-sm'>{t('customer.editCustomer')}</h5>
           </div>
         </header>
       )}
@@ -112,13 +114,13 @@ export default function CustomerForm({
         <section className='max-w-3xl mx-auto w-full px-2 sm:px-4 overflow-auto pb-4 pt-12'>
           <h3 className='text-sm sm:text-md mb-4'>
             {customer
-              ? 'Puedes modificar el formulario para actualizar la información de este cliente.'
-              : 'Para comenzar, vamos a pedirte los datos personales del cliente.'}
+              ? t('customer.editFormDescription')
+              : t('customer.newFormDescription')}
           </h3>
           <div className='grid gap-y-2'>
             <div className='grid gap-y-2'>
               <Label className='font-light' htmlFor='assistance'>
-                Nombre
+                {t('forms.labels.firstName')}
               </Label>
               <Input
                 className='w-full font-light'
@@ -130,7 +132,7 @@ export default function CustomerForm({
             </div>
             <div className='grid gap-y-2'>
               <Label className='font-light' htmlFor='assistance'>
-                Apellido
+                {t('forms.labels.lastName')}
               </Label>
               <Input
                 className='w-full font-light'
@@ -142,7 +144,7 @@ export default function CustomerForm({
             </div>
             <div className='grid gap-y-2'>
               <Label className='font-light' htmlFor='assistance'>
-                DNI
+                {t('forms.labels.personId')}
               </Label>
               <PersonIdInput
                 className='w-full font-light'
@@ -154,7 +156,7 @@ export default function CustomerForm({
             </div>
             <div className='grid gap-y-2'>
               <Label className='font-light' htmlFor='assistance'>
-                Contacto telefónico
+                {t('customer.phoneContact')}
               </Label>
               <Input defaultValue={defaultValues.phone || ''} name={'phone'} />
             </div>
@@ -169,7 +171,7 @@ export default function CustomerForm({
             variant='outline'
             onClick={() => router.back()}
           >
-            Cancelar
+{t('common.cancel')}
           </Button>
           <Button
             className='w-36 h-12 sm:w-44 sm:h-14'
@@ -177,7 +179,7 @@ export default function CustomerForm({
             loading={loading}
             type='submit'
           >
-            Confirmar
+{t('common.confirm')}
           </Button>
         </footer>
       )}

@@ -18,6 +18,7 @@ import { InfoIcon } from 'lucide-react'
 import { TooltipTrigger, Tooltip, TooltipContent } from '@/components/ui/tooltip'
 import AssistanceToday from '@/assistance/assistance-alert-today'
 import { cn } from '@/lib/utils'
+import { useTranslations } from '@/lib/i18n/context'
 
 interface Props {
   pathBack?: string
@@ -37,6 +38,7 @@ export default function MembershipForm({
 }: Props) {
   const today = new Date()
   const router = useRouter()
+  const { t } = useTranslations()
   const [loading, setLoading] = useState(false)
   const [innerErrors, setInnerErrors] = useState<DatabaseResult['data']>()
 
@@ -109,17 +111,17 @@ export default function MembershipForm({
             <Button className='size-6 rounded-full' variant='ghost' onClick={() => router.back()}>
               <ArrowLeftIcon className='size-6' />
             </Button>
-            <h5 className='font-medium text-sm'>Gestión de membresías</h5>
+            <h5 className='font-medium text-sm'>{t('membership.management')}</h5>
           </div>
         </header>
       )}
       <form id='form-membership' onSubmit={handleSubmit}>
         <section className='max-w-3xl mx-auto w-full px-2 sm:px-4 overflow-auto pb-4 pt-12'>
-          <h3 className='text-sm sm:text-md mb-4'>Selecciona el tipo de membresía.</h3>
+          <h3 className='text-sm sm:text-md mb-4'>{t('membership.selectType')}</h3>
           <div className='grid grid-cols-2 gap-x-4 gap-y-4'>
             <div className='grid gap-y-2 col-span-2'>
               <Label className='font-light' htmlFor='assistance'>
-                Tipo de membresía
+                {t('membership.membershipTypeShort')}
               </Label>
               <SelectMembershipHybrid
                 className='font-light'
@@ -141,7 +143,7 @@ export default function MembershipForm({
                   onCheckedChange={handleChangeCheckBox}
                 />
                 <Label className='text-xs text-white' htmlFor='payment'>
-                  ¿Abono la membresía?
+                  {t('membership.payMembership')}
                 </Label>
               </div>
             </div>
@@ -152,7 +154,7 @@ export default function MembershipForm({
               helperText={errors?.start_date}
               isDisabled={payment !== true || loading}
               isInvalid={!!errors?.start_date}
-              label='Fecha de inicio'
+              label={t('membership.startDateLabel')}
               name='start_date'
             />
             <UncontrolledDatePicker
@@ -162,7 +164,7 @@ export default function MembershipForm({
               helperText={errors?.end_date}
               isDisabled={payment !== true || loading}
               isInvalid={!!errors?.end_date}
-              label='Fecha de finalización'
+              label={t('membership.endDateLabel')}
               name='end_date'
             />
             <div className='flex items-center gap-3 col-span-2'>
@@ -180,7 +182,7 @@ export default function MembershipForm({
                   )}
                   htmlFor='first_assistance'
                 >
-                  Registrar su primer asistencia
+                  {t('membership.registerFirstAssistance')}
                 </Label>
                 {!payment && (
                   <Tooltip data-side='left'>
@@ -189,7 +191,7 @@ export default function MembershipForm({
                     </TooltipTrigger>
                     <TooltipContent side='top'>
                       <p className='w-[180px]'>
-                        Si no abona la membresía, no podrá registrar asistencias.
+                        {t('membership.paymentRequiredTooltip')}
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -209,7 +211,7 @@ export default function MembershipForm({
       {!multiStepForm && (
         <footer className='flex justify-between max-w-3xl gap-2 mx-auto w-full px-4 pb-9'>
           <Button className='w-full h-14' form='form-membership' loading={loading} type='submit'>
-            Confirmar
+            {t('membership.confirm')}
           </Button>
         </footer>
       )}

@@ -7,6 +7,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useTranslations } from '@/lib/i18n/context';
 
 interface Props {
   isOpen: boolean;
@@ -19,12 +20,14 @@ export function AlertCancelAssintance({
   setIsOpen,
   handleConfirmCancel,
 }: Props) {
+  const { t } = useTranslations();
+
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <AlertDialogContent className="max-w-[360px]">
         <AlertDialogHeader>
           <AlertDialogTitle>
-            ¿Quieres cancelar la asistencia del día?
+            {t('assistance.cancelDialog.title')}
           </AlertDialogTitle>
         </AlertDialogHeader>
         <AlertDialogFooter className="grid grid-cols-2 gap-4">
@@ -32,10 +35,10 @@ export function AlertCancelAssintance({
             className="h-14 rounded-[4px]"
             onClick={() => handleConfirmCancel && handleConfirmCancel()}
           >
-            Si, cancelar
+            {t('assistance.cancelDialog.confirmCancel')}
           </AlertDialogCancel>
           <AlertDialogAction className="h-14 rounded-[4px]">
-            Continuar
+            {t('assistance.cancelDialog.continue')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

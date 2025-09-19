@@ -7,6 +7,9 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { Award } from 'lucide-react'
+import api from '@/lib/i18n/api'
+import { Language } from '@/lib/i18n/types'
+import { TenantsType } from '@/lib/tenants'
 
 // Componente Badge simple
 function Badge({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -19,8 +22,15 @@ function Badge({ children, className = '' }: { children: React.ReactNode; classN
   )
 }
 
-export default async function TopMonthlyAssintant() {
+export default async function TopMonthlyAssintant({
+  lang,
+  tenant,
+}: {
+  lang: Language
+  tenant: TenantsType
+}) {
   const { data } = await getTop10CustomersThisMonthRPC()
+  const { t } = await api.fetch(lang, tenant)
 
   if (!data || data?.length === 0) return null
 
@@ -31,7 +41,7 @@ export default async function TopMonthlyAssintant() {
           <AccordionTrigger className='py-0 px-2 sm:px-6 hover:cursor-pointer'>
             <div className='flex gap-2 items-center text-white/70'>
               <Award className='h-5 w-5 text-yellow-600' />
-              Top Asistentes del Mes
+{t('assistance.topMonthlyAssistants')}
             </div>
           </AccordionTrigger>
           <AccordionContent>
@@ -48,8 +58,8 @@ export default async function TopMonthlyAssintant() {
                     <p className='text-sm sm:text-base text-gray-300'>{`${assistant.first_name} ${assistant.last_name}`}</p>
                     <Badge className='whitespace-nowrap text-sm'>
                       {assistant.monthly_assistance_count === 1
-                        ? '1 día'
-                        : `${assistant.monthly_assistance_count} días`}
+                        ? t('assistance.oneDay')
+                        : t('assistance.multipleDays', { count: assistant.monthly_assistance_count })}
                     </Badge>
                   </div>
                 </div>
@@ -62,7 +72,15 @@ export default async function TopMonthlyAssintant() {
   )
 }
 
-export const TopMonthlyAssintantSkeleton = () => {
+export const TopMonthlyAssintantSkeleton = async ({
+  lang,
+  tenant,
+}: {
+  lang: Language
+  tenant: TenantsType
+}) => {
+  const { t } = await api.fetch(lang, tenant)
+
   return (
     <Card className='py-3 sm:py-6'>
       <Accordion collapsible type='single'>
@@ -70,7 +88,7 @@ export const TopMonthlyAssintantSkeleton = () => {
           <AccordionTrigger className='py-0 px-2 sm:px-6 hover:cursor-pointer'>
             <div className='flex gap-2 items-center text-white/70'>
               <Award className='h-5 w-5 text-yellow-600' />
-              Top Asistentes del Mes
+              {t('assistance.topMonthlyAssistants')}
             </div>
           </AccordionTrigger>
           <AccordionContent />

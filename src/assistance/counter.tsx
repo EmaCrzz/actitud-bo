@@ -4,9 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ASSISTANCES } from "@/consts/routes";
 import Link from "next/link";
+import api from '@/lib/i18n/api'
+import { Language } from '@/lib/i18n/types'
+import { TenantsType } from '@/lib/tenants'
 
-export default async function AssistanceCounter() {
+export default async function AssistanceCounter({
+  lang,
+  tenant,
+}: {
+  lang: Language
+  tenant: TenantsType
+}) {
   const count = await getTotalAssistancesToday();
+  const { t } = await api.fetch(lang, tenant);
 
   return (
     <section className="flex flex-col justify-center mt-10 gap-1 ">
@@ -25,9 +35,9 @@ export default async function AssistanceCounter() {
         </Button>
       </div>
       <span className="mx-auto text-md font-bold ">
-        {count === 1 && "Asistencia"}
-        {count > 1 && "Asistencias"}
-        {count === 0 && "Sin asistencias"}
+        {count === 1 && t('assistance.title')}
+        {count > 1 && t('assistance.titlePlural')}
+        {count === 0 && t('assistance.noAssistancesShort')}
       </span>
     </section>
   );
