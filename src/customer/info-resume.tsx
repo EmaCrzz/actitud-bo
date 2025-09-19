@@ -7,22 +7,33 @@ import { CustomerComplete } from '@/customer/types'
 import { formatPersonId } from '@/lib/format-person-id'
 import { formatPhone } from '@/lib/format-phone'
 import Link from 'next/link'
-import { useTranslations } from '@/lib/i18n/context'
+import { Language } from '@/lib/i18n/types'
+import { TenantsType } from '@/lib/tenants'
+import api from '@/lib/i18n/api'
 
-export default function InfoResume({ customer }: { customer: CustomerComplete }) {
-  const { t } = useTranslations()
+export default async function InfoResume({
+  customer,
+  lang,
+  tenant,
+}: {
+  customer: CustomerComplete
+  lang: Language
+  tenant: TenantsType
+}) {
+  const { t } = await api.fetch(lang, tenant)
 
   return (
     <section>
       <section className='p-4 grid gap-y-8 bg-input-background rounded-[4px] border-[0.5px] border-input-border'>
         <div className='flex justify-between'>
-          <Label className='font-light text-xl leading-6 text-primary300'>{t('membership.personalData')}</Label>
+          <Label className='font-light text-xl leading-6 text-primary300'>
+            {t('membership.personalData')}
+          </Label>
           <Button size={'icon'} variant='icon'>
             <Link href={`${CUSTOMER_EDIT}/${customer.id}`}>
               <PencilIcon className='size-6' />
             </Link>
           </Button>
-
         </div>
         <div className='flex justify-between'>
           <div className='grid gap-y-2'>

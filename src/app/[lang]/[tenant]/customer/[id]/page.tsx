@@ -11,10 +11,10 @@ import api from '@/lib/i18n/api'
 import { Language } from '@/lib/i18n/types'
 import { TenantsType } from '@/lib/tenants'
 
-export default async function CustomerDetailPage({ 
-  params 
-}: { 
-  params: Promise<{ id: string; lang: Language; tenant: TenantsType }> 
+export default async function CustomerDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string; lang: Language; tenant: TenantsType }>
 }) {
   const { id, lang, tenant } = await params
   const { t } = await api.fetch(lang, tenant)
@@ -48,7 +48,7 @@ export default async function CustomerDetailPage({
         </h2>
         {hasMembership && <CustomerMembership customer={customer} />}
         <BtnEditMembership customer={customer} />
-        <InfoResume customer={customer} />
+        <InfoResume customer={customer} lang={lang} tenant={tenant} />
       </section>
     </>
   )
