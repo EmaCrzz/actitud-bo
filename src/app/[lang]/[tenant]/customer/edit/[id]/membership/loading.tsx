@@ -14,7 +14,7 @@ export default async function EditMembershipLoading() {
         </div>
       </header>
       <section className='max-w-3xl mx-auto w-full px-2 sm:px-4 overflow-auto pb-4 pt-12'>
-        <Skeleton className='h-5 w-16' />
+        <Skeleton className='h-5 w-16 mb-4' />
         <div className='grid grid-cols-2 gap-x-4 gap-y-4'>
           <div className='grid gap-y-2 col-span-2'>
             <Skeleton className='h-4 w-1/2' />
