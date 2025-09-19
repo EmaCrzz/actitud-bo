@@ -7,15 +7,23 @@ import InfoResume from '@/customer/info-resume'
 import CustomerMembership from '@/customer/membership'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import api from '@/lib/i18n/api'
+import { Language } from '@/lib/i18n/types'
+import { TenantsType } from '@/lib/tenants'
 
-export default async function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export default async function CustomerDetailPage({ 
+  params 
+}: { 
+  params: Promise<{ id: string; lang: Language; tenant: TenantsType }> 
+}) {
+  const { id, lang, tenant } = await params
+  const { t } = await api.fetch(lang, tenant)
   const customer = await searchCustomersById(id)
 
   if (!customer) {
     return (
       <div className='max-w-3xl mx-auto w-full px-2 sm:px-4 py-6'>
-        <h2 className='text-lg font-semibold'>Cliente no encontrado</h2>
+        <h2 className='text-lg font-semibold'>{t('customer.notFound')}</h2>
       </div>
     )
   }
@@ -31,7 +39,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
               <ArrowLeftIcon className='size-6' />
             </Link>
           </Button>
-          <h5 className='font-medium text-sm'>Perfil del cliente</h5>
+          <h5 className='font-medium text-sm'>{t('customer.customerProfile')}</h5>
         </div>
       </header>
       <section className='max-w-3xl mx-auto w-full px-2 sm:px-4 overflow-auto pb-4 flex flex-col gap-y-5'>

@@ -14,12 +14,14 @@ import { InfoIcon } from 'lucide-react'
 import CustomerMembership from '@/customer/membership'
 import BtnEditMembership from '@/customer/btn-edit-membership'
 import AssistanceToday from './assistance-alert-today'
+import { useTranslations } from '@/lib/i18n/context'
 
 export default function CustomerAssistance({ customer }: { customer: CustomerComplete }) {
   const [isPending, setIsPending] = useState(false)
   const [daySelected, setDaySelected] = useState<string>()
   const router = useRouter()
   const today = new Date()
+  const { t } = useTranslations()
 
   const handleSelectedDay = (day: string) => {
     setDaySelected((prev) => {
@@ -35,14 +37,14 @@ export default function CustomerAssistance({ customer }: { customer: CustomerCom
 
     if (error?.code) {
       setIsPending(false)
-      toast.error('Error al registrar asistencia, intente nuevamente', {
+      toast.error(t('assistance.errorRegistering'), {
         description: error.message,
       })
 
       return
     }
     setIsPending(false)
-    toast.success('¡Listo, asistencia registrada!')
+    toast.success(t('assistance.successRegistered'))
     router.push(HOME)
   }
 
@@ -93,7 +95,7 @@ export default function CustomerAssistance({ customer }: { customer: CustomerCom
           >
             <InfoIcon />
             <AlertTitle className='font-secondary font-bold tracking-[0.48px]'>
-              ¡Semana completa, sumá un pase diario!
+              {t('assistance.weekCompleteMessage')}
             </AlertTitle>
           </Alert>
         )}
@@ -102,7 +104,7 @@ export default function CustomerAssistance({ customer }: { customer: CustomerCom
         disabled={disableButton}
         fullMembership={fullMembership}
         loading={isPending}
-        loadingText='Un momento'
+        loadingText={t('assistance.waitMoment')}
         onClick={handleSubmit}
       />
     </>

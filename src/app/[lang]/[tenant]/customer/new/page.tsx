@@ -13,9 +13,11 @@ import { handleDatabaseError } from '@/customer/errors'
 import { basicMembershipValidation } from '@/customer/utils'
 import { toast } from 'sonner'
 import { CUSTOMER } from '@/consts/routes'
+import { useTranslations } from '@/lib/i18n/context'
 
 export default function SimpleMultiStepForm() {
   const router = useRouter()
+  const { t } = useTranslations()
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<{ customer?: FormData; membership?: FormData }>({
     customer: undefined,
@@ -160,7 +162,7 @@ export default function SimpleMultiStepForm() {
           >
             <ArrowLeftIcon className='size-6' />
           </Button>
-          <h5 className='font-medium text-sm'>Crear un nuevo Cliente</h5>
+          <h5 className='font-medium text-sm'>{t('customer.createNew')}</h5>
         </div>
       </header>
       <section className='relative overflow-hidden'>
@@ -185,7 +187,7 @@ export default function SimpleMultiStepForm() {
             loading={loading}
             type='submit'
           >
-            Siguiente
+{t('common.next')}
           </Button>
         ) : (
           <Button
@@ -193,10 +195,10 @@ export default function SimpleMultiStepForm() {
             disabled={isAnimating}
             form='form-membership'
             loading={loading}
-            loadingText='Creando cliente'
+            loadingText={t('customer.creatingCustomer')}
             type='submit'
           >
-            Confirmar
+{t('common.confirm')}
           </Button>
         )}
       </footer>

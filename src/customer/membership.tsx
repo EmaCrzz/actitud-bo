@@ -6,9 +6,11 @@ import AlertTriangleContained from '@/components/icons/alert-triangle-contained'
 import CheckCircleContained from '@/components/icons/check-circle-contained'
 import { CustomerComplete } from '@/customer/types'
 import { useMemo } from 'react'
+import { useTranslations } from '@/lib/i18n/context'
 
 export default function CustomerMembership({ customer }: { customer: CustomerComplete }) {
   const today = new Date()
+  const { t } = useTranslations()
   const membershipTransaltionTowLines = customer.customer_membership?.membership_type
     ? MembershipTranslationTwoLines[customer.customer_membership.membership_type]
     : null
@@ -45,19 +47,19 @@ export default function CustomerMembership({ customer }: { customer: CustomerCom
         {!isExpired && !aboutToExpire && (
           <>
             <CheckCircleContained className='text-green-400 size-10' />
-            <span className='text-sm font-bold'>Activo</span>
+            <span className='text-sm font-bold'>{t('membership.active')}</span>
           </>
         )}
         {isExpired && (
           <>
             <AlertContainedIcon className='text-red-500 size-10' />
-            <span className='text-sm font-bold'>Vencido</span>
+            <span className='text-sm font-bold'>{t('membership.expired')}</span>
           </>
         )}
         {aboutToExpire && (
           <>
             <AlertTriangleContained className='text-amber-400 size-10' />
-            <span className='text-sm font-bold'>Por vencer</span>
+            <span className='text-sm font-bold'>{t('membership.aboutToExpire')}</span>
           </>
         )}
       </div>
@@ -65,7 +67,7 @@ export default function CustomerMembership({ customer }: { customer: CustomerCom
         <span className='text-3xl font-sans font-semibold tracking-[1.28px]'>
           {customer.assistance_count ?? '-'}
         </span>
-        <span className='text-sm font-bold w-[104px] text-center'>Asistencias Totales</span>
+        <span className='text-sm font-bold w-[104px] text-center'>{t('membership.totalAssistances')}</span>
       </div>
     </div>
   )

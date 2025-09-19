@@ -13,9 +13,18 @@ import AssistancesList, { AssistancesListSkeleton } from '@/assistance/assistanc
 import ActivesMembership, { ActivesMembershipSkeleton } from '@/membership/components/actives'
 import TopMonthlyAssintant, { TopMonthlyAssintantSkeleton } from '@/assistance/top-monthly-assintant'
 import ActiveTypes, { ActiveTypesSkeleton } from '@/membership/components/active-types'
+import api from '@/lib/i18n/api'
+import { Language } from '@/lib/i18n/types'
+import { TenantsType } from '@/lib/tenants'
 
+export default async function DashboardStats({
+  params,
+}: {
+  params: Promise<{ lang: Language; tenant: TenantsType }>
+}) {
+  const { lang, tenant } = await params
+  const { t } = await api.fetch(lang, tenant)
 
-export default async function DashboardStats() {
   return (
     <>
       <header className='max-w-3xl mx-auto w-full px-2 sm:px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
@@ -25,7 +34,7 @@ export default async function DashboardStats() {
               <ArrowLeftIcon className='size-6' />
             </Link>
           </Button>
-          <h5 className='font-medium text-sm'>Estadísticas</h5>
+          <h5 className='font-medium text-sm'>{t('navigation.stats')}</h5>
         </div>
       </header>
 
@@ -33,8 +42,8 @@ export default async function DashboardStats() {
         <Suspense fallback={<AssistanceCardTodaySkeleton />}>
           <AssistanceCardToday />
         </Suspense>
-        <Suspense fallback={<AssistancesListSkeleton />}>
-          <AssistancesList />
+        <Suspense fallback={<AssistancesListSkeleton todayAssistancesText={t('assistance.todayAssistances')} />}>
+          <AssistancesList lang={lang} tenant={tenant} />
         </Suspense>
         <Suspense fallback={<TopMonthlyAssintantSkeleton />}>
           <TopMonthlyAssintant />

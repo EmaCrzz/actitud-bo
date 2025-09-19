@@ -1,8 +1,10 @@
 import AlertContainedIcon from '@/components/icons/alert-contained'
 import { Alert, AlertTitle } from '@/components/ui/alert'
 import { Assistance } from '@/customer/types'
+import { useTranslations } from '@/lib/i18n/context'
 
 export default function AssistanceToday({ assistance = [] }: { assistance?: Assistance[] }) {
+  const { t } = useTranslations()
   const today = new Date()
 
   const hasAssistanceToday = assistance.some(
@@ -17,7 +19,7 @@ export default function AssistanceToday({ assistance = [] }: { assistance?: Assi
       >
         <AlertContainedIcon />
         <AlertTitle className='font-secondary font-bold tracking-[0.48px]'>
-          Ya se registro una asistencia el dia de hoy
+          {t('assistance.alreadyRegisteredToday')}
         </AlertTitle>
       </Alert>
     )
