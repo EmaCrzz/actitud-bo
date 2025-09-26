@@ -201,10 +201,10 @@ export async function getAssistancesByWeek(startDate: Date, endDate: Date) {
 // }
 
 // Función para obtener el top 10 de clientes del mes
-export async function getTop10CustomersThisMonthRPC() {
+export async function getTopCustomersThisMonthRPC() {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .rpc('get_top_customers_current_month', { limit_count: 10 })
+    .rpc('get_top_customers_current_month', { limit_count: 5 })
 
   if (error) {
     console.error('Error fetching top customers:', error)
