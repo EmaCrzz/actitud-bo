@@ -11,19 +11,21 @@
 @theme inline {
   --color-background: var(--color-background);
   --color-foreground: var(--color-text);
-  --color-primary200: var(--color-primary-200);
   --color-primary300: var(--color-primary-300);
   --color-primary400: var(--color-primary-400);
   --color-primary: var(--color-primary-500);
   --color-primary600: var(--color-primary-600);
   --color-primary700: var(--color-primary-700);
+  --color-primary800: var(--color-primary-800);
+  --color-primary900: var(--color-primary-900);
   --color-primary-contrast: var(--color-primary-contrast);
-  --color-secondary200: var(--color-secondary-200);
   --color-secondary300: var(--color-secondary-300);
   --color-secondary400: var(--color-secondary-400);
   --color-secondary: var(--color-secondary-500);
   --color-secondary600: var(--color-secondary-600);
   --color-secondary700: var(--color-secondary-700);
+  --color-secondary800: var(--color-secondary-800);
+  --color-secondary900: var(--color-secondary-900);
   --color-secondary-contrast: var(--color-secondary-contrast);
 
   --font-headline: var(--font-family-headline), system-ui, sans-serif;

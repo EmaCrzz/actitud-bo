@@ -2,6 +2,18 @@ import { CustomerMembership } from "@/customer/types";
 import { createClient } from "@/lib/supabase/server";
 import { ActiveMembership } from "@/membership/types";
 
+type MembershipStatsRPCResult = {
+  segment_type: string
+  segment_count: number
+  total_count: number
+}
+
+type MembershipSegment = {
+  type: string
+  count: number
+  color: string
+}
+
 // Función para obtener membresías activas
 export async function getActiveMemberships() {
   const supabase = await createClient()
@@ -144,4 +156,47 @@ export async function getDailyMembershipsThisMonth() {
   }
 
   return { data: data as unknown as ActiveMembership[], error: null }
+}
+
+// Función para obtener estadísticas de membresías activas por tipo (optimizada con RPC)
+export async function getMembershipStats(year?: number, month?: number) {
+  const supabase = await createClient()
+
+  const { data: rpcData, error } = await supabase
+    .rpc('get_membership_stats', {
+      target_year: year || null,
+      target_month: month || null
+    })
+
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error fetching membership stats:', error)
+    return { data: null, error }
+  }
+
+  // Mapear colores por tipo
+  const colorMap: Record<string, string> = {
+    'MEMBERSHIP_TYPE_5_DAYS': '500',
+    'MEMBERSHIP_TYPE_3_DAYS': '700',
+    'MEMBERSHIP_TYPE_DAILY': '300',
+    'PENDING_PAYMENT': '200'
+  }
+
+  // Transformar datos de RPC al formato esperado
+  const memberships: MembershipSegment[] = (rpcData as MembershipStatsRPCResult[]).map((row) => ({
+    type: row.segment_type,
+    count: Number(row.segment_count),
+    color: colorMap[row.segment_type] || '400'
+  }))
+
+  // Calcular total
+  const total = memberships.reduce((sum, membership) => sum + membership.count, 0)
+
+  return {
+    data: {
+      total,
+      memberships
+    },
+    error: null
+  }
 }

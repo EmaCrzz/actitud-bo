@@ -89,7 +89,7 @@ export default async function DashboardStats({
           tenant={tenant}
           title='customer.actives'
         />
-        <NavegableRow href='#' lang={lang} tenant={tenant} title='membership.types.title' />
+        <NavegableRow href='/stats/membership' lang={lang} tenant={tenant} title='membership.types.title' />
         <NavegableRow
           disabled
           href='#'
