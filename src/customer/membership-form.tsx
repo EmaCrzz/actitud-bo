@@ -111,7 +111,7 @@ export default function MembershipForm({
             <Button className='size-6 rounded-full' variant='ghost' onClick={() => router.back()}>
               <ArrowLeftIcon className='size-6' />
             </Button>
-            <h5 className='font-medium text-sm'>{t('membership.management')}</h5>
+            <h5 className='font-bold text-sm font-headline'>{t('membership.management')}</h5>
           </div>
         </header>
       )}

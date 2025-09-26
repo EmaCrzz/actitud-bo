@@ -2,8 +2,8 @@ import { REGISTER_ASSISTANCE } from '@/consts/routes'
 import { searchCustomersById } from '@/customer/api/server'
 import MembershipForm from '@/customer/membership-form'
 import api from '@/lib/i18n/api'
-import { Language } from '@/lib/i18n/types'
-import { TenantsType } from '@/lib/tenants'
+import { type Language } from '@/lib/i18n/types'
+import { type TenantsType } from '@/lib/tenants'
 
 export default async function EditCustomerMembershipPage({
   params,

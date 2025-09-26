@@ -5,8 +5,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ASSISTANCES } from "@/consts/routes";
 import Link from "next/link";
 import api from '@/lib/i18n/api'
-import { Language } from '@/lib/i18n/types'
-import { TenantsType } from '@/lib/tenants'
+import { type Language } from '@/lib/i18n/types'
+import { type TenantsType } from '@/lib/tenants'
 
 export default async function AssistanceCounter({
   lang,

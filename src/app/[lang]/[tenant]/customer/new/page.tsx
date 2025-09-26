@@ -162,7 +162,7 @@ export default function SimpleMultiStepForm() {
           >
             <ArrowLeftIcon className='size-6' />
           </Button>
-          <h5 className='font-medium text-sm'>{t('customer.createNew')}</h5>
+          <h5 className='font-bold text-sm font-headline'>{t('customer.createNew')}</h5>
         </div>
       </header>
       <section className='relative overflow-hidden'>

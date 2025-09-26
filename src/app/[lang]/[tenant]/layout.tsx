@@ -9,7 +9,7 @@ import { TENANT } from '@/lib/envs'
 import type { TenantsType } from '@/lib/tenants'
 import { generateThemeStyles } from '@/lib/themes'
 import { I18nServerProvider } from '@/lib/i18n/server-provider'
-import { Language } from '@/lib/i18n/types'
+import { type Language } from '@/lib/i18n/types'
 
 export const metadata: Metadata = {
   title: 'Actitud - Backoffice',
@@ -56,7 +56,7 @@ export default async function RootLayout({
   const { tenant, lang } = await params
 
   return (
-    <html lang={lang} style={generateThemeStyles()}>
+    <html suppressHydrationWarning lang={lang} style={generateThemeStyles()}>
       <head>
         <link href='/icons/favicon-196.png' rel='icon' sizes='196x196' type='image/png' />
         <link href='/icons/apple-icon-180.png' rel='apple-touch-icon' />

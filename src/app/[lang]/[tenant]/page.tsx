@@ -3,8 +3,8 @@ import AutocompleteInput from '@/assistance/search'
 import AuthHeader, { AuthHeaderLoader } from '@/auth/components/header'
 import FooterNavigation from '@/components/nav'
 import { Suspense } from 'react'
-import { Language } from '@/lib/i18n/types'
-import { TenantsType } from '@/lib/tenants'
+import { type Language } from '@/lib/i18n/types'
+import { type TenantsType } from '@/lib/tenants'
 
 export default async function Home({
   params,

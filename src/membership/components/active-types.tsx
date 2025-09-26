@@ -9,8 +9,8 @@ import {
 } from '@/membership/consts'
 import { Skeleton } from '@/components/ui/skeleton'
 import api from '@/lib/i18n/api'
-import { Language } from '@/lib/i18n/types'
-import { TenantsType } from '@/lib/tenants'
+import { type Language } from '@/lib/i18n/types'
+import { type TenantsType } from '@/lib/tenants'
 
 function Progress({ value, className = '' }: { value: number; className?: string }) {
   return (

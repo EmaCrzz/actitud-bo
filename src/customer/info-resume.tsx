@@ -7,8 +7,8 @@ import { CustomerComplete } from '@/customer/types'
 import { formatPersonId } from '@/lib/format-person-id'
 import { formatPhone } from '@/lib/format-phone'
 import Link from 'next/link'
-import { Language } from '@/lib/i18n/types'
-import { TenantsType } from '@/lib/tenants'
+import { type Language } from '@/lib/i18n/types'
+import { type TenantsType } from '@/lib/tenants'
 import api from '@/lib/i18n/api'
 
 export default async function InfoResume({

@@ -3,8 +3,8 @@ import { Calendar } from 'lucide-react'
 import { getTotalAssistancesToday } from '@/assistance/api/server'
 import { Skeleton } from '@/components/ui/skeleton'
 import api from '@/lib/i18n/api'
-import { Language } from '@/lib/i18n/types'
-import { TenantsType } from '@/lib/tenants'
+import { type Language } from '@/lib/i18n/types'
+import { type TenantsType } from '@/lib/tenants'
 
 export default async function AssistanceCardToday({
   lang,

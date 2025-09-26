@@ -8,8 +8,8 @@ import { searchAllCustomers } from '@/customer/api/server'
 import ListCustomers from '@/customer/list'
 import Link from 'next/link'
 import api from '@/lib/i18n/api'
-import { Language } from '@/lib/i18n/types'
-import { TenantsType } from '@/lib/tenants'
+import { type Language } from '@/lib/i18n/types'
+import { type TenantsType } from '@/lib/tenants'
 
 
 export default async function CustomerListPage({

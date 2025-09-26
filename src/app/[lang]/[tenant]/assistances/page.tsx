@@ -6,8 +6,8 @@ import { ArrowLeftIcon } from 'lucide-react'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import api from '@/lib/i18n/api'
-import { Language } from '@/lib/i18n/types'
-import { TenantsType } from '@/lib/tenants'
+import { type Language } from '@/lib/i18n/types'
+import { type TenantsType } from '@/lib/tenants'
 
 export default async function page({
   params,
@@ -26,7 +26,7 @@ export default async function page({
               <ArrowLeftIcon className='size-6' />
             </Link>
           </Button>
-          <h5 className='font-medium text-sm'>{t('assistance.todayAssistances')}</h5>
+          <h5 className='font-bold text-sm font-headline'>{t('assistance.todayAssistances')}</h5>
         </div>
       </header>
       <section className='max-w-3xl mx-auto w-full px-2 sm:px-4 overflow-auto py-4'>

@@ -8,8 +8,8 @@ import ArrowLeftIcon from '@/components/icons/arrow-left'
 import Link from 'next/link'
 import { HOME } from '@/consts/routes'
 import api from '@/lib/i18n/api'
-import { Language } from '@/lib/i18n/types'
-import { TenantsType } from '@/lib/tenants'
+import { type Language } from '@/lib/i18n/types'
+import { type TenantsType } from '@/lib/tenants'
 
 export default async function AssintanceRegisterPage({
   params,
@@ -37,7 +37,7 @@ export default async function AssintanceRegisterPage({
               <ArrowLeftIcon className='size-6' />
             </Link>
           </Button>
-          <h5 className='font-medium text-sm font-headline'>
+          <h5 className='font-bold text-sm font-headline'>
             {t('assistance.assistanceRegistration')}
           </h5>
         </div>

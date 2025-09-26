@@ -106,7 +106,7 @@ export default function CustomerForm({
             <Button className='size-6 rounded-full' variant={'ghost'} onClick={() => router.back()}>
               <ArrowLeftIcon className='size-6' />
             </Button>
-            <h5 className='font-medium text-sm'>{t('customer.editCustomer')}</h5>
+            <h5 className='font-bold text-sm font-headline'>{t('customer.editCustomer')}</h5>
           </div>
         </header>
       )}
