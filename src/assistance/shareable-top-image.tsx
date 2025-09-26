@@ -1,5 +1,6 @@
 import { MedalOne, MedalFive, MedalFour, MedalThree, MedalTwo } from '@/components/icons/medal'
 import Cup from '@/components/icons/cup'
+import Instagram from '@/components/icons/instagram'
 import { cn } from '@/lib/utils'
 import { type Language } from '@/lib/i18n/types'
 import { type TenantsType } from '@/lib/tenants'
@@ -60,11 +61,11 @@ export default async function ShareableTopImage({
       </div>
 
       {/* Ranking */}
-      <div className='flex-1 space-y-3'>
+      <div className='space-y-2.5'>
         {data?.slice(0, 5).map((assistant, index) => (
           <div
             key={assistant.id}
-            className='flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-lg p-3'
+            className='flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-lg p-2.5'
           >
             {Icons[index] || (
               <div className='flex items-center justify-center size-12 bg-white/20 rounded-full'>
@@ -86,8 +87,11 @@ export default async function ShareableTopImage({
 
       {/* Footer */}
       <div className='text-center mt-6'>
-        <p className='text-white/80 text-sm mb-2'>{t('assistance.joinUs')}</p>
-        <p className='text-white text-xs'>@actitud.bo</p>
+        <p className='text-white/80 text-sm mb-1'>{t('assistance.joinUs')}</p>
+        <div className='flex items-center justify-center gap-1'>
+          <Instagram className='w-[14px] h-[14px] text-white' />
+          <p className='text-white text-xs'>@actitud.tabossi</p>
+        </div>
       </div>
     </div>
   )
