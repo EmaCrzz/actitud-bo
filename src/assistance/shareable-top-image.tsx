@@ -33,7 +33,7 @@ export default async function ShareableTopImage({
   data,
   lang,
   tenant,
-  className = ''
+  className = '',
 }: ShareableTopImageProps) {
   const { t } = await api.fetch(lang, tenant)
   const currentMonth = new Date().toLocaleDateString(lang, { month: 'long', year: 'numeric' })
@@ -44,14 +44,16 @@ export default async function ShareableTopImage({
         'w-[400px] h-[600px] bg-gradient-to-br from-primary to-primary200 p-6 flex flex-col',
         className
       )}
-      id="shareable-top-image"
+      id='shareable-top-image'
     >
       {/* Header */}
       <div className='text-center mb-6'>
         <div className='flex justify-center mb-3'>
           <LogoBlanco className='h-8 w-auto' />
         </div>
-        <p className='text-white/80 text-sm capitalize'>{t('assistance.topOfTheMonth')} {currentMonth}</p>
+        <p className='text-white/80 text-sm capitalize'>
+          {t('assistance.topOfTheMonth')} {currentMonth}
+        </p>
       </div>
 
       {/* Title */}

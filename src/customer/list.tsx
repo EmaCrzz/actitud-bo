@@ -1,145 +1,146 @@
-"use client";
+'use client'
 
-import { CustomerWithMembership } from "@/customer/types";
-import { useMemo, useState } from "react";
-import SearchIcon from "@/components/icons/search";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-import { MembershipTranslation } from "@/membership/consts";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import EyeIcon from "@/components/icons/eye";
-import { X } from "lucide-react";
-import Link from "next/link";
-import { CUSTOMER } from "@/consts/routes";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useTranslations } from "@/lib/i18n/context";
+import { CustomerWithMembership } from '@/customer/types'
+import { useMemo, useState } from 'react'
+import SearchIcon from '@/components/icons/search'
+import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
+import { MEMBERSHIP_TYPE_VIP, MembershipTranslation } from '@/membership/consts'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import EyeIcon from '@/components/icons/eye'
+import { StarIcon, X } from 'lucide-react'
+import Link from 'next/link'
+import { CUSTOMER } from '@/consts/routes'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useTranslations } from '@/lib/i18n/context'
 
 interface Props {
-  customers: CustomerWithMembership[];
+  customers: CustomerWithMembership[]
 }
 
 export default function ListCustomers({ customers }: Props) {
-  const [query, setQuery] = useState("");
-  const { t } = useTranslations();
+  const [query, setQuery] = useState('')
+  const { t } = useTranslations()
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(e.target.value);
-  };
+    setQuery(e.target.value)
+  }
 
   const customerFiltered = useMemo(() => {
     return customers.filter((customer) => {
-      const fullName =
-        `${customer.first_name} ${customer.last_name}`.toLowerCase();
+      const fullName = `${customer.first_name} ${customer.last_name}`.toLowerCase()
 
-      return fullName.includes(query.toLowerCase());
-    });
-  }, [customers, query]);
-  const hasCustomers = customerFiltered.length > 0;
+      return fullName.includes(query.toLowerCase())
+    })
+  }, [customers, query])
+  const hasCustomers = customerFiltered.length > 0
 
   return (
     <>
-      <div className="bg-background sticky top-0 pb-1 mt-2 sm:mt-6">
+      <div className='bg-background sticky top-0 pb-1 mt-2 sm:mt-6'>
         <Input
-          autoComplete={"off"}
-          className="py-2 pl-0 mb-0"
-          componentLeft={<SearchIcon className="size-6 text-primary200" />}
+          autoComplete={'off'}
+          className='py-2 pl-0 mb-0'
+          componentLeft={<SearchIcon className='size-6 text-primary200' />}
           componentRight={
             query && (
               <Button
-                className="h-6 w-6 p-0 hover:bg-transparent hover:text-primary text-primary200"
-                size="icon"
-                type="button"
-                variant="ghost"
-                onClick={() => setQuery("")}
+                className='h-6 w-6 p-0 hover:bg-transparent hover:text-primary text-primary200'
+                size='icon'
+                type='button'
+                variant='ghost'
+                onClick={() => setQuery('')}
               >
-                <X className="h-4 w-4" />
+                <X className='h-4 w-4' />
               </Button>
             )
           }
           placeholder={t('customer.searchPlaceholder')}
           value={query}
-          variant={"line"}
+          variant={'line'}
           onChange={onChange}
         />
       </div>
-      <ul className="mt-6">
+      <ul className='mt-6'>
         {!hasCustomers && (
-          <li className="text-center text-sm text-muted-foreground py-4">
+          <li className='text-center text-sm text-muted-foreground py-4'>
             {t('customer.noCustomersFound', { query })}
           </li>
         )}
         {hasCustomers &&
           customerFiltered.map((customer, index) => {
-            const isLast = index === customers.length - 1;
+            const isLast = index === customers.length - 1
+            const isVIPMembership = customer.membership_type === MEMBERSHIP_TYPE_VIP
 
             return (
               <li
                 key={customer.id}
                 className={cn(
-                  "grid grid-cols-[1fr_auto] border-b-[0.5px] px-2 py-1 items-center",
-                  isLast && "border-b-0"
+                  'grid grid-cols-[1fr_auto] border-b-[0.5px] px-2 py-1 items-center',
+                  isLast && 'border-b-0'
                 )}
               >
-                <div className="grid grid-cols-1">
-                  <span className="leading-6 text-sm font-medium">
+                <div className='grid grid-cols-1'>
+                  <span className='leading-6 text-sm font-medium'>
                     {`${customer.first_name} ${customer.last_name}`}
                   </span>
-                  <Label className="font-light text-xs leading-6">
+                  <Label className='font-light text-xs leading-6'>
                     {customer.membership_type
-                      ? MembershipTranslation[customer.membership_type]
-                      : t('customer.noMembership')}
+                      ? t(MembershipTranslation[customer.membership_type])
+                      : t('membership.noMembership')}
+                    {isVIPMembership && <StarIcon className='font-light size-2 inline-block' />}
                   </Label>
                 </div>
-                <Button className="size-6" size={"icon"} variant={"ghost"}>
+                <Button className='size-6' size={'icon'} variant={'ghost'}>
                   <Link href={`${CUSTOMER}/${customer.id}`}>
-                    <EyeIcon className="size-6" />
+                    <EyeIcon className='size-6' />
                   </Link>
                 </Button>
               </li>
-            );
+            )
           })}
       </ul>
     </>
-  );
+  )
 }
 
 export function CustomerListLoading() {
-  const { t } = useTranslations();
-  
+  const { t } = useTranslations()
+
   return (
     <>
-      <div className="bg-background sticky top-0 pb-1 mt-6">
+      <div className='bg-background sticky top-0 pb-1 mt-6'>
         <Input
           disabled
-          autoComplete={"off"}
-          className="py-2 pl-0 mb-0"
-          componentLeft={<SearchIcon className="size-6 text-primary200" />}
+          autoComplete={'off'}
+          className='py-2 pl-0 mb-0'
+          componentLeft={<SearchIcon className='size-6 text-primary200' />}
           placeholder={t('customer.searchPlaceholder')}
-          variant={"line"}
+          variant={'line'}
         />
       </div>
-      <ul className="mt-6">
+      <ul className='mt-6'>
         {Array.from({ length: 10 }).map((_, index) => {
-          const isLast = index === 9;
+          const isLast = index === 9
 
           return (
             <li
               key={index}
               className={cn(
-                "grid grid-cols-[1fr_auto] border-b-[0.5px] px-2 py-1 items-center",
-                isLast && "border-b-0"
+                'grid grid-cols-[1fr_auto] border-b-[0.5px] px-2 py-1 items-center',
+                isLast && 'border-b-0'
               )}
             >
-              <div className="grid grid-cols-1">
-                <Skeleton className="h-5 w-3/4 sm:w-2/4 mb-2" />
-                <Skeleton className="h-5 w-2/4 sm:w-1/4" />
+              <div className='grid grid-cols-1'>
+                <Skeleton className='h-5 w-3/4 sm:w-2/4 mb-2' />
+                <Skeleton className='h-5 w-2/4 sm:w-1/4' />
               </div>
-              <Skeleton className="h-6 w-6 rounded-full" />
+              <Skeleton className='h-6 w-6 rounded-full' />
             </li>
-          );
+          )
         })}
       </ul>
     </>
-  );
+  )
 }

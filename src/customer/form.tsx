@@ -56,7 +56,7 @@ export default function CustomerForm({
     setLoading(false)
 
     if (!response.success) {
-      const errors = handleDatabaseError(response, router)
+      const errors = handleDatabaseError(response, router, t)
 
       if (errors) {
         setInnerErrors(errors)
@@ -101,7 +101,7 @@ export default function CustomerForm({
   return (
     <>
       {!multiStepForm && (
-        <header className='max-w-3xl mx-auto w-full px-2 sm:px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
+        <header className='max-w-3xl mx-auto w-full px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
           <div className='flex gap-4 items-center'>
             <Button className='size-6 rounded-full' variant={'ghost'} onClick={() => router.back()}>
               <ArrowLeftIcon className='size-6' />
@@ -111,11 +111,9 @@ export default function CustomerForm({
         </header>
       )}
       <form id='form-customer' onSubmit={handleSubmit}>
-        <section className='max-w-3xl mx-auto w-full px-2 sm:px-4 overflow-auto pb-4 pt-12'>
+        <section className='max-w-3xl mx-auto w-full px-4 overflow-auto pb-4 pt-12'>
           <h3 className='text-sm sm:text-md mb-4'>
-            {customer
-              ? t('customer.editFormDescription')
-              : t('customer.newFormDescription')}
+            {customer ? t('customer.editFormDescription') : t('customer.newFormDescription')}
           </h3>
           <div className='grid gap-y-2'>
             <div className='grid gap-y-2'>
@@ -171,7 +169,7 @@ export default function CustomerForm({
             variant='outline'
             onClick={() => router.back()}
           >
-{t('common.cancel')}
+            {t('common.cancel')}
           </Button>
           <Button
             className='w-36 h-12 sm:w-44 sm:h-14'
@@ -179,7 +177,7 @@ export default function CustomerForm({
             loading={loading}
             type='submit'
           >
-{t('common.confirm')}
+            {t('common.confirm')}
           </Button>
         </footer>
       )}

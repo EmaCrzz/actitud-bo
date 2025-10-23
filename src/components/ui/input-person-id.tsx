@@ -1,9 +1,9 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { Input, InputProps } from "@/components/ui/input"
-import { cn } from "@/lib/utils"
-import { formatPersonId } from "@/lib/format-person-id"
+import * as React from 'react'
+import { Input, InputProps } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
+import { formatPersonId } from '@/lib/format-person-id'
 
 export interface PersonIdInputProps extends InputProps {
   onPersonIdChange?: (formattedValue: string, rawValue: string) => void
@@ -32,7 +32,7 @@ const PersonIdInput = React.forwardRef<HTMLInputElement, PersonIdInputProps>(
 
     // Función para obtener solo los números del PersonId
     const getRawValue = (formattedValue: string): string => {
-      return formattedValue.replace(/\D/g, "")
+      return formattedValue.replace(/\D/g, '')
     }
 
     // Manejar cambios en el input
@@ -91,14 +91,14 @@ const PersonIdInput = React.forwardRef<HTMLInputElement, PersonIdInputProps>(
         className={cn(className)}
         defaultValue={defaultValue ? formatPersonId(String(defaultValue)) : undefined}
         maxLength={10}
-        placeholder="XX.XXX.XXX"
-        type="text"
+        placeholder='XX.XXX.XXX'
+        type='text'
         onChange={handleChange}
       />
     )
-  },
+  }
 )
 
-PersonIdInput.displayName = "PersonIdInput"
+PersonIdInput.displayName = 'PersonIdInput'
 
 export { PersonIdInput }

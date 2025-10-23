@@ -1,10 +1,10 @@
 /* eslint-disable no-console */
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from '@/lib/supabase/server'
 
 export const getTotalAssistancesToday = async () => {
-  const supabase = await createClient();
-  const today = new Date().toISOString().split('T')[0];
-  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const supabase = await createClient()
+  const today = new Date().toISOString().split('T')[0]
+  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
   const { count } = await supabase
     .from('assistance')
@@ -12,7 +12,7 @@ export const getTotalAssistancesToday = async () => {
     .gte('assistance_date', `${today}T00:00:00.000Z`)
     .lt('assistance_date', `${tomorrow}T00:00:00.000Z`)
 
-  return count || 0;
+  return count || 0
 }
 
 // export const getTotalAssistancesTodayWithClients = async () => {
@@ -42,7 +42,6 @@ export const getTotalAssistancesToday = async () => {
 //   return { data, count: data.length }
 // }
 
-
 // Tipo para el resultado
 interface AssistanceByDate {
   id: string
@@ -60,7 +59,7 @@ interface AssistanceByDate {
 // Función para obtener todas las asistencias de una fecha específica
 export async function getAssistancesByDate(date: Date): Promise<AssistanceByDate[]> {
   // Crear el rango de la fecha (desde 00:00:00 hasta 23:59:59)
-  const supabase = await createClient();
+  const supabase = await createClient()
   const startOfDay = new Date(date)
 
   startOfDay.setHours(0, 0, 0, 0)
@@ -70,8 +69,9 @@ export async function getAssistancesByDate(date: Date): Promise<AssistanceByDate
   endOfDay.setHours(23, 59, 59, 999)
 
   const { data, error } = await supabase
-    .from("assistance")
-    .select(`
+    .from('assistance')
+    .select(
+      `
       id,
       assistance_date,
       customers (
@@ -82,15 +82,16 @@ export async function getAssistancesByDate(date: Date): Promise<AssistanceByDate
         phone,
         email
       )
-    `)
-    .gte("assistance_date", startOfDay.toISOString())
-    .lte("assistance_date", endOfDay.toISOString())
-    .order("assistance_date", { ascending: false })
+    `
+    )
+    .gte('assistance_date', startOfDay.toISOString())
+    .lte('assistance_date', endOfDay.toISOString())
+    .order('assistance_date', { ascending: false })
 
   const assistances = data as unknown as AssistanceByDate[]
 
   if (error) {
-    console.error("Error fetching assistances by date:", error)
+    console.error('Error fetching assistances by date:', error)
 
     return []
   }
@@ -118,10 +119,11 @@ export async function getTodayAssistances() {
 
 // Función para obtener asistencias de una semana
 export async function getAssistancesByWeek(startDate: Date, endDate: Date) {
-  const supabase = await createClient();
+  const supabase = await createClient()
   const { data, error } = await supabase
-    .from("assistance")
-    .select(`
+    .from('assistance')
+    .select(
+      `
       id,
       assistance_date,
       customers (
@@ -132,13 +134,14 @@ export async function getAssistancesByWeek(startDate: Date, endDate: Date) {
         phone,
         email
       )
-    `)
-    .gte("assistance_date", startDate.toISOString())
-    .lte("assistance_date", endDate.toISOString())
-    .order("assistance_date", { ascending: false })
+    `
+    )
+    .gte('assistance_date', startDate.toISOString())
+    .lte('assistance_date', endDate.toISOString())
+    .order('assistance_date', { ascending: false })
 
   if (error) {
-    console.error("Error fetching assistances by week:", error)
+    console.error('Error fetching assistances by week:', error)
 
     return []
   }
@@ -177,11 +180,11 @@ export async function getAssistancesByWeek(startDate: Date, endDate: Date) {
 
 //   // Procesar los datos para contar asistencias por cliente
 //   const customerAssistanceMap = new Map()
-  
+
 //   data?.forEach((assistance) => {
 //     const customerId = assistance.customer_id
 //     const customer = assistance.customers
-    
+
 //     if (customerAssistanceMap.has(customerId)) {
 //       customerAssistanceMap.get(customerId).monthly_assistance_count++
 //     } else {
@@ -202,9 +205,8 @@ export async function getAssistancesByWeek(startDate: Date, endDate: Date) {
 
 // Función para obtener el top 10 de clientes del mes
 export async function getTopCustomersThisMonthRPC() {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .rpc('get_top_customers_current_month', { limit_count: 5 })
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc('get_top_customers_current_month', { limit_count: 5 })
 
   if (error) {
     console.error('Error fetching top customers:', error)

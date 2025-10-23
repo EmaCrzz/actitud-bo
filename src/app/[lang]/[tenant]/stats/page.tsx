@@ -71,7 +71,7 @@ export default async function DashboardStats({
 
   return (
     <>
-      <header className='max-w-3xl mx-auto w-full px-2 sm:px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
+      <header className='max-w-3xl mx-auto w-full px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
         <div className='flex gap-4 items-center'>
           <Button className='size-6 rounded-full' variant='ghost'>
             <Link href={HOME}>
@@ -89,13 +89,17 @@ export default async function DashboardStats({
           tenant={tenant}
           title='customer.actives'
         />
-        <NavegableRow href='/stats/membership' lang={lang} tenant={tenant} title='membership.types.title' />
         <NavegableRow
-          disabled
-          href='#'
+          href='/stats/membership'
           lang={lang}
           tenant={tenant}
-          title='finance.accountingAndFinance.title'
+          title='membership.types.title'
+        />
+        <NavegableRow
+          href='/stats/accounting'
+          lang={lang}
+          tenant={tenant}
+          title='accounting.accountingAndFinance.title'
         />
         <Suspense fallback={<TopMonthlyAssintantSkeleton lang={lang} tenant={tenant} />}>
           <TopMonthlyAssintant lang={lang} tenant={tenant} />

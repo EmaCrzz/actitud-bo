@@ -22,7 +22,7 @@ export default async function CustomerDetailPage({
 
   if (!customer) {
     return (
-      <div className='max-w-3xl mx-auto w-full px-2 sm:px-4 py-6'>
+      <div className='max-w-3xl mx-auto w-full px-4 py-6'>
         <h2 className='text-lg font-semibold'>{t('customer.notFound')}</h2>
       </div>
     )
@@ -32,7 +32,7 @@ export default async function CustomerDetailPage({
 
   return (
     <>
-      <header className='max-w-3xl mx-auto w-full px-2 sm:px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
+      <header className='max-w-3xl mx-auto w-full px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
         <div className='flex gap-4 items-center'>
           <Button className='size-6 rounded-full' variant='ghost'>
             <Link href={CUSTOMER}>
@@ -42,7 +42,7 @@ export default async function CustomerDetailPage({
           <h5 className='font-bold text-sm font-headline'>{t('customer.customerProfile')}</h5>
         </div>
       </header>
-      <section className='max-w-3xl mx-auto w-full px-2 sm:px-4 overflow-auto pb-4 flex flex-col gap-y-5'>
+      <section className='max-w-3xl mx-auto w-full px-4 overflow-auto pb-4 flex flex-col gap-y-5'>
         <h2 className={cn('text-2xl font-semibold mt-6')}>
           {customer.first_name} {customer.last_name}
         </h2>

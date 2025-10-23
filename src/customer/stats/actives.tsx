@@ -3,18 +3,32 @@
 import { useState, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Accordion } from '@/components/ui/accordion'
-import { BicepsFlexed, SearchIcon, X } from 'lucide-react'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
+import { BicepsFlexed, SearchIcon, StarIcon, X } from 'lucide-react'
 import { useTranslations } from '@/lib/i18n/context'
 import { normalizeText } from '@/lib/utils/text'
 import { Button } from '@/components/ui/button'
-import { useCustomerCache } from '@/customer/cache-context'
-import { MembershipTranslation } from '@/membership/consts'
+import {
+  MEMBERSHIP_TYPE_VIP,
+  MembershipTranslation,
+  MembershipTranslationTwoLines,
+  PaymentsTranslation,
+  PaymentType,
+} from '@/membership/consts'
 import { LoadingCustomerListStats } from './loading'
+import { useActiveCustomers } from '@/customer/hooks/use-customer-stats'
+import { cn } from '@/lib/utils'
+import { formatCurrency } from '@/lib/format-currency'
+import { formatDate } from '@/lib/format-date'
 
 export default function CustomerActives() {
   const { t } = useTranslations()
-  const { actives: activeData, isLoading, error } = useCustomerCache()
+  const { data: activeData = [], isLoading, error } = useActiveCustomers()
   const [searchTerm, setSearchTerm] = useState('')
 
   const filteredData = useMemo(() => {
@@ -39,9 +53,7 @@ export default function CustomerActives() {
   }, [searchTerm, activeData])
 
   if (isLoading) {
-    return (
-      <LoadingCustomerListStats />
-    )
+    return <LoadingCustomerListStats />
   }
 
   if (error) {
@@ -54,7 +66,7 @@ export default function CustomerActives() {
           </CardTitle>
         </CardHeader>
         <CardContent className='space-y-3 px-4 sm:px-6 text-red-500'>
-          <p>{error}</p>
+          <p>{error.message || 'Error loading data'}</p>
         </CardContent>
       </Card>
     )
@@ -102,25 +114,88 @@ export default function CustomerActives() {
           </div>
         ) : (
           <Accordion collapsible className='flex flex-col gap-y-2' type='single'>
-            {filteredData.map(({ customers: customer, membership_type }, index) => (
-              <div
-                key={customer.id}
-                className='flex items-center gap-3 p-3 bg-input-background rounded'
-              >
-                <div className='flex items-center justify-center size-10 bg-primary rounded-full border'>
-                  <span className='text-sm text-white'>{filteredData.length - index}</span>
-                </div>
-                <div className='flex flex-col gap-1 grow'>
-                  <p className='text-sm text-left sm:text-bas'>
-                    {customer.first_name} {customer.last_name}
-                  </p>
-                  <p className='text-xs text-left'>
-                    {MembershipTranslation[membership_type as keyof typeof MembershipTranslation] ||
-                      ''}
-                  </p>
-                </div>
-              </div>
-            ))}
+            {filteredData.map(({ customers: customer, membership_type, last_payment }, index) => {
+              const isVIPMembership = membership_type === MEMBERSHIP_TYPE_VIP
+
+              return (
+                <AccordionItem
+                  key={customer.id}
+                  className='bg-input-background rounded hover:no-underline border-none'
+                  disabled={isVIPMembership}
+                  value={`item-${customer.id}`}
+                >
+                  <AccordionTrigger
+                    className={cn(
+                      'hover:no-underline hover:cursor-pointer pr-3 py-2 items-center',
+                      isVIPMembership && 'disabled:opacity-100'
+                    )}
+                    hiddeSvg={isVIPMembership}
+                  >
+                    <div className='flex items-center gap-3 pl-3'>
+                      <div className='flex items-center justify-center size-10 bg-primary rounded-full border'>
+                        <span className='text-sm text-white'>{filteredData.length - index}</span>
+                      </div>
+                      <div className='flex flex-col gap-1 grow'>
+                        <p className='text-sm text-left sm:text-base'>
+                          {customer.first_name} {customer.last_name}
+                        </p>
+                        <span className='flex items-center text-xs'>
+                          {isVIPMembership &&
+                            t(
+                              MembershipTranslationTwoLines[
+                                membership_type as keyof typeof MembershipTranslation
+                              ].two
+                            )}
+                          {isVIPMembership && (
+                            <StarIcon className='text-yellow-300 size-3 inline-block ml-1' />
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className='px-3'>
+                    <section className='grid grid-cols-2 pt-3 border-t-1 gap-y-2'>
+                      <span className='text-xs text-start font-extralight'>Membresia</span>
+                      <span
+                        className={cn(
+                          'text-xs justify-end flex items-center lowercase',
+                          isVIPMembership && 'uppercase'
+                        )}
+                      >
+                        {t(
+                          MembershipTranslationTwoLines[
+                            membership_type as keyof typeof MembershipTranslation
+                          ].one
+                        ) || ''}{' '}
+                        {!isVIPMembership &&
+                          t(
+                            MembershipTranslationTwoLines[
+                              membership_type as keyof typeof MembershipTranslation
+                            ].two
+                          )}
+                        {isVIPMembership && (
+                          <StarIcon className='text-yellow-300 size-3 inline-block ml-1' />
+                        )}
+                      </span>
+                      <span className='text-xs text-start font-extralight'>Fecha de pago</span>
+                      <span className='text-xs justify-end flex items-center'>
+                        {last_payment?.payment_date ? formatDate(last_payment.payment_date) : 'N/A'}
+                      </span>
+                      <span className='text-xs text-start font-extralight'>Monto</span>
+                      <span className='text-xs justify-end flex items-center'>
+                        {last_payment?.amount ? formatCurrency(last_payment.amount) : 'N/A'}
+                      </span>
+                      <span className='text-xs text-start font-extralight'>Forma de pago</span>
+                      <span className='text-xs justify-end flex items-center capitalize'>
+                        {last_payment?.payment_method
+                          ? t(PaymentsTranslation[last_payment.payment_method as PaymentType])
+                          : 'N/A'}
+                      </span>
+                    </section>
+                  </AccordionContent>
+                </AccordionItem>
+              )
+            })}
           </Accordion>
         )}
       </div>

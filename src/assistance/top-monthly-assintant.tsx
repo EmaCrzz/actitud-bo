@@ -28,45 +28,51 @@ export default async function TopMonthlyAssintant({
   const { data } = await getTopCustomersThisMonthRPC()
   const { t } = await api.fetch(lang, tenant)
 
-  if (!data || data?.length === 0) return null
+  const hasData = data && data.length > 0
 
   return (
-    <>
-      <Card className='p-4 gap-y-6'>
-        <div className='flex gap-2 items-center text-primary200 font-semibold text-xl border-b border-primary pb-1'>
-          <Cup className='size-8 text-yellow-400' />
-          {t('assistance.topMonthlyAssistants')}
-        </div>
-        <CardContent className='p-0'>
-          {data?.map((assistant, index) => (
-            <div
-              key={assistant.id}
-              className={cn(
-                'flex items-center justify-between gap-3 sm:gap-3 py-3 bg-inputhover border-b',
-                index === 0 && 'pt-0'
-              )}
-            >
-              {Icons[index] || (
-                <div className='flex items-center justify-center size-10 bg-primary200 rounded-full '>
-                  <span className='text-sm font-bold text-white/70'>#{index + 1}</span>
-                </div>
-              )}
-
-              <div className='flex items-center justify-between grow gap-2'>
-                <p className='text-base'>{`${assistant.first_name} ${assistant.last_name}`}</p>
-                <span className='text-lg'>{assistant.monthly_assistance_count}</span>
-              </div>
-            </div>
-          ))}
-          <ShareImageButton shareText={t('buttons.share')} />
-        </CardContent>
-      </Card>
-
-      {/* Hidden component for image generation */}
-      <div className='fixed -top-[9999px] -left-[9999px] pointer-events-none'>
-        <ShareableTopImage data={data} lang={lang} tenant={tenant} />
+    <Card className='p-4 gap-y-6'>
+      <div className='flex gap-2 items-center text-primary200 font-semibold text-xl border-b border-primary pb-1'>
+        <Cup className='size-8 text-yellow-400' />
+        {t('assistance.topMonthlyAssistants')}
       </div>
-    </>
+      <CardContent className='p-0'>
+        {hasData ? (
+          <>
+            {data.map((assistant, index) => (
+              <div
+                key={assistant.id}
+                className={cn(
+                  'flex items-center justify-between gap-3 sm:gap-3 py-3 bg-inputhover border-b',
+                  index === 0 && 'pt-0'
+                )}
+              >
+                {Icons[index] || (
+                  <div className='flex items-center justify-center size-10 bg-primary200 rounded-full '>
+                    <span className='text-sm font-bold text-white/70'>#{index + 1}</span>
+                  </div>
+                )}
+
+                <div className='flex items-center justify-between grow gap-2'>
+                  <p className='text-base'>{`${assistant.first_name} ${assistant.last_name}`}</p>
+                  <span className='text-lg'>{assistant.monthly_assistance_count}</span>
+                </div>
+              </div>
+            ))}
+            <ShareImageButton shareText={t('buttons.share')} />
+
+            {/* Hidden component for image generation */}
+            <div className='fixed -top-[9999px] -left-[9999px] pointer-events-none'>
+              <ShareableTopImage data={data} lang={lang} tenant={tenant} />
+            </div>
+          </>
+        ) : (
+          <div className='py-8 text-center text-muted-foreground'>
+            <p>{t('assistance.noTopAssistants')}</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }
 
@@ -108,5 +114,6 @@ export const TopMonthlyAssintantSkeleton = async ({
         ))}
         <Skeleton className='h-10 w-full mt-2' />
       </CardContent>
-    </Card>  )
+    </Card>
+  )
 }

@@ -20,6 +20,7 @@ interface HybridSelectProps {
   isInvalid?: boolean
   isDisabled?: boolean
   helperText?: string
+  onValueChange?: (value: string) => void
 }
 
 export function HybridSelect({
@@ -31,15 +32,21 @@ export function HybridSelect({
   helperText,
   isInvalid = false,
   isDisabled = false,
+  onValueChange,
 }: HybridSelectProps) {
   const [value, setValue] = React.useState(defaultValue || '')
+
+  const handleValueChange = (newValue: string) => {
+    setValue(newValue)
+    onValueChange?.(newValue)
+  }
 
   return (
     <div className={cn('w-full', !isInvalid && !helperText ? 'mb-[20px]' : '')}>
       {/* Hidden input para el formulario no controlado */}
       <input name={name} type='hidden' value={value} />
 
-      <Select value={value} onValueChange={setValue}>
+      <Select value={value} onValueChange={handleValueChange}>
         <SelectTrigger
           className={cn(
             'w-full max-w-full border-input-border hover:bg-input-hover-background', // Asegura que no exceda el ancho del contenedor

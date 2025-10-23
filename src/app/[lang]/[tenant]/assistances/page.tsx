@@ -19,7 +19,7 @@ export default async function page({
 
   return (
     <>
-      <header className='max-w-3xl mx-auto w-full px-2 sm:px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
+      <header className='max-w-3xl mx-auto w-full px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
         <div className='flex gap-4 items-center'>
           <Button className='size-6 rounded-full' variant='ghost'>
             <Link href={HOME}>
@@ -29,8 +29,15 @@ export default async function page({
           <h5 className='font-bold text-sm font-headline'>{t('assistance.todayAssistances')}</h5>
         </div>
       </header>
-      <section className='max-w-3xl mx-auto w-full px-2 sm:px-4 overflow-auto py-4'>
-        <Suspense fallback={<AssistancesListSkeleton collapsible={false} todayAssistancesText={t('assistance.todayAssistances')} />}>
+      <section className='max-w-3xl mx-auto w-full px-4 overflow-auto py-4'>
+        <Suspense
+          fallback={
+            <AssistancesListSkeleton
+              collapsible={false}
+              todayAssistancesText={t('assistance.todayAssistances')}
+            />
+          }
+        >
           <AssistancesList collapsible={false} lang={lang} tenant={tenant} />
         </Suspense>
       </section>

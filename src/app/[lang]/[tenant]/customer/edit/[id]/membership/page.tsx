@@ -16,7 +16,7 @@ export default async function EditCustomerMembershipPage({
 
   if (!customer) {
     return (
-      <div className='max-w-3xl mx-auto w-full px-2 sm:px-4 py-6'>
+      <div className='max-w-3xl mx-auto w-full px-4 py-6'>
         <h2 className='text-lg font-semibold'>{t('customer.notFound')}</h2>
       </div>
     )

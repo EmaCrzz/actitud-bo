@@ -14,10 +14,12 @@ import { basicMembershipValidation } from '@/customer/utils'
 import { toast } from 'sonner'
 import { CUSTOMER } from '@/consts/routes'
 import { useTranslations } from '@/lib/i18n/context'
+import { useInvalidateCustomerStats } from '@/customer/hooks/use-customer-stats'
 
 export default function SimpleMultiStepForm() {
   const router = useRouter()
   const { t } = useTranslations()
+  const invalidateStats = useInvalidateCustomerStats()
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<{ customer?: FormData; membership?: FormData }>({
     customer: undefined,
@@ -63,7 +65,7 @@ export default function SimpleMultiStepForm() {
     })
 
     if (!response.success) {
-      const errors = handleDatabaseError(response, router)
+      const errors = handleDatabaseError(response, router, t)
 
       if (errors) setErrors(errors)
 
@@ -72,6 +74,8 @@ export default function SimpleMultiStepForm() {
 
     setLoading(false)
     toast.success(response.message)
+    // Invalidar el caché para reflejar el nuevo cliente inmediatamente
+    await invalidateStats.mutateAsync()
     router.push(`${CUSTOMER}/${response.customer?.id}`)
   }
 
@@ -81,7 +85,7 @@ export default function SimpleMultiStepForm() {
     const checkPersonId = await checkCustomerPersonId({ formData: form })
 
     if (!checkPersonId.success) {
-      const errors = handleDatabaseError(checkPersonId, router)
+      const errors = handleDatabaseError(checkPersonId, router, t)
 
       if (errors) setErrors(errors)
       setLoading(false)
@@ -146,7 +150,7 @@ export default function SimpleMultiStepForm() {
 
   return (
     <>
-      <header className='max-w-3xl mx-auto w-full px-2 sm:px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
+      <header className='max-w-3xl mx-auto w-full px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
         <div className='flex gap-4 items-center'>
           <Button
             className='size-6 rounded-full'

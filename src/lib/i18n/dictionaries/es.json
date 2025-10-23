@@ -1,31 +1,40 @@
 {
   "common": {
-    "loading": "Cargando...",
-    "searching": "Buscando...",
-    "error": "Error",
-    "success": "Éxito",
-    "cancel": "Cancelar",
-    "save": "Guardar",
-    "edit": "Editar",
-    "delete": "Eliminar",
-    "confirm": "Confirmar",
-    "back": "Atrás",
-    "next": "Siguiente",
-    "information": "Información",
-    "previous": "Anterior",
-    "close": "Cerrar",
-    "search": "Buscar",
-    "clear": "Limpiar",
-    "select": "Seleccionar",
     "all": "Todo",
-    "none": "Ninguno",
-    "yes": "Sí",
+    "back": "Atrás",
+    "basePrince": "Precio base",
+    "cancel": "Cancelar",
+    "clear": "Limpiar",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "copyright": "© {year} ActitudTech. Todos los derechos reservados.",
+    "currentMonth": "Mes actual",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "error": "Error",
+    "information": "Información",
+    "lastUpdated": "Última actualización",
+    "lastUpdatedShort": " Ult. actualización",
+    "loading": "Cargando...",
+    "middlePrice": "Precio por medio mes",
+    "next": "Siguiente",
     "no": "No",
+    "none": "Ninguno",
+    "previous": "Anterior",
+    "save": "Guardar",
+    "search": "Buscar",
+    "searching": "Buscando...",
+    "select": "Seleccionar",
+    "success": "Éxito",
+    "surchargePrice": "Precio con recargo",
+    "understood": "Entendido",
     "version": "Versión",
-    "copyright": "© {year} ActitudTech. Todos los derechos reservados."
+    "viewCustomer": "Ver cliente",
+    "yes": "Sí"
   },
   "buttons": {
     "addNew": "Agregar Nuevo",
+    "back": "Volver",
     "changePassword": "Cambiar Contraseña",
     "continue": "Continuar",
     "download": "Descargar",
@@ -121,7 +130,6 @@
     "newFormDescription": "Para comenzar, vamos a pedirte los datos personales del cliente.",
     "noCustomers": "No hay clientes registrados",
     "noCustomersFound": "No se encontraron clientes con el nombre {query}",
-    "noMembership": "Sin membresía",
     "notFound": "Cliente no encontrado",
     "pending": "Clientes pendientes",
     "personalInformation": "Información Personal",
@@ -137,6 +145,10 @@
       "inactive": "Inactivo",
       "pending": "Pendiente",
       "upToDate": "Al día"
+    },
+    "errors": {
+      "personIdExists": "Este DNI ya existe",
+      "personIdAlreadyRegistered": "Este DNI ya esta registrado"
     }
   },
   "assistance": {
@@ -173,9 +185,11 @@
     "errorRegistering": "Error al registrar asistencia, intente nuevamente",
     "successRegistered": "¡Listo, asistencia registrada!",
     "weekCompleteMessage": "¡Semana completa, sumá un pase diario!",
-    "waitMoment": "Un momento"
+    "waitMoment": "Un momento",
+    "noTopAssistants": "Aún no hay asistencias registradas este mes"
   },
   "membership": {
+    "aplySurcharge": "Aplicar recargo por pago tardío",
     "aboutToExpire": "Por vencer",
     "active": "Activo",
     "activeClients": "Clientes activos",
@@ -191,14 +205,17 @@
     "expiresIn": "Vence en {days} días",
     "fullName": "Nombre y apellido",
     "idNumber": "DNI",
+    "list": "Lista de membresías",
     "loading": "Cargando...",
     "management": "Gestión de membresías",
     "membershipsByType": "Membresías por Tipo",
     "membershipType": "Tipo de Membresía",
     "membershipTypeShort": "Tipo de membresía",
+    "middlePriceApplied": "Se aplica precio por renovar pasada la mitad del mes",
     "modifyMembership": "Modificar membresía",
     "noActiveClients": "No hay clientes activos.",
     "noMembership": "Sin membresía",
+    "noPendingsClients": "No hay pagos pendientes.",
     "payMembership": "¿Abono la membresía?",
     "paymentRequiredTooltip": "Si no abona la membresía, no podrá registrar asistencias.",
     "personalData": "Datos Personales",
@@ -211,17 +228,36 @@
     "startDate": "Fecha de Inicio",
     "startDateLabel": "Fecha de inicio",
     "status": "Estado",
+    "surchargeApplied": "Se aplica recargo por pago tardío con asistencias registradas",
     "title": "Membresía",
     "titlePlural": "Membresías",
     "totalAssistances": "Asistencias Totales",
     "totalLoading": "Total: Cargando...",
     "types": {
       "title": "Tipos de Membresía",
-      "monthly": "Mensual",
-      "quarterly": "Trimestral",
-      "semiannual": "Semestral",
-      "annual": "Anual",
-      "unlimited": "Ilimitado"
+      "5_days": "Membresía: 5 días",
+      "3_days": "Membresía: 3 días",
+      "daily": "Pase diario",
+      "vip": "VIP",
+      "twoLines": {
+        "5_days": {
+          "line1": "5",
+          "line2": "Días por semana"
+        },
+        "3_days": {
+          "line1": "3",
+          "line2": "Días por semana"
+        },
+        "daily": {
+          "line1": "1",
+          "line2": "Pase diario"
+        },
+        "vip": {
+          "line1": "VIP",
+          "line2": "VIP"
+        }
+
+      }
     }
   },
   "auth": {
@@ -261,7 +297,9 @@
     "serverError": "Error del servidor",
     "validation": "Error de validación",
     "rateLimit": "Demasiadas solicitudes",
-    "timeout": "Tiempo de espera agotado"
+    "timeout": "Tiempo de espera agotado",
+    "updatePrice": "Error al actualizar precios",
+    "updatePriceDescription": "No se pudieron actualizar los precios de la membresía"
   },
   "messages": {
     "confirmDelete": "¿Estás seguro que deseas eliminar {item}?",
@@ -272,11 +310,145 @@
     "noResults": "No se encontraron resultados",
     "dataLoaded": "Datos cargados",
     "dataSaved": "Datos guardados",
-    "dataDeleted": "Datos eliminados"
+    "dataDeleted": "Datos eliminados",
+    "successUpdatePrice": "Precios actualizados",
+    "successUpdatePriceDescription": "Los precios de la membresía han sido actualizados correctamente"
   },
-  "finance": {
+  "payments": {
+    "cash": "Efectivo",
+    "pending": "Pendiente de pago",
+    "pendingShort": "Pendiente",
+    "paymentTypeShort": "Tipo de pago",
+    "selectPaymentType": "Seleccionar tipo de pago",
+    "title": "Método de Pago",
+    "transfer": "Transferencia",
+    "free": "Sin cargo"
+  },
+  "accounting": {
+    "title": "Contaduria",
     "accountingAndFinance": {
       "title": "Contabilidad y Finanzas"
+    },
+    "income": {
+      "title": "Ingresos",
+      "totalIncome": "Ingresos Totales",
+      "monthlyIncome": "Ingresos Mensuales",
+      "incomeBySource": "Ingresos por Fuente",
+      "byMemberships": "Ingresos por Membresías",
+      "payments": "Listado de pagos por membresías recibidos"
+    },
+    "expenses": {
+      "title": "Gastos",
+      "totalExpenses": "Gastos Totales",
+      "monthlyExpenses": "Gastos Mensuales",
+      "expensesByCategory": "Gastos por Categoría",
+      "resume": "Resumen de gastos",
+      "new": "Nuevo gasto",
+      "form": {
+        "title": "Registra un nuevo gasto, indica qué fue y cuánto costó.",
+        "description": "Descripción",
+        "amount": "Monto",
+        "category": "Categoría",
+        "date": "Fecha",
+        "notes": "Notas (opcional)"
+      },
+      "validation": {
+        "descriptionRequired": "La descripción es requerida",
+        "amountRequired": "El monto debe ser mayor a 0",
+        "categoryRequired": "La categoría es requerida"
+      },
+      "errors": {
+        "createError": "Error al crear el gasto"
+      },
+      "success": {
+        "created": "Gasto creado exitosamente"
+      },
+      "categories": {
+        "SERVICES": "Servicios",
+        "MAINTENANCE": "Mantenimiento",
+        "EQUIPMENT": "Equipamiento",
+        "SALARIES": "Salarios",
+        "SUPPLIES": "Suministros",
+        "RENT": "Alquiler",
+        "TAXES": "Impuestos",
+        "OTHER": "Otros"
+      }
+    },
+    "balance": {
+      "title": "Balance",
+      "currentBalance": "Balance Actual",
+      "monthlyBalance": "Balance Mensual",
+      "annualBalance": "Balance Anual"
     }
+  },
+  "months": {
+    "january": "Enero",
+    "february": "Febrero",
+    "march": "Marzo",
+    "april": "Abril",
+    "may": "Mayo",
+    "june": "Junio",
+    "july": "Julio",
+    "august": "Agosto",
+    "september": "Septiembre",
+    "october": "Octubre",
+    "november": "Noviembre",
+    "december": "Diciembre"
+  },
+  "rateLimit": {
+    "limitReached": "Límite alcanzado",
+    "understood": "Entendido",
+    "limit": "Límite",
+    "remaining": "Restantes",
+    "tryAgainIn": "Podrás intentar nuevamente en {time}",
+    "tryAgain": "Intentar nuevamente",
+    "unexpectedError": "Ocurrió un error inesperado",
+    "time": {
+      "seconds": "{count} segundo",
+      "secondsPlural": "{count} segundos",
+      "minutes": "{count} minuto",
+      "minutesPlural": "{count} minutos",
+      "hours": "{count} hora",
+      "hoursPlural": "{count} horas"
+    }
+  },
+  "pwa": {
+    "install": {
+      "title": "¡Instala Actitud!",
+      "description": "Accede más rápido desde tu escritorio",
+      "button": "Instalar",
+      "howTo": "Ver cómo",
+      "understood": "Entendido",
+      "appTitle": "Instalar aplicación",
+      "ios": {
+        "title": "Instalar en iOS",
+        "step1": "1. Toca el botón de compartir (⬆️)",
+        "step2": "2. Selecciona 'Añadir a pantalla de inicio'",
+        "step3": "3. Toca 'Añadir' para confirmar"
+      },
+      "chrome": {
+        "title": "Instalar en Chrome",
+        "step1": "1. Busca el ícono de instalación (⬇️) en la barra de direcciones",
+        "step2": "2. O ve a Menú → 'Instalar Actitud'",
+        "step3": "3. Confirma la instalación"
+      },
+      "firefox": {
+        "title": "Instalar en Firefox",
+        "step1": "1. Busca el ícono de instalación en la barra de direcciones",
+        "step2": "2. O ve a Menú → 'Instalar esta aplicación'",
+        "step3": "3. Confirma la instalación"
+      },
+      "generic": {
+        "title": "Instalar aplicación",
+        "step1": "1. Busca la opción de instalación en tu navegador",
+        "step2": "2. Generalmente está en el menú o barra de direcciones",
+        "step3": "3. Confirma la instalación"
+      }
+    }
+  },
+  "time": {
+    "lessThanMinute": "Hace menos de un minuto",
+    "minutesAgo": "{count} minuto",
+    "minutesAgoPlural": "{count} minutos"
   }
 }

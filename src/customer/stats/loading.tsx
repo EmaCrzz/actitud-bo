@@ -17,10 +17,7 @@ function LoadingCustomerListStats() {
 
       <div className='space-y-3'>
         {[0, 1, 2, 3, 4, 5].map((index) => (
-          <div
-            key={index}
-           className='flex items-center gap-3 p-3 bg-input-background rounded'
-          >
+          <div key={index} className='flex items-center gap-3 p-3 bg-input-background rounded'>
             <Skeleton className='size-10 rounded-full' />
             <div className='flex flex-col gap-1 grow'>
               <Skeleton className='h-4 w-32' />

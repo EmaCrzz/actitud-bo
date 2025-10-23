@@ -7,9 +7,9 @@ import { type Language } from '@/lib/i18n/types'
 import { type TenantsType } from '@/lib/tenants'
 import api from '@/lib/i18n/api'
 import ArrowLeftIcon from '@/components/icons/arrow-left'
-import MembershipChart from '@/membership/components/membership-chart'
-import MembershipRevenue from '@/membership/components/membership-revenue'
-import MembershipMonthSelector from '@/membership/components/membership-month-selector'
+import MembershipChart from '@/membership/components/chart'
+import MembershipRevenue from '@/membership/components/revenue'
+import MembershipMonthSelector from '@/membership/components/month-selector'
 import { MonthProvider } from '@/membership/context/month-context'
 
 import { tenantThemes } from '@/lib/themes'
@@ -25,7 +25,7 @@ export default async function MembershipStatsPage({
 
   return (
     <>
-      <header className='max-w-3xl mx-auto w-full px-2 sm:px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
+      <header className='max-w-3xl mx-auto w-full px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
         <div className='flex gap-4 items-center'>
           <Button className='size-6 rounded-full' variant='ghost'>
             <Link href={STATS}>
@@ -40,7 +40,7 @@ export default async function MembershipStatsPage({
         <MonthProvider>
           <MembershipMonthSelector />
           <MembershipChart colors={colors} />
-          <MembershipRevenue colors={colors}/>
+          <MembershipRevenue colors={colors} />
         </MonthProvider>
       </section>
     </>

@@ -25,8 +25,8 @@ export default async function InfoResume({
   return (
     <section>
       <section className='p-4 grid gap-y-8 bg-input-background rounded-[4px] border-[0.5px] border-input-border'>
-        <div className='flex justify-between'>
-          <Label className='font-light text-xl leading-6 text-primary300'>
+        <div className='flex justify-between border-b pb-[0.5] border-primary400'>
+          <Label className='text-xl leading-6 text-primary400'>
             {t('membership.personalData')}
           </Label>
           <Button size={'icon'} variant='icon'>
@@ -51,7 +51,7 @@ export default async function InfoResume({
           <Label className='font-light text-xs leading-6'>{t('membership.membershipType')}</Label>
           <span className='font-medium leading-6'>
             {customer.customer_membership?.membership_type
-              ? MembershipTranslation[customer.customer_membership?.membership_type]
+              ? t(MembershipTranslation[customer.customer_membership?.membership_type])
               : t('membership.noMembership')}
           </span>
         </div>

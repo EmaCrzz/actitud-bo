@@ -7,14 +7,14 @@ import { useTranslations } from '@/lib/i18n/context'
 import { BicepsFlexed, SearchIcon, X } from 'lucide-react'
 import { normalizeText } from '@/lib/utils/text'
 import { Button } from '@/components/ui/button'
-import { useCustomerCache } from '@/customer/cache-context'
 import { MembershipTranslation } from '@/membership/consts'
 import AlertContainedIcon from '@/components/icons/alert-contained'
 import { LoadingCustomerListStats } from './loading'
+import { usePendingCustomers } from '@/customer/hooks/use-customer-stats'
 
 export default function CustomerPendings() {
   const { t } = useTranslations()
-  const { pendings: pendingData, isLoading, error } = useCustomerCache()
+  const { data: pendingData = [], isLoading, error } = usePendingCustomers()
   const [searchTerm, setSearchTerm] = useState('')
 
   const filteredData = useMemo(() => {
@@ -38,9 +38,7 @@ export default function CustomerPendings() {
   }, [searchTerm, pendingData])
 
   if (isLoading) {
-    return (
-      <LoadingCustomerListStats />
-    )
+    return <LoadingCustomerListStats />
   }
 
   if (error) {
@@ -53,7 +51,7 @@ export default function CustomerPendings() {
           </CardTitle>
         </CardHeader>
         <CardContent className='space-y-3 px-4 sm:px-6 text-red-500'>
-          <p>{error}</p>
+          <p>{error.message || 'Error loading data'}</p>
         </CardContent>
       </Card>
     )
@@ -62,7 +60,7 @@ export default function CustomerPendings() {
   if (pendingData.length === 0) {
     return (
       <div className='text-center text-gray-500'>
-        <p className='text-sm'>{t('membership.noActiveClients')}</p>
+        <p className='text-sm'>{t('membership.noPendingsClients')}</p>
       </div>
     )
   }
@@ -110,7 +108,11 @@ export default function CustomerPendings() {
                   {first_name} {last_name}
                 </p>
                 <p className='text-xs text-left'>
-                  {MembershipTranslation[customer_membership?.membership_type as keyof typeof MembershipTranslation] || ''}
+                  {t(
+                    MembershipTranslation[
+                      customer_membership?.membership_type as keyof typeof MembershipTranslation
+                    ]
+                  ) || ''}
                 </p>
               </div>
               <AlertContainedIcon className='text-red-500 size-8' />

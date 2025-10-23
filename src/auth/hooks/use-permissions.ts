@@ -1,13 +1,13 @@
-"use client"
+'use client'
 
-import { useAuth } from "./use-auth"
-import { hasPermission } from "@/auth/permissions"
-import type { UserRole } from "@/auth/types"
+import { useAuth } from './use-auth'
+import { hasPermission } from '@/auth/permissions'
+import type { UserRole } from '@/auth/types'
 
 export function usePermissions() {
   const { roles, loading } = useAuth()
 
-  const checkPermission = (resource: string, action: "create" | "read" | "update" | "delete") => {
+  const checkPermission = (resource: string, action: 'create' | 'read' | 'update' | 'delete') => {
     if (loading) return false
 
     return hasPermission(roles, resource, action)
@@ -27,8 +27,8 @@ export function usePermissions() {
     hasAnyRole,
     roles,
     loading,
-    isAdmin: hasRole("admin"),
-    isManager: hasRole("manager"),
-    isEmployee: hasRole("employee"),
+    isAdmin: hasRole('admin'),
+    isManager: hasRole('manager'),
+    isEmployee: hasRole('employee'),
   }
 }

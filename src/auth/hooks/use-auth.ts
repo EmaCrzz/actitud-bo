@@ -1,9 +1,9 @@
-"use client"
+'use client'
 
-import { useEffect, useState } from "react"
-import type { User } from "@supabase/supabase-js"
-import type { UserProfile, UserRole } from "@/auth/types"
-import { createClient } from "@/lib/supabase/client"
+import { useEffect, useState } from 'react'
+import type { User } from '@supabase/supabase-js'
+import type { UserProfile, UserRole } from '@/auth/types'
+import { createClient } from '@/lib/supabase/client'
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
@@ -23,13 +23,20 @@ export function useAuth() {
 
       if (user) {
         // Obtener perfil
-        const { data: profileData } = await supabase.from("profile").select("*").eq("auth_id", user.id).single()
+        const { data: profileData } = await supabase
+          .from('profile')
+          .select('*')
+          .eq('auth_id', user.id)
+          .single()
 
         setProfile(profileData)
 
         if (profileData) {
           // Obtener roles
-          const { data: rolesData } = await supabase.from("user_roles").select("role").eq("user_id", profileData.id)
+          const { data: rolesData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', profileData.id)
 
           setRoles(rolesData?.map((r) => r.role as UserRole) || [])
         }
@@ -44,7 +51,7 @@ export function useAuth() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_OUT") {
+      if (event === 'SIGNED_OUT') {
         setUser(null)
         setProfile(null)
         setRoles([])

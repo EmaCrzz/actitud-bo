@@ -25,10 +25,10 @@ export function I18nClientProvider({ children, dictionary }: TranslationProvider
 
 export function useTranslations(): i18nClientContextType {
   const context = useContext(i18nClientContext)
-  
+
   if (!context) {
     throw new Error('usei18nClientContext must be used within a TranslationProvider')
   }
-  
+
   return context
 }

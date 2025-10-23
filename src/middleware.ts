@@ -1,8 +1,8 @@
-import { updateSession } from "@/lib/supabase/middleware";
-import { type NextRequest } from "next/server";
+import { updateSession } from '@/lib/supabase/middleware'
+import { type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  return await updateSession(request);
+  return await updateSession(request)
 }
 
 export const config = {
@@ -16,6 +16,6 @@ export const config = {
      * Feel free to modify this pattern to include more paths.
      * manifest.json and sw.js are also excluded
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)&#x2F;((?!manifest.json|sw.js).*)",
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)&#x2F;((?!manifest.json|sw.js).*)',
   ],
-};
+}

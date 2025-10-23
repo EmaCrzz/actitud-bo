@@ -31,7 +31,7 @@ export default function BtnEditMembership({ customer }: { customer: CustomerComp
 
   return (
     <Link href={`${CUSTOMER_EDIT}/${customer.id}/membership`}>
-      <Button className='h-14 w-full mt-4' variant={'outline'} >
+      <Button className='h-14 w-full mt-4' variant={'outline'}>
         {!hasMembership
           ? t('membership.createMembership')
           : isExpired || aboutToExpire

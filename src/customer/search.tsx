@@ -8,8 +8,8 @@ export default function Search() {
   return (
     <Input
       autoComplete={'off'}
-      className="py-2 pl-0 mt-6"
-      componentLeft={<SearchIcon className="size-6" />}
+      className='py-2 pl-0 mt-6'
+      componentLeft={<SearchIcon className='size-6' />}
       placeholder={t('customer.searchCustomers')}
       variant={'line'}
     />
