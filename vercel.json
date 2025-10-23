@@ -1,8 +1,4 @@
 {
-  "env": {
-    "TENANT": "actitud",
-    "APP_LANGUAGE": "es"
-  },
   "build": {
     "env": {
       "NODE_ENV": "production"
