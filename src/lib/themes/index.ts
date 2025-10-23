@@ -1,7 +1,6 @@
-import { TENANT } from "../envs"
-import { TENANTS, TenantsType } from "../tenants"
-import { getTenantFontStyles } from "./fonts"
-
+import { TENANT } from '../envs'
+import { TENANTS, TenantsType } from '../tenants'
+import { getTenantFontStyles } from './fonts'
 
 export type ComponentThemeColors = {
   background?: string
@@ -61,16 +60,16 @@ export const tenantThemes: Record<string, TenantTheme> = {
           label: 'rgba(255, 255, 255, 0.3)',
           hover: {
             background: '#3c3839',
-            border: "rgba(255, 255, 255, 0.8)",
-          }
+            border: 'rgba(255, 255, 255, 0.8)',
+          },
         },
         popover: {
           background: '#322d2f',
           border: 'rgba(255, 255, 255, 0.3)',
           text: 'rgba(255, 255, 255, 0.8)',
-        }
-      }
-    }
+        },
+      },
+    },
   },
   [TENANTS.WELLRISE]: {
     colors: {
@@ -85,7 +84,7 @@ export const tenantThemes: Record<string, TenantTheme> = {
         '700': '#8a4eff',
         '800': '#8a4eff',
         '900': '#8a4eff',
-        contrast: '#fff'
+        contrast: '#fff',
       },
       secondary: {
         '300': '#ffd4a8',
@@ -96,8 +95,8 @@ export const tenantThemes: Record<string, TenantTheme> = {
         '800': '#cc7a00',
         '900': '#cc7a00',
         contrast: '#fff',
-      }
-    }
+      },
+    },
   },
   [TENANTS.CORE]: {
     colors: {
@@ -111,7 +110,7 @@ export const tenantThemes: Record<string, TenantTheme> = {
         '700': '#6bb808',
         '800': '#528c0a',
         '900': '#528c0a',
-        contrast: '#000'
+        contrast: '#000',
       },
       secondary: {
         '300': '#ffb3c6',
@@ -122,8 +121,8 @@ export const tenantThemes: Record<string, TenantTheme> = {
         '800': '#cc4368',
         '900': '#cc4368',
         contrast: '#fff',
-      }
-    }
+      },
+    },
   },
 }
 
@@ -154,7 +153,8 @@ export const generateThemeStyles = () => {
           Object.entries(componentStyles).forEach(([styleName, styleValue]) => {
             if (typeof styleValue === 'object' && styleValue !== null) {
               Object.entries(styleValue).forEach(([nestedName, nestedValue]) => {
-                styles[`--color-${componentName}-${styleName}-${nestedName}`] = nestedValue as string
+                styles[`--color-${componentName}-${styleName}-${nestedName}`] =
+                  nestedValue as string
               })
             } else if (typeof styleValue === 'string') {
               styles[`--color-${componentName}-${styleName}`] = styleValue

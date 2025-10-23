@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable no-console */
-const fs = require("fs")
-const path = require("path")
+const fs = require('fs')
+const path = require('path')
 
 // Generar versión basada en timestamp + hash aleatorio
 const generateVersion = () => {
@@ -166,9 +166,9 @@ self.addEventListener("message", (event) => {
 
 // Generar el Service Worker
 const version = generateVersion()
-const swContent = swTemplate.replace("{{VERSION}}", version)
+const swContent = swTemplate.replace('{{VERSION}}', version)
 
 // Escribir el archivo
-fs.writeFileSync(path.join(__dirname, "../../public/sw.js"), swContent)
+fs.writeFileSync(path.join(__dirname, '../../public/sw.js'), swContent)
 
-console.log("Service Worker generado con versión: " + version)
+console.log('Service Worker generado con versión: ' + version)

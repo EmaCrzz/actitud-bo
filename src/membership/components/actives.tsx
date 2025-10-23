@@ -37,7 +37,7 @@ export default async function ActivesMembership({
       </Card>
     )
   }
-  
+
   return (
     <Card className='py-3 sm:py-6'>
       <Accordion collapsible type='single'>
@@ -52,11 +52,12 @@ export default async function ActivesMembership({
             <CardContent className='space-y-3 px-2 sm:px-6 pt-6'>
               {data.map(({ customers, expiration_date }, index) => {
                 const today = new Date()
-                const expirationDate = new Date(expiration_date)
+                const expirationDate = expiration_date ? new Date(expiration_date) : null
                 const fiveDaysFromNow = new Date(today)
 
                 fiveDaysFromNow.setDate(today.getDate() + 5)
-                const aboutToExpire = expirationDate > today && expirationDate <= fiveDaysFromNow
+                const aboutToExpire =
+                  expirationDate && expirationDate > today && expirationDate <= fiveDaysFromNow
 
                 return (
                   <div

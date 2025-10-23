@@ -3,48 +3,10 @@
 import { useState, useRef } from 'react'
 import { useMonth } from '@/membership/context/month-context'
 
-
-
-
 export default function MembershipChart({ colors }: { colors: Record<string, string> }) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-  // const [membershipData, setMembershipData] = useState<MembershipData>({
-  //   total: 0,
-  //   memberships: []
-  // })
-  // const [loading, setLoading] = useState(true)
   const svgRef = useRef<SVGSVGElement>(null)
   const { loading, membershipData } = useMonth()
-
-  // useEffect(() => {
-  //   const fetchMembershipStats = async () => {
-  //     setLoading(true)
-  //     try {
-  //       const { data, error } = await getMembershipStats(year, month)
-
-  //       if (data && !error) {
-  //         // Filtrar solo los segmentos con count > 0 y transformar los datos
-  //         const filteredMemberships = data.memberships
-  //           .filter((membership: MembershipSegment) => membership.count > 0)
-  //           .map((membership: MembershipSegment) => ({
-  //             ...membership,
-  //             displayName: MembershipTranslationTwoLines[membership.type as keyof typeof MembershipTranslationTwoLines]?.one || membership.type
-  //           }))
-
-  //         setMembershipData({
-  //           total: data.total,
-  //           memberships: filteredMemberships
-  //         })
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching membership stats:', error)
-  //     } finally {
-  //       setLoading(false)
-  //     }
-  //   }
-
-  //   fetchMembershipStats()
-  // }, [year, month])
 
   if (loading) {
     return (
@@ -111,12 +73,12 @@ export default function MembershipChart({ colors }: { colors: Record<string, str
 
     // Calculate distance from center
     const distance = Math.sqrt(mouseX * mouseX + mouseY * mouseY)
-    const radius = (13.5 / 36) * rect.width / 2 // Convert SVG radius to pixel radius
+    const radius = ((13.5 / 36) * rect.width) / 2 // Convert SVG radius to pixel radius
 
     // Check if mouse is within the ring area
     if (distance > radius - 30 && distance < radius + 100) {
       // Find which segment the angle belongs to
-      const foundSegment = segments.find(segment => {
+      const foundSegment = segments.find((segment) => {
         return angle >= segment.startAngle && angle < segment.endAngle
       })
 
@@ -140,7 +102,7 @@ export default function MembershipChart({ colors }: { colors: Record<string, str
         onMouseLeave={() => setHoveredIndex(null)}
         onMouseMove={handleMouseMove}
       >
-        <circle  cx='18' cy='18' fill='transparent' r='13.5' stroke='#1a1a1a' strokeWidth='7' />
+        <circle cx='18' cy='18' fill='transparent' r='13.5' stroke='#1a1a1a' strokeWidth='7' />
         {segments.map((segment, index) => {
           return (
             <circle

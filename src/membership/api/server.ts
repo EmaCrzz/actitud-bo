@@ -1,6 +1,7 @@
-import { CustomerMembership } from "@/customer/types";
-import { createClient } from "@/lib/supabase/server";
-import { ActiveMembership } from "@/membership/types";
+import { CustomerMembership } from '@/customer/types'
+import { createClient } from '@/lib/supabase/server'
+import { ActiveMembership, MembershipType } from '@/membership/types'
+import { MembershipTypes } from '../consts'
 
 type MembershipStatsRPCResult = {
   segment_type: string
@@ -19,7 +20,8 @@ export async function getActiveMemberships() {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('customer_membership')
-    .select(`
+    .select(
+      `
       id,
       membership_type,
       last_payment_date,
@@ -35,7 +37,8 @@ export async function getActiveMemberships() {
         assistance_count,
         created_at
       )
-    `)
+    `
+    )
     .gt('expiration_date', new Date().toISOString())
     .order('expiration_date', { ascending: true })
 
@@ -58,7 +61,8 @@ export async function getPendingPaymentCustomers() {
 
   const { data, error } = await supabase
     .from('customers')
-    .select(`
+    .select(
+      `
       id,
       first_name,
       last_name,
@@ -78,7 +82,8 @@ export async function getPendingPaymentCustomers() {
         expiration_date,
         created_at
       )
-    `)
+    `
+    )
     .gte('assistance.assistance_date', startOfMonth.toISOString())
     .lte('assistance.assistance_date', endOfMonth.toISOString())
     .order('created_at', { ascending: false })
@@ -100,8 +105,6 @@ export async function getPendingPaymentCustomers() {
     // Si tiene membresía pero está expirada, es pendiente
     const membership = customer.customer_membership as unknown as CustomerMembership
 
-
-
     if (!membership || !membership.expiration_date) {
       return true
     }
@@ -110,13 +113,16 @@ export async function getPendingPaymentCustomers() {
   })
 
   // Filtrar duplicados por customer_id ya que puede haber múltiples asistencias
-  const uniqueCustomers = pendingCustomers.reduce((acc, customer) => {
-    if (!acc.find(c => c.id === customer.id)) {
-      acc.push(customer)
-    }
+  const uniqueCustomers = pendingCustomers.reduce(
+    (acc, customer) => {
+      if (!acc.find((c) => c.id === customer.id)) {
+        acc.push(customer)
+      }
 
-    return acc
-  }, [] as typeof pendingCustomers)
+      return acc
+    },
+    [] as typeof pendingCustomers
+  )
 
   return { data: uniqueCustomers, error: null }
 }
@@ -127,7 +133,8 @@ export async function getDailyMembershipsThisMonth() {
   const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
   const { data, error } = await supabase
     .from('customer_membership')
-    .select(`
+    .select(
+      `
       id,
       membership_type,
       last_payment_date,
@@ -143,7 +150,8 @@ export async function getDailyMembershipsThisMonth() {
         assistance_count,
         created_at
       )
-    `)
+    `
+    )
     .eq('membership_type', 'MEMBERSHIP_TYPE_DAILY')
     .gte('created_at', startOfMonth.toISOString())
     .order('created_at', { ascending: true })
@@ -162,31 +170,32 @@ export async function getDailyMembershipsThisMonth() {
 export async function getMembershipStats(year?: number, month?: number) {
   const supabase = await createClient()
 
-  const { data: rpcData, error } = await supabase
-    .rpc('get_membership_stats', {
-      target_year: year || null,
-      target_month: month || null
-    })
+  const { data: rpcData, error } = await supabase.rpc('get_membership_stats', {
+    target_year: year || null,
+    target_month: month || null,
+  })
 
   if (error) {
     // eslint-disable-next-line no-console
     console.error('Error fetching membership stats:', error)
+
     return { data: null, error }
   }
 
   // Mapear colores por tipo
   const colorMap: Record<string, string> = {
-    'MEMBERSHIP_TYPE_5_DAYS': '500',
-    'MEMBERSHIP_TYPE_3_DAYS': '700',
-    'MEMBERSHIP_TYPE_DAILY': '300',
-    'PENDING_PAYMENT': '200'
+    MEMBERSHIP_TYPE_5_DAYS: '500',
+    MEMBERSHIP_TYPE_3_DAYS: '700',
+    MEMBERSHIP_TYPE_DAILY: '300',
+    MEMBERSHIP_TYPE_VIP: '900',
+    PENDING_PAYMENT: '200',
   }
 
   // Transformar datos de RPC al formato esperado
   const memberships: MembershipSegment[] = (rpcData as MembershipStatsRPCResult[]).map((row) => ({
     type: row.segment_type,
     count: Number(row.segment_count),
-    color: colorMap[row.segment_type] || '400'
+    color: colorMap[row.segment_type] || '400',
   }))
 
   // Calcular total
@@ -195,8 +204,62 @@ export async function getMembershipStats(year?: number, month?: number) {
   return {
     data: {
       total,
-      memberships
+      memberships,
     },
-    error: null
+    error: null,
   }
+}
+
+// Función para obtener tipos de membresías activos con sus amounts
+export async function getMembershipTypes(typeFilter?: MembershipTypes) {
+  const supabase = await createClient()
+
+  let query = supabase
+    .from('types_memberships')
+    .select('id, type, amount, amount_surcharge, middle_amount, last_update')
+    .not('amount', 'is', null)
+    .order('type', { ascending: true })
+
+  if (typeFilter) {
+    query = query.eq('type', typeFilter)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error fetching membership types:', error)
+
+    return { data: [], error }
+  }
+
+  return { data: data as MembershipType[], error: null }
+}
+
+// Función para actualizar precios de membresía
+export async function updateMembershipPrices(
+  membershipId: string,
+  prices: {
+    amount?: number
+    amount_surcharge?: number
+    middle_amount?: number
+  }
+) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('types_memberships')
+    .update(prices)
+    .eq('id', membershipId)
+    .select('id, type, amount, amount_surcharge, middle_amount, last_update')
+    .single()
+
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error updating membership prices:', error)
+
+    return { data: null, error }
+  }
+
+  return { data: data as MembershipType, error: null }
 }

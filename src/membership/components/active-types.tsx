@@ -68,7 +68,7 @@ export default async function ActiveTypes({
       <CardHeader className='px-2 sm:px-6'>
         <CardTitle className='flex items-center gap-2 text-white/70 text-sm sm:text-base'>
           <Users className='h-5 w-5 text-primary' />
-{t('membership.membershipsByType')}
+          {t('membership.membershipsByType')}
         </CardTitle>
       </CardHeader>
       <CardContent className='space-y-3 px-2 sm:px-6'>
@@ -110,7 +110,10 @@ export default async function ActiveTypes({
         </div>
         <div className='pt-2 border-t border-primary200'>
           <p className='text-xs sm:text-sm text-white/70'>
-            Total: <span className='font-medium'>{length} {t('membership.activeMemberships')}</span>
+            Total:{' '}
+            <span className='font-medium'>
+              {length} {t('membership.activeMemberships')}
+            </span>
           </p>
         </div>
       </CardContent>
@@ -139,7 +142,9 @@ export const ActiveTypesSkeleton = async ({
         {[...Array(3)].map((_, index) => (
           <div key={index} className='space-y-2'>
             <div className='flex justify-between items-center'>
-              <span className='text-xs sm:text-sm font-medium text-white/70'>{t('membership.loading')}</span>
+              <span className='text-xs sm:text-sm font-medium text-white/70'>
+                {t('membership.loading')}
+              </span>
               <Skeleton className='w-24 h-4' />
             </div>
             <Skeleton className='w-full h-2 rounded-full' />

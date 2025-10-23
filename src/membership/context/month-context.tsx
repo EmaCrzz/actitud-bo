@@ -2,7 +2,15 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react'
 import { getMembershipStats } from '../api/client'
-import { MembershipTranslation } from '../consts'
+import {
+  MembershipTranslation,
+  PENDING_PAYMENT,
+  MEMBERSHIP_TYPE_5_DAYS,
+  MEMBERSHIP_TYPE_3_DAYS,
+  MEMBERSHIP_TYPE_DAILY,
+  MEMBERSHIP_TYPE_VIP,
+} from '../consts'
+import { TranslationKey } from '@/lib/i18n/types'
 
 type MonthContextType = {
   year: number
@@ -22,7 +30,7 @@ export type MembershipSegment = {
   type: string
   count: number
   color: string
-  displayName?: string
+  displayName?: TranslationKey
 }
 
 export type MembershipData = {
@@ -70,15 +78,36 @@ export function MonthProvider({ children }: { children: ReactNode }) {
         const { data, error } = await getMembershipStats(year, month)
 
         if (data && !error) {
+          // Orden deseado de membresías
+          const membershipOrder = [
+            MEMBERSHIP_TYPE_5_DAYS,
+            MEMBERSHIP_TYPE_3_DAYS,
+            MEMBERSHIP_TYPE_DAILY,
+            MEMBERSHIP_TYPE_VIP,
+            PENDING_PAYMENT,
+          ]
+
           // Filtrar solo los segmentos con count > 0 y transformar los datos
           const filteredMemberships = data.memberships
             .filter((membership: MembershipSegment) => membership.count > 0)
-            .map((membership: MembershipSegment) => ({
-              ...membership,
-              displayName:
-                MembershipTranslation[membership.type as keyof typeof MembershipTranslation] ||
-                membership.type,
-            }))
+            .map((membership: MembershipSegment) => {
+              const displayName =
+                membership.type === PENDING_PAYMENT
+                  ? 'payments.pending'
+                  : MembershipTranslation[membership.type as keyof typeof MembershipTranslation] ||
+                    membership.type
+
+              return {
+                ...membership,
+                displayName,
+              }
+            })
+            .sort((a, b) => {
+              const indexA = membershipOrder.indexOf(a.type as (typeof membershipOrder)[number])
+              const indexB = membershipOrder.indexOf(b.type as (typeof membershipOrder)[number])
+
+              return indexA - indexB
+            })
 
           setMembershipData({
             total: data.total,
