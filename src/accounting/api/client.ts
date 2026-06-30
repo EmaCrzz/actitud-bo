@@ -114,6 +114,7 @@ export const deleteMembershipPayment = async (
 export const getMonthlyStats = async (month?: string): Promise<GetMonthlyStatsResponse> => {
   try {
     const params = new URLSearchParams()
+
     if (month) params.append('month', month)
 
     const url = `${API_BASE}/stats${params.toString() ? `?${params.toString()}` : ''}`

@@ -22,7 +22,7 @@ export function useAuth() {
       setUser(user)
 
       if (user) {
-        // Obtener perfil
+        // Obtener perfil y roles en paralelo (después de tener el user)
         const { data: profileData } = await supabase
           .from('profile')
           .select('*')
@@ -32,7 +32,7 @@ export function useAuth() {
         setProfile(profileData)
 
         if (profileData) {
-          // Obtener roles
+          // Obtener roles (requiere profileData.id, no se puede paralelizar más)
           const { data: rolesData } = await supabase
             .from('user_roles')
             .select('role')
