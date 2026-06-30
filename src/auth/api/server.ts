@@ -1,6 +1,22 @@
+import { cache } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { type UserProfile, type UserRole } from '@/auth/types'
 import { hasPermission } from '@/auth/permissions'
+
+// Usar React.cache para deduplicar llamadas en el mismo request
+export const getCurrentUser = cache(async () => {
+  const supabase = await createClient()
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
+
+  if (error || !user) {
+    throw new Error('User not authenticated')
+  }
+
+  return user
+})
 
 // Obtener perfil del usuario
 export async function getProfile(userId?: string): Promise<UserProfile | null> {

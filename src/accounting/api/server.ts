@@ -51,15 +51,10 @@ export const createMembershipPayment = async (
 ): Promise<MembershipPayment | null> => {
   const supabase = await createClient()
 
-  // Verify authentication
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
+  // Verify authentication usando getCurrentUser cacheado
+  const { getCurrentUser } = await import('@/auth/api/server')
 
-  if (authError || !user) {
-    throw new Error('User not authenticated')
-  }
+  await getCurrentUser()
 
   const { data, error } = await supabase
     .from('membership_payments')
@@ -84,15 +79,10 @@ export const updateMembershipPayment = async (
 ): Promise<MembershipPayment | null> => {
   const supabase = await createClient()
 
-  // Verify authentication
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
+  // Verify authentication usando getCurrentUser cacheado
+  const { getCurrentUser } = await import('@/auth/api/server')
 
-  if (authError || !user) {
-    throw new Error('User not authenticated')
-  }
+  await getCurrentUser()
 
   const { id, ...updateData } = paymentData
 
@@ -118,15 +108,10 @@ export const updateMembershipPayment = async (
 export const deleteMembershipPayment = async (id: string): Promise<boolean> => {
   const supabase = await createClient()
 
-  // Verify authentication
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
+  // Verify authentication usando getCurrentUser cacheado
+  const { getCurrentUser } = await import('@/auth/api/server')
 
-  if (authError || !user) {
-    throw new Error('User not authenticated')
-  }
+  await getCurrentUser()
 
   const { error } = await supabase.from('membership_payments').delete().eq('id', id)
 
@@ -162,15 +147,10 @@ export const getExpenses = async (filters?: AccountingFilters): Promise<Expense[
 export const createExpense = async (expenseData: CreateExpenseData): Promise<Expense | null> => {
   const supabase = await createClient()
 
-  // Verify authentication
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
+  // Verify authentication usando getCurrentUser cacheado
+  const { getCurrentUser } = await import('@/auth/api/server')
 
-  if (authError || !user) {
-    throw new Error('User not authenticated')
-  }
+  await getCurrentUser()
 
   const { data, error } = await supabase.from('expenses').insert([expenseData]).select('*').single()
 
@@ -184,15 +164,10 @@ export const createExpense = async (expenseData: CreateExpenseData): Promise<Exp
 export const updateExpense = async (expenseData: UpdateExpenseData): Promise<Expense | null> => {
   const supabase = await createClient()
 
-  // Verify authentication
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
+  // Verify authentication usando getCurrentUser cacheado
+  const { getCurrentUser } = await import('@/auth/api/server')
 
-  if (authError || !user) {
-    throw new Error('User not authenticated')
-  }
+  await getCurrentUser()
 
   const { id, ...updateData } = expenseData
 
@@ -213,15 +188,10 @@ export const updateExpense = async (expenseData: UpdateExpenseData): Promise<Exp
 export const deleteExpense = async (id: string): Promise<boolean> => {
   const supabase = await createClient()
 
-  // Verify authentication
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
+  // Verify authentication usando getCurrentUser cacheado
+  const { getCurrentUser } = await import('@/auth/api/server')
 
-  if (authError || !user) {
-    throw new Error('User not authenticated')
-  }
+  await getCurrentUser()
 
   const { error } = await supabase.from('expenses').delete().eq('id', id)
 
@@ -240,17 +210,19 @@ export const getMonthlyStats = async (month: string): Promise<MonthlyStats[]> =>
   const startDate = `${month}-01`
   const endDate = `${month}-31`
 
-  const { data: payments } = await supabase
-    .from('membership_payments')
-    .select('amount, payment_date')
-    .gte('payment_date', startDate)
-    .lte('payment_date', endDate)
-
-  const { data: expenses } = await supabase
-    .from('expenses')
-    .select('amount, expense_date')
-    .gte('expense_date', startDate)
-    .lte('expense_date', endDate)
+  // Ejecutar ambas consultas en paralelo para evitar waterfalls
+  const [{ data: payments }, { data: expenses }] = await Promise.all([
+    supabase
+      .from('membership_payments')
+      .select('amount, payment_date')
+      .gte('payment_date', startDate)
+      .lte('payment_date', endDate),
+    supabase
+      .from('expenses')
+      .select('amount, expense_date')
+      .gte('expense_date', startDate)
+      .lte('expense_date', endDate),
+  ])
 
   // Group by month
   const monthlyData: Record<string, MonthlyStats> = {}
