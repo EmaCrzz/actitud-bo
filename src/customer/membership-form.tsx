@@ -84,6 +84,7 @@ export default function MembershipForm({
   const isVIPMembership = membershipSelected?.type === MEMBERSHIP_TYPE_VIP
 
   // Verificar si el cliente tiene asistencias en el mes actual
+  // Usar dependencias primitivas más estables
   const hasAssistancesThisMonth = useMemo(() => {
     if (!customer?.assistance || customer.assistance.length === 0) return false
 
@@ -98,7 +99,7 @@ export default function MembershipForm({
         assistanceDate.getMonth() === currentMonth && assistanceDate.getFullYear() === currentYear
       )
     })
-  }, [customer?.assistance])
+  }, [customer?.id, customer?.assistance?.length])
 
   // Determinar si se aplica el precio medio (después de la mitad del mes)
   const shouldApplyMiddleAmount = useMemo(() => {
@@ -132,6 +133,7 @@ export default function MembershipForm({
   const [applySurcharge, setApplySurcharge] = useState(shouldSuggestSurcharge)
 
   // Calcular el monto a mostrar según la fecha
+  // Usar dependencias primitivas en vez de objetos completos
   const displayAmount = useMemo(() => {
     if (!membershipSelected?.amount) return ''
 
@@ -144,7 +146,13 @@ export default function MembershipForm({
     }
 
     return membershipSelected.amount.toString()
-  }, [membershipSelected, applySurcharge, shouldApplyMiddleAmount])
+  }, [
+    membershipSelected?.amount,
+    membershipSelected?.middle_amount,
+    membershipSelected?.amount_surcharge,
+    applySurcharge,
+    shouldApplyMiddleAmount,
+  ])
 
   // Calcular el monto real a enviar (para el input hidden)
   const actualAmount = useMemo(() => {
@@ -160,7 +168,13 @@ export default function MembershipForm({
     }
 
     return membershipSelected.amount
-  }, [membershipSelected, applySurcharge, shouldApplyMiddleAmount])
+  }, [
+    membershipSelected?.amount,
+    membershipSelected?.middle_amount,
+    membershipSelected?.amount_surcharge,
+    applySurcharge,
+    shouldApplyMiddleAmount,
+  ])
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()

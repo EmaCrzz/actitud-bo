@@ -18,8 +18,7 @@ export default async function CustomerListPage({
 }) {
   const { lang, tenant } = await params
   const { t } = await api.fetch(lang, tenant)
-  // TODO: Implement pagination infinite scroll
-  const customers = await searchAllCustomers()
+  const initialCustomers = await searchAllCustomers({ page: 0 })
 
   return (
     <>
@@ -40,7 +39,7 @@ export default async function CustomerListPage({
             <span>{t('customer.addNew')}</span>
           </Link>
         </Button>
-        <ListCustomers customers={customers} />
+        <ListCustomers initialCustomers={initialCustomers} />
       </section>
       <FooterNavigation />
     </>

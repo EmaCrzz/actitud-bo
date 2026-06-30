@@ -1,5 +1,4 @@
 import type { ExpenseCategory } from './consts'
-import type { TranslationKey } from '@/lib/i18n/types'
 import { LEGACY_CATEGORY_MAP } from './consts'
 
 export function getCategoryTranslationKey(
@@ -34,6 +33,7 @@ export function normalizeCategoryValue(category: string): ExpenseCategory {
 
   // Try to map from legacy Spanish name
   const normalized = LEGACY_CATEGORY_MAP[category]
+
   if (normalized) {
     return normalized
   }

@@ -1,42 +1,46 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
+import { cache } from 'react'
 import type { Language, TranslationKey, TranslationParams } from './types'
 import { TenantsType } from '../tenants'
 
-const api = {
-  async fetch(lang: Language, tenant: TenantsType) {
+// Usar React.cache para deduplicar llamadas a fetch en el mismo request
+const fetchTranslations = cache(async (lang: Language, tenant: TenantsType) => {
+  try {
+    // Load base dictionary
+    const baseDictionary = await import(`./dictionaries/${lang}.json`).then(
+      (module) => module.default
+    )
+
+    // Try to load tenant-specific overrides
+    let tenantOverrides = {}
+
     try {
-      // Load base dictionary
-      const baseDictionary = await import(`./dictionaries/${lang}.json`).then(
+      tenantOverrides = await import(`./dictionaries/tenant/${tenant}.json`).then(
         (module) => module.default
       )
-
-      // Try to load tenant-specific overrides
-      let tenantOverrides = {}
-
-      try {
-        tenantOverrides = await import(`./dictionaries/tenant/${tenant}.json`).then(
-          (module) => module.default
-        )
-      } catch (error) {
-        // Tenant overrides are optional, continue without them
-        console.warn(`No tenant overrides found for ${tenant}, using base translations only`, {
-          error,
-        })
-      }
-
-      // Deep merge base dictionary with tenant overrides
-      const mergedDictionary = deepMerge(baseDictionary, tenantOverrides)
-
-      return {
-        dictionary: mergedDictionary,
-        t: createTranslator(mergedDictionary),
-      }
     } catch (error) {
-      console.error('Failed to fetch dictionary:', error)
-      throw new Error('Failed to fetch dictionary')
+      // Tenant overrides are optional, continue without them
+      console.warn(`No tenant overrides found for ${tenant}, using base translations only`, {
+        error,
+      })
     }
-  },
+
+    // Deep merge base dictionary with tenant overrides
+    const mergedDictionary = deepMerge(baseDictionary, tenantOverrides)
+
+    return {
+      dictionary: mergedDictionary,
+      t: createTranslator(mergedDictionary),
+    }
+  } catch (error) {
+    console.error('Failed to fetch dictionary:', error)
+    throw new Error('Failed to fetch dictionary')
+  }
+})
+
+const api = {
+  fetch: fetchTranslations,
 }
 
 // Deep merge utility to combine base and tenant translations

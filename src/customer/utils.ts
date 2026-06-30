@@ -1,3 +1,30 @@
+import { CustomerWithMembership } from '@/customer/types'
+import { MembershipTypes } from '@/membership/consts'
+
+// customer_membership viene como objeto cuando la relación tiene UNIQUE en customer_id,
+// y como array cuando Supabase la resuelve como 1:N. Esta normalización cubre ambos casos.
+type CustomerMembershipShape =
+  | { membership_type: MembershipTypes | null }
+  | Array<{ membership_type: MembershipTypes | null }>
+  | null
+  | undefined
+
+type CustomerRow = Omit<CustomerWithMembership, 'membership_type'> & {
+  customer_membership?: CustomerMembershipShape
+}
+
+export function mapCustomerRow(row: CustomerRow): CustomerWithMembership {
+  const membership = row.customer_membership
+  const membership_type = Array.isArray(membership)
+    ? membership[0]?.membership_type ?? null
+    : membership?.membership_type ?? null
+
+  return {
+    ...row,
+    membership_type,
+  }
+}
+
 export function basicCustomerValidation(formData: FormData) {
   // Extraer datos del formulario
   const firstName = formData.get('first_name') as string
