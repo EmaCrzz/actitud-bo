@@ -7,13 +7,11 @@ export const APP_VERSION = packageJson.version
 export function getVersionInfo() {
   const isProduction = process.env.NODE_ENV === 'production'
   const isDevelopment = process.env.NODE_ENV === 'development'
-  
+
   // En producción, usar la versión del package.json
   // En desarrollo, agregar sufijo para distinguir
-  const displayVersion = isProduction 
-    ? `v${APP_VERSION}` 
-    : `v${APP_VERSION}-dev`
-  
+  const displayVersion = isProduction ? `v${APP_VERSION}` : `v${APP_VERSION}-dev`
+
   return {
     version: APP_VERSION,
     displayVersion,

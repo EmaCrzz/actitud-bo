@@ -9,7 +9,9 @@ import { TENANT } from '@/lib/envs'
 import type { TenantsType } from '@/lib/tenants'
 import { generateThemeStyles } from '@/lib/themes'
 import { I18nServerProvider } from '@/lib/i18n/server-provider'
-import { Language } from '@/lib/i18n/types'
+import { type Language } from '@/lib/i18n/types'
+import { MembershipProvider } from '@/membership/membership-context'
+import { QueryProvider } from '@/lib/query-client'
 
 export const metadata: Metadata = {
   title: 'Actitud - Backoffice',
@@ -56,7 +58,7 @@ export default async function RootLayout({
   const { tenant, lang } = await params
 
   return (
-    <html lang={lang} style={generateThemeStyles()}>
+    <html suppressHydrationWarning lang={lang} style={generateThemeStyles()}>
       <head>
         <link href='/icons/favicon-196.png' rel='icon' sizes='196x196' type='image/png' />
         <link href='/icons/apple-icon-180.png' rel='apple-touch-icon' />
@@ -253,12 +255,14 @@ export default async function RootLayout({
         />
       </head>
       <body className={`${tenantFontVariables} h-dvh grid grid-rows-[auto_1fr_auto]`}>
-        <I18nServerProvider lang={lang} tenant={tenant}>
-          {children}
-        </I18nServerProvider>
-        <PWAInstaller />
-        <SWUpdateManager />
-        <Toaster richColors expand={true} />
+        <QueryProvider>
+          <I18nServerProvider lang={lang} tenant={tenant}>
+            <MembershipProvider>{children}</MembershipProvider>
+            <PWAInstaller />
+          </I18nServerProvider>
+          <SWUpdateManager />
+          <Toaster richColors expand={true} />
+        </QueryProvider>
       </body>
     </html>
   )

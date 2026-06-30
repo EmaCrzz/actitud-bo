@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 export default async function EditCustomerLoading() {
   return (
     <>
-      <header className='max-w-3xl mx-auto w-full px-2 sm:px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
+      <header className='max-w-3xl mx-auto w-full px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
         <div className='flex gap-4 items-center'>
           <Button className='size-6 rounded-full' variant='ghost'>
             <ArrowLeftIcon className='size-6' />
@@ -13,7 +13,7 @@ export default async function EditCustomerLoading() {
           <Skeleton className='h-5 w-40' />
         </div>
       </header>
-      <section className='max-w-3xl mx-auto w-full px-2 sm:px-4 overflow-auto pb-4 pt-12'>
+      <section className='max-w-3xl mx-auto w-full px-4 overflow-auto pb-4 pt-12'>
         <h3 className='text-sm sm:text-md mb-4'>
           <Skeleton className='h-5 w-40' />
         </h3>

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Smartphone, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useTranslations } from '@/lib/i18n/context'
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[]
@@ -17,6 +18,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export default function PWAInstallManager() {
+  const { t } = useTranslations()
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [showInstallBanner, setShowInstallBanner] = useState(false)
   const [showInstallMenu, setShowInstallMenu] = useState(false)
@@ -123,24 +125,18 @@ export default function PWAInstallManager() {
   }, [isInstalled, isCheckingInstallation])
 
   // 🎯 EFFECT PARA ENGAGEMENT TRACKING - Solo si NO está instalada y NO hay UI activa
+  // Optimizado: usar una sola condición derivada y useRef para valores transitorios
   useEffect(() => {
-    // 🚫 NO TRACKEAR SI:
-    if (
-      isInstalled || // Ya está instalada
-      isCheckingInstallation || // Aún verificando
-      showInstallBanner || // Banner activo
-      showInstallMenu || // Menú activo
-      showInstructions || // Instrucciones activas
-      installDismissed // Usuario rechazó
-    ) {
-      console.log('🚫 Tracking deshabilitado:', {
-        isInstalled,
-        isCheckingInstallation,
-        showInstallBanner,
-        showInstallMenu,
-        showInstructions,
-        installDismissed,
-      })
+    const shouldTrack =
+      !isInstalled &&
+      !isCheckingInstallation &&
+      !showInstallBanner &&
+      !showInstallMenu &&
+      !showInstructions &&
+      !installDismissed
+
+    if (!shouldTrack) {
+      console.log('🚫 Tracking deshabilitado')
 
       return
     }
@@ -237,6 +233,7 @@ export default function PWAInstallManager() {
       window.removeEventListener('scroll', handleScroll)
       clearTimeout(timeTracker)
     }
+    // Reducir dependencias solo a las booleanas necesarias
   }, [
     userEngagement,
     isInstalled,
@@ -319,39 +316,35 @@ export default function PWAInstallManager() {
 
     if (isIOS) {
       return {
-        title: 'Instalar en iOS',
-        steps: [
-          '1. Toca el botón de compartir (⬆️)',
-          "2. Selecciona 'Añadir a pantalla de inicio'",
-          "3. Toca 'Añadir' para confirmar",
-        ],
+        title: t('pwa.install.ios.title'),
+        steps: [t('pwa.install.ios.step1'), t('pwa.install.ios.step2'), t('pwa.install.ios.step3')],
       }
     } else if (isChrome) {
       return {
-        title: 'Instalar en Chrome',
+        title: t('pwa.install.chrome.title'),
         steps: [
-          '1. Busca el ícono de instalación (⬇️) en la barra de direcciones',
-          "2. O ve a Menú → 'Instalar Actitud'",
-          '3. Confirma la instalación',
+          t('pwa.install.chrome.step1'),
+          t('pwa.install.chrome.step2'),
+          t('pwa.install.chrome.step3'),
         ],
       }
     } else if (isFirefox) {
       return {
-        title: 'Instalar en Firefox',
+        title: t('pwa.install.firefox.title'),
         steps: [
-          '1. Busca el ícono de instalación en la barra de direcciones',
-          "2. O ve a Menú → 'Instalar esta aplicación'",
-          '3. Confirma la instalación',
+          t('pwa.install.firefox.step1'),
+          t('pwa.install.firefox.step2'),
+          t('pwa.install.firefox.step3'),
         ],
       }
     }
 
     return {
-      title: 'Instalar aplicación',
+      title: t('pwa.install.generic.title'),
       steps: [
-        '1. Busca la opción de instalación en tu navegador',
-        '2. Generalmente está en el menú o barra de direcciones',
-        '3. Confirma la instalación',
+        t('pwa.install.generic.step1'),
+        t('pwa.install.generic.step2'),
+        t('pwa.install.generic.step3'),
       ],
     }
   }
@@ -368,7 +361,7 @@ export default function PWAInstallManager() {
         <Alert className='items-center fixed bottom-32 z-50 max-w-[95%] left-1/2 -translate-x-1/2 w-full sm:right-4 sm:max-w-lg bg-inpu-background border-[0.3px] border-white/20'>
           <Smartphone className='text-primary!' />
           <AlertTitle className='text-white flex justify-between items-center'>
-            ¡Instala Actitud!
+            {t('pwa.install.title')}
             <Button
               className='size-4'
               size={'icon'}
@@ -379,9 +372,9 @@ export default function PWAInstallManager() {
             </Button>
           </AlertTitle>
           <AlertDescription className='font-secondary flex justify-between mt-1 items-center'>
-            <p>Accede más rápido desde tu escritorio</p>
+            <p>{t('pwa.install.description')}</p>
             <Button className='h-4 px-0' size={'sm'} variant={'link'} onClick={handleInstallClick}>
-              Instalar
+              {t('pwa.install.button')}
             </Button>
           </AlertDescription>
         </Alert>
@@ -392,15 +385,15 @@ export default function PWAInstallManager() {
         <Alert className='items-center fixed bottom-32 z-50 max-w-[95%] left-1/2 -translate-x-1/2 w-full sm:right-4 sm:max-w-lg bg-input-background border-[0.3px] border-white/20'>
           <Smartphone className='text-primary!' />
           <AlertTitle className='text-white flex justify-between items-center'>
-            ¡Instala Actitud!
+            {t('pwa.install.title')}
             <Button className='size-4' size={'icon'} variant={'ghost'} onClick={handleCloseMenu}>
               <X className='text-white/70' />
             </Button>
           </AlertTitle>
           <AlertDescription className='font-secondary flex justify-between mt-1 items-center'>
-            <p>Accede más rápido desde tu escritorio</p>
+            <p>{t('pwa.install.description')}</p>
             <Button className='h-4 px-0' size={'sm'} variant={'link'} onClick={handleInstallClick}>
-              {deferredPrompt ? 'Instalar' : 'Ver cómo'}
+              {deferredPrompt ? t('pwa.install.button') : t('pwa.install.howTo')}
             </Button>
           </AlertDescription>
         </Alert>
@@ -421,7 +414,9 @@ export default function PWAInstallManager() {
                 </p>
               ))}
             </div>
-            <Button className='w-full h-14' onClick={handleCloseInstructions}>Entendido</Button>
+            <Button className='w-full h-14' onClick={handleCloseInstructions}>
+              {t('pwa.install.understood')}
+            </Button>
           </div>
         </div>
       )}
@@ -435,7 +430,7 @@ export default function PWAInstallManager() {
           <button
             data-pwa-installer
             className='fixed bottom-4 left-4 bg-primary text-primary-foreground size-10 rounded-full shadow-lg z-40 hover:bg-primary/80 transition-colors'
-            title='Instalar aplicación'
+            title={t('pwa.install.appTitle')}
             onClick={() => setShowInstallMenu(true)}
           >
             <span className='text-lg'>📱</span>

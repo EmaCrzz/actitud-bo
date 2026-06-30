@@ -3,8 +3,8 @@ import { Calendar } from 'lucide-react'
 import { getTotalAssistancesToday } from '@/assistance/api/server'
 import { Skeleton } from '@/components/ui/skeleton'
 import api from '@/lib/i18n/api'
-import { Language } from '@/lib/i18n/types'
-import { TenantsType } from '@/lib/tenants'
+import { type Language } from '@/lib/i18n/types'
+import { type TenantsType } from '@/lib/tenants'
 
 export default async function AssistanceCardToday({
   lang,
@@ -26,11 +26,13 @@ export default async function AssistanceCardToday({
       <CardHeader className='px-2 sm:px-6'>
         <CardTitle className='flex items-center gap-2 text-lg text-white/70 font-headline'>
           <Calendar className='h-5 w-5 text-primary' />
-{t('assistance.todayAssistances')}
+          {t('assistance.todayAssistances')}
         </CardTitle>
       </CardHeader>
       <CardContent className='space-y-2 px-2 sm:px-6'>
-        <div className='text-3xl font-bold text-primary font-headline'>{count === 0 ? '-' : count}</div>
+        <div className='text-3xl font-bold text-primary font-headline'>
+          {count === 0 ? '-' : count}
+        </div>
         <p className='text-sm text-gray-600'>{today}</p>
       </CardContent>
     </Card>

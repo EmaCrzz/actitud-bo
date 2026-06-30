@@ -1,48 +1,58 @@
 {
   "common": {
-    "loading": "Loading...",
-    "searching": "Searching...",
-    "error": "Error",
-    "success": "Success",
-    "cancel": "Cancel",
-    "save": "Save",
-    "edit": "Edit",
-    "delete": "Delete",
-    "confirm": "Confirm",
-    "back": "Back",
-    "next": "Next",
-    "information": "Information",
-    "previous": "Previous",
-    "close": "Close",
-    "search": "Search",
-    "clear": "Clear",
-    "select": "Select",
     "all": "All",
-    "none": "None",
-    "yes": "Yes",
+    "back": "Back",
+    "basePrince": "Base price",
+    "cancel": "Cancel",
+    "clear": "Clear",
+    "close": "Close",
+    "confirm": "Confirm",
+    "copyright": "© {year} ActitudTech. All rights reserved.",
+    "currentMonth": "Current month",
+    "delete": "Delete",
+    "edit": "Edit",
+    "error": "Error",
+    "information": "Information",
+    "lastUpdated": "Last updated",
+    "lastUpdatedShort": "Last updated",
+    "loading": "Loading...",
+    "middlePrice": "Half month price",
+    "next": "Next",
     "no": "No",
+    "none": "None",
+    "previous": "Previous",
+    "save": "Save",
+    "search": "Search",
+    "searching": "Searching...",
+    "select": "Select",
+    "success": "Success",
+    "surchargePrice": "Surcharge price",
+    "understood": "Understood",
     "version": "Version",
-    "copyright": "© {year} ActitudTech. All rights reserved."
+    "viewCustomer": "View customer",
+    "yes": "Yes"
   },
   "buttons": {
-    "continue": "Continue",
-    "submit": "Submit",
-    "login": "Login",
-    "logout": "Logout",
-    "register": "Register",
-    "signUp": "Sign Up",
-    "signIn": "Sign In",
-    "forgotPassword": "Forgot Password",
-    "resetPassword": "Reset Password",
-    "changePassword": "Change Password",
-    "updateProfile": "Update Profile",
     "addNew": "Add New",
-    "remove": "Remove",
+    "back": "Back",
+    "changePassword": "Change Password",
+    "continue": "Continue",
+    "download": "Download",
     "duplicate": "Duplicate",
     "export": "Export",
+    "forgotPassword": "Forgot Password",
     "import": "Import",
+    "login": "Login",
+    "logout": "Logout",
     "print": "Print",
-    "download": "Download",
+    "register": "Register",
+    "remove": "Remove",
+    "resetPassword": "Reset Password",
+    "share": "Share",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "submit": "Submit",
+    "updateProfile": "Update Profile",
     "upload": "Upload"
   },
   "navigation": {
@@ -107,32 +117,38 @@
     }
   },
   "customer": {
-    "title": "Customer",
-    "titlePlural": "Customers",
+    "actives": "Active customers",
     "addNew": "Add Customer",
+    "assistanceHistory": "Assistance History",
     "createNew": "Create a new Customer",
     "creatingCustomer": "Creating customer",
+    "customerDetails": "Customer Details",
+    "customerProfile": "Customer profile",
     "editCustomer": "Edit Customer",
     "editFormDescription": "You can modify the form to update this customer's information.",
-    "newFormDescription": "To get started, we'll ask for the customer's personal information.",
-    "phoneContact": "Phone contact",
-    "customerDetails": "Customer Details",
-    "personalInformation": "Personal Information",
     "membershipInformation": "Membership Information",
-    "assistanceHistory": "Assistance History",
+    "newFormDescription": "To get started, we'll ask for the customer's personal information.",
     "noCustomers": "No customers registered",
     "noCustomersFound": "No customers found with name {query}",
-    "noMembership": "No membership",
     "notFound": "Customer not found",
-    "customerProfile": "Customer profile",
-    "searchPlaceholder": "Search customers...",
+    "pending": "Pending customers",
+    "personalInformation": "Personal Information",
+    "phoneContact": "Phone contact",
     "searchCustomers": "Customer search",
+    "searchPlaceholder": "Search customers...",
+    "title": "Customer",
+    "titlePlural": "Customers",
     "welcome": "Welcome {name}",
     "status": {
       "active": "Active",
-      "inactive": "Inactive",
       "expired": "Expired",
-      "pending": "Pending"
+      "inactive": "Inactive",
+      "pending": "Pending",
+      "upToDate": "Up to date"
+    },
+    "errors": {
+      "personIdExists": "This ID number already exists",
+      "personIdAlreadyRegistered": "This ID number is already registered"
     }
   },
   "assistance": {
@@ -161,61 +177,87 @@
     "registerAttendance": "Register assistance",
     "alreadyRegisteredToday": "An assistance has already been registered today",
     "topMonthlyAssistants": "Top Monthly Assistants",
+    "topOfTheMonth": "Top of the month of",
+    "joinUs": "Join us!",
     "oneDay": "1 day",
     "multipleDays": "{count} days",
     "weeklyAssistances": "Weekly assistances",
     "errorRegistering": "Error registering assistance, please try again",
     "successRegistered": "Great! Assistance registered successfully!",
     "weekCompleteMessage": "Week complete, add a daily pass!",
-    "waitMoment": "Please wait"
+    "waitMoment": "Please wait",
+    "noTopAssistants": "No assistances registered this month yet"
   },
   "membership": {
-    "title": "Membership",
-    "titlePlural": "Memberships",
-    "management": "Membership management",
-    "selectType": "Select the membership type.",
-    "membershipType": "Membership Type",
-    "startDate": "Start Date",
-    "endDate": "End Date",
-    "status": "Status",
+    "aplySurcharge": "Apply late payment surcharge",
+    "aboutToExpire": "About to expire",
+    "active": "Active",
+    "activeClients": "Active clients",
+    "activeMemberships": "active memberships",
+    "confirm": "Confirm",
+    "createMembership": "Create membership",
     "daysRemaining": "Days Remaining",
+    "endDate": "End date:",
+    "endDateLabel": "End date",
+    "endShort": "End:",
+    "errorLoadingActiveClients": "Error loading active clients.",
     "expired": "Expired",
     "expiresIn": "Expires in {days} days",
-    "renewable": "Renewable",
-    "selectMembershipType": "Select a membership type",
-    "membershipTypeShort": "Membership type",
-    "createMembership": "Create membership",
-    "renewMembership": "Renew membership",
-    "modifyMembership": "Modify membership",
-    "personalData": "Personal Data",
     "fullName": "Full name",
     "idNumber": "ID Number",
-    "noMembership": "No membership",
-    "phoneContact": "Phone contact",
-    "payMembership": "Pay for membership?",
-    "startDateLabel": "Start date",
-    "endDateLabel": "End date",
-    "registerFirstAssistance": "Register first assistance",
-    "paymentRequiredTooltip": "If you don't pay for the membership, you won't be able to register assistances.",
-    "confirm": "Confirm",
-    "active": "Active",
-    "aboutToExpire": "About to expire",
-    "totalAssistances": "Total Assistances",
-    "membershipsByType": "Memberships by Type",
-    "activeMemberships": "active memberships",
+    "list": "List of memberships",
     "loading": "Loading...",
-    "totalLoading": "Total: Loading...",
-    "activeClients": "Active clients",
-    "errorLoadingActiveClients": "Error loading active clients.",
-    "endShort": "End:",
-    "endDate": "End date:",
+    "management": "Membership management",
+    "membershipsByType": "Memberships by Type",
+    "membershipType": "Membership Type",
+    "membershipTypeShort": "Membership type",
+    "middlePriceApplied": "Half month price applied for renewal past mid-month",
+    "modifyMembership": "Modify membership",
     "noActiveClients": "No active clients.",
+    "noMembership": "No membership",
+    "noPendingsClients": "No pending payments.",
+    "payMembership": "Pay for membership?",
+    "paymentRequiredTooltip": "If you don't pay for the membership, you won't be able to register assistances.",
+    "personalData": "Personal Data",
+    "phoneContact": "Phone contact",
+    "registerFirstAssistance": "Register first assistance",
+    "renewable": "Renewable",
+    "renewMembership": "Renew membership",
+    "selectMembershipType": "Select a membership type",
+    "selectType": "Select the membership type.",
+    "startDate": "Start Date",
+    "startDateLabel": "Start date",
+    "status": "Status",
+    "surchargeApplied": "Late payment surcharge applied for registered assistances",
+    "title": "Membership",
+    "titlePlural": "Memberships",
+    "totalAssistances": "Total Assistances",
+    "totalLoading": "Total: Loading...",
     "types": {
-      "monthly": "Monthly",
-      "quarterly": "Quarterly",
-      "semiannual": "Semiannual",
-      "annual": "Annual",
-      "unlimited": "Unlimited"
+      "title": "Membership Types",
+      "5_days": "Membership: 5 days",
+      "3_days": "Membership: 3 days",
+      "daily": "Daily pass",
+      "vip": "VIP",
+      "twoLines": {
+        "5_days": {
+          "line1": "5",
+          "line2": "Days per week"
+        },
+        "3_days": {
+          "line1": "3",
+          "line2": "Days per week"
+        },
+        "daily": {
+          "line1": "1",
+          "line2": "Daily pass"
+        },
+        "vip": {
+          "line1": "VIP",
+          "line2": "VIP"
+        }
+
+      }
     }
   },
   "auth": {
@@ -255,7 +297,9 @@
     "serverError": "Server error",
     "validation": "Validation error",
     "rateLimit": "Too many requests",
-    "timeout": "Request timeout"
+    "timeout": "Request timeout",
+    "updatePrice": "Error updating prices",
+    "updatePriceDescription": "Could not update membership prices"
   },
   "messages": {
     "confirmDelete": "Are you sure you want to delete {item}?",
@@ -266,6 +310,145 @@
     "noResults": "No results found",
     "dataLoaded": "Data loaded",
     "dataSaved": "Data saved",
-    "dataDeleted": "Data deleted"
+    "dataDeleted": "Data deleted",
+    "successUpdatePrice": "Prices updated",
+    "successUpdatePriceDescription": "Membership prices have been updated successfully"
+  },
+  "payments": {
+    "cash": "Cash",
+    "pending": "Pending payment",
+    "pendingShort": "Pending",
+    "paymentTypeShort": "Payment type",
+    "selectPaymentType": "Select payment type",
+    "title": "Payment Method",
+    "transfer": "Transfer",
+    "free": "Free"
+  },
+  "accounting": {
+    "title": "Accounting",
+    "accountingAndFinance": {
+      "title": "Accounting and Finance"
+    },
+    "income": {
+      "title": "Income",
+      "totalIncome": "Total Income",
+      "monthlyIncome": "Monthly Income",
+      "incomeBySource": "Income by Source",
+      "byMemberships": "Income by Memberships",
+      "payments": "List of membership payments received"
+    },
+    "expenses": {
+      "title": "Expenses",
+      "totalExpenses": "Total Expenses",
+      "monthlyExpenses": "Monthly Expenses",
+      "expensesByCategory": "Expenses by Category",
+      "resume": "Expenses summary",
+      "new": "New expense",
+      "form": {
+        "title": "Register a new expense, indicate what it was and how much it cost.",
+        "description": "Description",
+        "amount": "Amount",
+        "category": "Category",
+        "date": "Date",
+        "notes": "Notes (optional)"
+      },
+      "validation": {
+        "descriptionRequired": "Description is required",
+        "amountRequired": "Amount must be greater than 0",
+        "categoryRequired": "Category is required"
+      },
+      "errors": {
+        "createError": "Error creating expense"
+      },
+      "success": {
+        "created": "Expense created successfully"
+      },
+      "categories": {
+        "SERVICES": "Services",
+        "MAINTENANCE": "Maintenance",
+        "EQUIPMENT": "Equipment",
+        "SALARIES": "Salaries",
+        "SUPPLIES": "Supplies",
+        "RENT": "Rent",
+        "TAXES": "Taxes",
+        "OTHER": "Other"
+      }
+    },
+    "balance": {
+      "title": "Balance",
+      "currentBalance": "Current Balance",
+      "monthlyBalance": "Monthly Balance",
+      "annualBalance": "Annual Balance"
+    }
+  },
+  "months": {
+    "january": "January",
+    "february": "February",
+    "march": "March",
+    "april": "April",
+    "may": "May",
+    "june": "June",
+    "july": "July",
+    "august": "August",
+    "september": "September",
+    "october": "October",
+    "november": "November",
+    "december": "December"
+  },
+  "rateLimit": {
+    "limitReached": "Limit reached",
+    "understood": "Understood",
+    "limit": "Limit",
+    "remaining": "Remaining",
+    "tryAgainIn": "You can try again in {time}",
+    "tryAgain": "Try again",
+    "unexpectedError": "An unexpected error occurred",
+    "time": {
+      "seconds": "{count} second",
+      "secondsPlural": "{count} seconds",
+      "minutes": "{count} minute",
+      "minutesPlural": "{count} minutes",
+      "hours": "{count} hour",
+      "hoursPlural": "{count} hours"
+    }
+  },
+  "pwa": {
+    "install": {
+      "title": "Install Actitud!",
+      "description": "Access faster from your desktop",
+      "button": "Install",
+      "howTo": "See how",
+      "understood": "Understood",
+      "appTitle": "Install app",
+      "ios": {
+        "title": "Install on iOS",
+        "step1": "1. Tap the share button (⬆️)",
+        "step2": "2. Select 'Add to Home Screen'",
+        "step3": "3. Tap 'Add' to confirm"
+      },
+      "chrome": {
+        "title": "Install on Chrome",
+        "step1": "1. Look for the install icon (⬇️) in the address bar",
+        "step2": "2. Or go to Menu → 'Install Actitud'",
+        "step3": "3. Confirm installation"
+      },
+      "firefox": {
+        "title": "Install on Firefox",
+        "step1": "1. Look for the install icon in the address bar",
+        "step2": "2. Or go to Menu → 'Install this application'",
+        "step3": "3. Confirm installation"
+      },
+      "generic": {
+        "title": "Install app",
+        "step1": "1. Look for the install option in your browser",
+        "step2": "2. It's usually in the menu or address bar",
+        "step3": "3. Confirm installation"
+      }
+    }
+  },
+  "time": {
+    "lessThanMinute": "Less than a minute ago",
+    "minutesAgo": "{count} minute",
+    "minutesAgoPlural": "{count} minutes"
   }
 }

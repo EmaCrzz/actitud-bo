@@ -1,6 +1,6 @@
-import { MembershipType } from "@/membership/consts";
-import { MembershipData } from "@/membership/types";
-import type { DatabaseSuccess, DatabaseError } from "@/types/database-errors"
+import { MembershipTypes } from '@/membership/consts'
+import { MembershipData } from '@/membership/types'
+import type { DatabaseSuccess, DatabaseError } from '@/types/database-errors'
 
 export interface Customer {
   id: string
@@ -13,13 +13,14 @@ export interface Customer {
   assistance_count: number
 }
 export interface CustomerWithMembership extends Customer {
-  membership_type: MembershipType | null
+  membership_type: MembershipTypes | null
 }
 
 export interface CustomerMembership {
-  membership_type: MembershipType
-  expiration_date: string
-  last_payment_date: string
+  membership_type: MembershipTypes
+  expiration_date: string | null
+  last_payment_date: string | null
+  renewal_date: string | null
 }
 
 export interface Assistance {

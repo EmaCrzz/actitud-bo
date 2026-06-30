@@ -1,9 +1,15 @@
 import { cn } from '@/lib/utils'
-import { MEMBERSHIP_TYPE_3_DAYS, MEMBERSHIP_TYPE_5_DAYS, MembershipType } from '@/membership/consts'
+import {
+  MEMBERSHIP_TYPE_3_DAYS,
+  MEMBERSHIP_TYPE_5_DAYS,
+  MEMBERSHIP_TYPE_DAILY,
+  MEMBERSHIP_TYPE_VIP,
+  MembershipTypes,
+} from '@/membership/consts'
 import { useTranslations } from '@/lib/i18n/context'
 
 interface Porps {
-  membershipType: MembershipType
+  membershipType: MembershipTypes
   assistanceCount?: number
   selectedDay?: string
   isDisabled?: boolean
@@ -18,16 +24,19 @@ export default function CustomerCounter({
   handleSelectedDay,
 }: Porps) {
   const { t } = useTranslations()
-  const items =
-    membershipType === MEMBERSHIP_TYPE_5_DAYS
-      ? 5
-      : membershipType === MEMBERSHIP_TYPE_3_DAYS
-        ? 3
-        : 1
+  const membershipItems: Record<MembershipTypes, number> = {
+    [MEMBERSHIP_TYPE_VIP]: 5,
+    [MEMBERSHIP_TYPE_5_DAYS]: 5,
+    [MEMBERSHIP_TYPE_3_DAYS]: 3,
+    [MEMBERSHIP_TYPE_DAILY]: 1,
+  }
+  const items = membershipItems[membershipType]
 
   return (
     <>
-      <p className='text-lg mt-6 font-secondary tracking-[0.72px]'>{t('assistance.weeklyAssistances')}</p>
+      <p className='text-lg mt-6 font-secondary tracking-[0.72px]'>
+        {t('assistance.weeklyAssistances')}
+      </p>
       <hr className='mt-2 mb-4 border-primary' />
       <div className='flex gap-4 sm:gap-6 items-center'>
         {Array.from({ length: items }).map((_, index) => {

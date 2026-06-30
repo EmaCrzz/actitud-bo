@@ -47,38 +47,38 @@ export const unbounded = localFont({
 const poppins = Poppins({
   subsets: ['latin'],
   weight: ['100', '300', '400', '500', '700'],
-  variable: '--font-roboto'
+  variable: '--font-roboto',
 })
 
 const notoSans = Noto_Sans({
   subsets: ['latin'],
   weight: ['100', '300', '400', '500', '700'],
-  variable: '--font-noto-sans'
+  variable: '--font-noto-sans',
 })
 
 const montserrat = Montserrat({
   subsets: ['latin'],
   weight: ['100', '300', '400', '500', '700'],
-  variable: '--font-montserrat'
+  variable: '--font-montserrat',
 })
 
 const inter = Inter({
   subsets: ['latin'],
   weight: ['100', '300', '400', '500', '700'],
-  variable: '--font-inter'
+  variable: '--font-inter',
 })
 
 const playfairDisplay = Playfair_Display({
   subsets: ['latin'],
   weight: ['400', '500', '700'],
-  variable: '--font-playfair-display'
+  variable: '--font-playfair-display',
 })
 
 // System font fallback
 export const systemFont: FontWithVariable = {
   className: 'font-system',
   style: { fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif' },
-  variable: '--font-system'
+  variable: '--font-system',
 } as FontWithVariable
 
 export const defaultFont = systemFont
@@ -87,15 +87,15 @@ export const defaultFont = systemFont
 export const fontMap: Record<TenantsType, TenantFontConfig> = {
   [TENANTS.ACTITUD]: {
     primary: poppins as FontWithVariable,
-    headline: unbounded as FontWithVariable
+    headline: unbounded as FontWithVariable,
   },
   [TENANTS.CORE]: {
     primary: montserrat as FontWithVariable,
-    headline: inter as FontWithVariable
+    headline: inter as FontWithVariable,
   },
   [TENANTS.WELLRISE]: {
     primary: notoSans as FontWithVariable,
-    headline: playfairDisplay as FontWithVariable
+    headline: playfairDisplay as FontWithVariable,
   },
 }
 
@@ -138,7 +138,10 @@ export function getTenantFontStyles(tenant: TenantsType): Record<string, string>
 
   // Map headline font variable to --font-family-headline if it exists
   if (config.headline) {
-    styles['--font-family-headline'] = config.headline.style?.fontFamily || config.primary.style?.fontFamily || 'system-ui, sans-serif'
+    styles['--font-family-headline'] =
+      config.headline.style?.fontFamily ||
+      config.primary.style?.fontFamily ||
+      'system-ui, sans-serif'
   }
 
   return styles

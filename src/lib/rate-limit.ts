@@ -2,18 +2,19 @@ import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
 
 // Configuración de Redis
-const redis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN 
-  ? new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    })
-  : null
+const redis =
+  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+    ? new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      })
+    : null
 
 // Fallback para desarrollo local (usar Map en memoria)
 const localCache = new Map()
 
 // Rate limiters específicos para diferentes funcionalidades
-export const loginRateLimit = redis 
+export const loginRateLimit = redis
   ? new Ratelimit({
       redis,
       limiter: Ratelimit.slidingWindow(5, '1 m'), // 5 intentos por minuto
@@ -24,24 +25,24 @@ export const loginRateLimit = redis
         const key = `login:${identifier}`
         const now = Date.now()
         const windowStart = now - 60000 // 1 minuto
-        
+
         const requests = localCache.get(key) || []
         const validRequests = requests.filter((time: number) => time > windowStart)
-        
+
         if (validRequests.length >= 5) {
           return { success: false, limit: 5, remaining: 0, reset: windowStart + 60000 }
         }
-        
+
         validRequests.push(now)
         localCache.set(key, validRequests)
-        
-        return { 
-          success: true, 
-          limit: 5, 
-          remaining: 5 - validRequests.length, 
-          reset: windowStart + 60000 
+
+        return {
+          success: true,
+          limit: 5,
+          remaining: 5 - validRequests.length,
+          reset: windowStart + 60000,
         }
-      }
+      },
     }
 
 export const searchRateLimit = redis
@@ -55,24 +56,24 @@ export const searchRateLimit = redis
         const key = `search:${identifier}`
         const now = Date.now()
         const windowStart = now - 60000
-        
+
         const requests = localCache.get(key) || []
         const validRequests = requests.filter((time: number) => time > windowStart)
-        
+
         if (validRequests.length >= 30) {
           return { success: false, limit: 30, remaining: 0, reset: windowStart + 60000 }
         }
-        
+
         validRequests.push(now)
         localCache.set(key, validRequests)
-        
-        return { 
-          success: true, 
-          limit: 30, 
-          remaining: 30 - validRequests.length, 
-          reset: windowStart + 60000 
+
+        return {
+          success: true,
+          limit: 30,
+          remaining: 30 - validRequests.length,
+          reset: windowStart + 60000,
         }
-      }
+      },
     }
 
 export const createCustomerRateLimit = redis
@@ -86,24 +87,24 @@ export const createCustomerRateLimit = redis
         const key = `create_customer:${identifier}`
         const now = Date.now()
         const windowStart = now - 3600000 // 1 hora
-        
+
         const requests = localCache.get(key) || []
         const validRequests = requests.filter((time: number) => time > windowStart)
-        
+
         if (validRequests.length >= 10) {
           return { success: false, limit: 10, remaining: 0, reset: windowStart + 3600000 }
         }
-        
+
         validRequests.push(now)
         localCache.set(key, validRequests)
-        
-        return { 
-          success: true, 
-          limit: 10, 
-          remaining: 10 - validRequests.length, 
-          reset: windowStart + 3600000 
+
+        return {
+          success: true,
+          limit: 10,
+          remaining: 10 - validRequests.length,
+          reset: windowStart + 3600000,
         }
-      }
+      },
     }
 
 export const assistanceRateLimit = redis
@@ -117,24 +118,24 @@ export const assistanceRateLimit = redis
         const key = `assistance:${identifier}`
         const now = Date.now()
         const windowStart = now - 3600000
-        
+
         const requests = localCache.get(key) || []
         const validRequests = requests.filter((time: number) => time > windowStart)
-        
+
         if (validRequests.length >= 20) {
           return { success: false, limit: 20, remaining: 0, reset: windowStart + 3600000 }
         }
-        
+
         validRequests.push(now)
         localCache.set(key, validRequests)
-        
-        return { 
-          success: true, 
-          limit: 20, 
-          remaining: 20 - validRequests.length, 
-          reset: windowStart + 3600000 
+
+        return {
+          success: true,
+          limit: 20,
+          remaining: 20 - validRequests.length,
+          reset: windowStart + 3600000,
         }
-      }
+      },
     }
 
 // Utility function para obtener IP del request
@@ -145,18 +146,16 @@ export const getClientIP = (request: Request): string => {
   if (forwardedFor) {
     return forwardedFor.split(',')[0].trim()
   }
-  
+
   // Cloudflare
   const realIP = request.headers.get('cf-connecting-ip')
 
   if (realIP) {
     return realIP
   }
-  
+
   // Otras opciones
-  return request.headers.get('x-real-ip') || 
-         request.headers.get('x-client-ip') || 
-         '127.0.0.1'
+  return request.headers.get('x-real-ip') || request.headers.get('x-client-ip') || '127.0.0.1'
 }
 
 // Tipos para respuestas de rate limiting
@@ -199,9 +198,9 @@ export function withRateLimit<T extends unknown[], R>(
   return async (...args: T): Promise<R> => {
     const identifier = typeof window !== 'undefined' ? 'client' : '127.0.0.1'
     const rateLimit = rateLimiters[rateLimitType]
-    
+
     const { success, limit, remaining, reset } = await rateLimit.limit(identifier)
-    
+
     if (!success) {
       const waitTime = Math.ceil((reset - Date.now()) / 1000)
       const messages = {
@@ -210,15 +209,10 @@ export function withRateLimit<T extends unknown[], R>(
         createCustomer: `Has alcanzado el límite de creación de clientes. Intenta nuevamente en ${Math.ceil(waitTime / 60)} minutos.`,
         assistance: `Has alcanzado el límite de registro de asistencias. Intenta nuevamente en ${Math.ceil(waitTime / 60)} minutos.`,
       }
-      
-      throw new RateLimitError(
-        messages[rateLimitType],
-        limit,
-        remaining,
-        reset
-      )
+
+      throw new RateLimitError(messages[rateLimitType], limit, remaining, reset)
     }
-    
+
     return fn(...args)
   }
 }
@@ -231,9 +225,9 @@ export function withAPIRateLimit<T extends unknown[], R>(
   return async (req: Request, ...args: T): Promise<R> => {
     const identifier = getClientIP(req)
     const rateLimit = rateLimiters[rateLimitType]
-    
+
     const { success, limit, remaining, reset } = await rateLimit.limit(identifier)
-    
+
     if (!success) {
       const waitTime = Math.ceil((reset - Date.now()) / 1000)
 
@@ -241,7 +235,7 @@ export function withAPIRateLimit<T extends unknown[], R>(
         JSON.stringify({
           error: 'Rate limit exceeded',
           message: `Too many requests. Try again in ${waitTime} seconds.`,
-          retryAfter: waitTime
+          retryAfter: waitTime,
         }),
         {
           status: 429,
@@ -255,7 +249,7 @@ export function withAPIRateLimit<T extends unknown[], R>(
         }
       )
     }
-    
+
     return handler(req, ...args)
   }
 }

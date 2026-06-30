@@ -1,26 +1,33 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type DatabaseErrorCode =
-  | "MISSING_REQUIRED_FIELDS"
-  | "PERSON_ID_ALREADY_EXISTS"
-  | "PERSON_ID_CONFLICT"
-  | "CUSTOMER_NOT_FOUND"
-  | "INVALID_MEMBERSHIP_TYPE"
-  | "UNEXPECTED_ERROR"
-  | "UPDATE_MEMBERSHIP_ERROR"
-  | "MISSING_FORM_DATA"
-  | "CREATE_MEMBERSHIP_ERROR"
+  | 'MISSING_REQUIRED_FIELDS'
+  | 'PERSON_ID_ALREADY_EXISTS'
+  | 'PERSON_ID_CONFLICT'
+  | 'CUSTOMER_NOT_FOUND'
+  | 'INVALID_MEMBERSHIP_TYPE'
+  | 'UNEXPECTED_ERROR'
+  | 'UPDATE_MEMBERSHIP_ERROR'
+  | 'MISSING_FORM_DATA'
+  | 'CREATE_MEMBERSHIP_ERROR'
+  | 'INVALID_AMOUNT'
+  | 'CREATE_PAYMENT_ERROR'
+  | 'RPC_ERROR'
+  | 'OPERATION_FAILED'
+  | 'ASSISTANCE_ALREADY_EXISTS'
+  | 'MISSING_CUSTOMER_ID'
+  | 'MISSING_MEMBERSHIP_TYPE'
 
 export interface DatabaseError {
   success: false
   error_code: DatabaseErrorCode
   message: string
-  operation: "create" | "update" | "check_data"
+  operation: 'create' | 'update' | 'check_data'
   data?: Record<string, any>
 }
 
 export interface DatabaseSuccess<T = any> {
   success: true
-  operation: "created" | "updated" | "check_data"
+  operation: 'created' | 'updated' | 'check_data'
   message: string
   data: T
 }
@@ -29,7 +36,7 @@ export type DatabaseResult<T = any> = DatabaseSuccess<T> | DatabaseError
 
 // Tipos específicos para errores de cliente
 export interface PersonIdConflictError extends DatabaseError {
-  error_code: "PERSON_ID_ALREADY_EXISTS" | "PERSON_ID_CONFLICT"
+  error_code: 'PERSON_ID_ALREADY_EXISTS' | 'PERSON_ID_CONFLICT'
   data: {
     existing_customer: {
       id: string
@@ -45,14 +52,14 @@ export interface PersonIdConflictError extends DatabaseError {
 }
 
 export interface MissingFieldsError extends DatabaseError {
-  error_code: "MISSING_REQUIRED_FIELDS"
+  error_code: 'MISSING_REQUIRED_FIELDS'
   data: {
     missing_fields: string[]
   }
 }
 
 export interface InvalidMembershipError extends DatabaseError {
-  error_code: "INVALID_MEMBERSHIP_TYPE"
+  error_code: 'INVALID_MEMBERSHIP_TYPE'
   data: {
     invalid_membership_type: string
     available_types: string[]

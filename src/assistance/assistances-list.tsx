@@ -10,14 +10,14 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import api from '@/lib/i18n/api'
-import { Language } from '@/lib/i18n/types'
-import { TenantsType } from '@/lib/tenants'
+import { type Language } from '@/lib/i18n/types'
+import { type TenantsType } from '@/lib/tenants'
 
-export default async function AssistancesList({ 
-  collapsible = true, 
-  lang, 
-  tenant 
-}: { 
+export default async function AssistancesList({
+  collapsible = true,
+  lang,
+  tenant,
+}: {
   collapsible?: boolean
   lang: Language
   tenant: TenantsType
@@ -80,10 +80,10 @@ export default async function AssistancesList({
   )
 }
 
-export const AssistancesListSkeleton = ({ 
+export const AssistancesListSkeleton = ({
   collapsible = true,
-  todayAssistancesText = ''
-}: { 
+  todayAssistancesText = '',
+}: {
   collapsible?: boolean
   todayAssistancesText?: string
 }) => {

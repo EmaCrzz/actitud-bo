@@ -8,8 +8,8 @@ import ArrowLeftIcon from '@/components/icons/arrow-left'
 import Link from 'next/link'
 import { HOME } from '@/consts/routes'
 import api from '@/lib/i18n/api'
-import { Language } from '@/lib/i18n/types'
-import { TenantsType } from '@/lib/tenants'
+import { type Language } from '@/lib/i18n/types'
+import { type TenantsType } from '@/lib/tenants'
 
 export default async function AssintanceRegisterPage({
   params,
@@ -22,7 +22,7 @@ export default async function AssintanceRegisterPage({
 
   if (!customer) {
     return (
-      <div className='max-w-3xl mx-auto w-full px-2 sm:px-4 py-6'>
+      <div className='max-w-3xl mx-auto w-full px-4 py-6'>
         <h2 className='text-lg font-semibold'>{t('customer.notFound')}</h2>
       </div>
     )
@@ -30,14 +30,14 @@ export default async function AssintanceRegisterPage({
 
   return (
     <>
-      <header className='max-w-3xl mx-auto w-full px-2 sm:px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
+      <header className='max-w-3xl mx-auto w-full px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
         <div className='flex gap-4 items-center'>
           <Button className='size-6 rounded-full' variant='ghost'>
             <Link href={HOME}>
               <ArrowLeftIcon className='size-6' />
             </Link>
           </Button>
-          <h5 className='font-medium text-sm font-headline'>
+          <h5 className='font-bold text-sm font-headline'>
             {t('assistance.assistanceRegistration')}
           </h5>
         </div>

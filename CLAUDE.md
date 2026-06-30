@@ -20,6 +20,16 @@ npm run type-check  # Run TypeScript type checking
 npm run format      # Format code with Prettier
 ```
 
+### Database Management
+```bash
+npm run db:init-prod    # Link to production and generate initial migration
+npm run db:link-dev     # Link to development and apply migrations
+npm run db:new          # Create a new migration
+npm run db:push-dev     # Push migrations to development
+npm run db:push-prod    # Push migrations to production (with confirmation)
+npm run db:status       # Show current migration status
+```
+
 ### Testing Environment
 - No test framework is configured - check with maintainer before adding tests
 - Manual testing is done on Preview environment: `actitud-bo-git-develop-*.vercel.app`
@@ -92,10 +102,33 @@ Each business domain follows a consistent pattern:
 - **Fallback**: Graceful degradation when Redis unavailable
 
 ### Environment Configuration
-- **Development**: `develop` branch → Preview deployment, local rate limiting
-- **Production**: `main` branch → Production deployment, Redis rate limiting
-- **Required Variables**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- **Optional Variables**: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
+
+#### Multi-Environment Setup
+The project uses separate Supabase projects for different environments:
+
+- **Development**: `develop` branch → Preview deployment → Development Supabase project
+- **Production**: `main` branch → Production deployment → Production Supabase project
+
+#### Environment Files
+- **`.env.local`**: Local development (uses production data currently)
+- **`.env.development`**: Preview deployments (develop branch)
+- **`.env.production`**: Production deployments (main branch)
+- **`.env.example`**: Template with all required variables
+
+#### Required Variables
+- `NEXT_PUBLIC_SUPABASE_URL`: Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabase anonymous key
+- `TENANT`: App tenant identifier (actitud)
+- `APP_LANGUAGE`: Default language (es)
+
+#### Optional Variables
+- `UPSTASH_REDIS_REST_URL`: Redis URL for rate limiting
+- `UPSTASH_REDIS_REST_TOKEN`: Redis token for rate limiting
+
+#### Database Migration Workflow
+1. **Development**: Create and test migrations in development Supabase project
+2. **Production**: Apply tested migrations to production Supabase project
+3. **CLI Commands**: Use `npm run db:*` commands for migration management
 
 ## Development Workflow
 

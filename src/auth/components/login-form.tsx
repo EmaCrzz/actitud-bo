@@ -69,7 +69,11 @@ export function LoginForm() {
                 className='p-0 m-0'
                 componentRight={
                   <Button
-                    aria-label={showPassword ? t('forms.actions.hidePassword') : t('forms.actions.showPassword')}
+                    aria-label={
+                      showPassword
+                        ? t('forms.actions.hidePassword')
+                        : t('forms.actions.showPassword')
+                    }
                     className='h-4 w-4'
                     size='icon'
                     type='button'

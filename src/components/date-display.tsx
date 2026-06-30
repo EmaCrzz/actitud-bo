@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 // Utilidades para manejo de fechas y zonas horarias
 
@@ -20,25 +20,23 @@ export function formatToLocalTime(utcDateString: string): string {
 
   // Si es solo fecha (medianoche UTC), usar la fecha tal como está
   if (isDateOnly(utcDateString)) {
-    return (
-      date.toLocaleDateString("es-AR", {
-        timeZone: "UTC",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      })
-    )
+    return date.toLocaleDateString('es-AR', {
+      timeZone: 'UTC',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    })
   }
 
   // Para fechas con hora específica, hacer conversión normal
-  return date.toLocaleString("es-AR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    timeZoneName: "short",
+  return date.toLocaleString('es-AR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    timeZoneName: 'short',
   })
 }
 
@@ -46,26 +44,29 @@ export function formatToLocalTime(utcDateString: string): string {
  * Convierte a una zona horaria específica
  * Si es solo fecha, no hace conversión de zona horaria
  */
-export function formatToTimezone(utcDateString: string, timezone = "America/Argentina/Buenos_Aires"): string {
+export function formatToTimezone(
+  utcDateString: string,
+  timezone = 'America/Argentina/Buenos_Aires'
+): string {
   const date = new Date(utcDateString)
 
   // Si es solo fecha (medianoche UTC), usar la fecha tal como está
   if (isDateOnly(utcDateString)) {
-    return date.toLocaleDateString("es-AR", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
+    return date.toLocaleDateString('es-AR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
     })
   }
 
-  return date.toLocaleString("es-AR", {
+  return date.toLocaleString('es-AR', {
     timeZone: timezone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
   })
 }
 
@@ -78,19 +79,19 @@ export function formatDateOnly(utcDateString: string): string {
 
   // Si es solo fecha (medianoche UTC), usar UTC para evitar cambio de día
   if (isDateOnly(utcDateString)) {
-    return date.toLocaleDateString("es-AR", {
-      timeZone: "UTC",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+    return date.toLocaleDateString('es-AR', {
+      timeZone: 'UTC',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     })
   }
 
   // Para fechas con hora, usar zona horaria local
-  return date.toLocaleDateString("es-AR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+  return date.toLocaleDateString('es-AR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
   })
 }
 
@@ -102,17 +103,17 @@ export function formatShortDate(utcDateString: string): string {
 
   // Si es solo fecha (medianoche UTC), usar UTC para evitar cambio de día
   if (isDateOnly(utcDateString)) {
-    return date.toLocaleDateString("es-AR", {
-      timeZone: "UTC",
-      month: "numeric",
-      day: "numeric",
+    return date.toLocaleDateString('es-AR', {
+      timeZone: 'UTC',
+      month: 'numeric',
+      day: 'numeric',
     })
   }
 
   // Para fechas con hora, usar zona horaria local
-  return date.toLocaleDateString("es-AR", {
-    month: "numeric",
-    day: "numeric",
+  return date.toLocaleDateString('es-AR', {
+    month: 'numeric',
+    day: 'numeric',
   })
 }
 
@@ -124,19 +125,19 @@ export function formatTimeOnly(utcDateString: string): string {
 
   // Si es solo fecha, mostrar 00:00
   if (isDateOnly(utcDateString)) {
-    return "00:00"
+    return '00:00'
   }
 
-  return date.toLocaleTimeString("es-AR", {
-    hour: "2-digit",
-    minute: "2-digit",
+  return date.toLocaleTimeString('es-AR', {
+    hour: '2-digit',
+    minute: '2-digit',
   })
 }
 
 /**
  * Formato relativo (hace X tiempo)
  */
-export function formatRelativeTime(utcDateString: string): string {
+export function formatRelativeTime(utcDateString: string, t?: (key: string) => string): string {
   const date = new Date(utcDateString)
   const now = new Date()
 
@@ -146,8 +147,8 @@ export function formatRelativeTime(utcDateString: string): string {
     const nowOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate())
     const diffInDays = Math.floor((nowOnly.getTime() - dateOnly.getTime()) / (1000 * 60 * 60 * 24))
 
-    if (diffInDays === 0) return "Hoy"
-    if (diffInDays === 1) return "Ayer"
+    if (diffInDays === 0) return 'Hoy'
+    if (diffInDays === 1) return 'Ayer'
     if (diffInDays < 7) return `Hace ${diffInDays} días`
 
     return formatDateOnly(utcDateString)
@@ -156,11 +157,17 @@ export function formatRelativeTime(utcDateString: string): string {
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
 
   if (diffInSeconds < 60) {
-    return "Hace menos de un minuto"
+    return t ? t('time.lessThanMinute') : 'Hace menos de un minuto'
   } else if (diffInSeconds < 3600) {
     const minutes = Math.floor(diffInSeconds / 60)
 
-    return `Hace ${minutes} minuto${minutes > 1 ? "s" : ""}`
+    if (t) {
+      return minutes === 1
+        ? t('time.minutesAgo').replace('{count}', '1')
+        : t('time.minutesAgoPlural').replace('{count}', minutes.toString())
+    }
+
+    return `Hace ${minutes} minuto${minutes > 1 ? 's' : ''}`
   } else if (diffInSeconds < 86400) {
     return formatTimeOnly(utcDateString)
   } else {
@@ -202,20 +209,20 @@ export function getCurrentDateOnlyUTC(): string {
 
 interface DateDisplayProps {
   date: string
-  format?: "full" | "date" | "time" | "relative" | "short"
+  format?: 'full' | 'date' | 'time' | 'relative' | 'short'
   className?: string
 }
 
-export function DateDisplay({ date, format = "full", className }: DateDisplayProps) {
+export function DateDisplay({ date, format = 'full', className }: DateDisplayProps) {
   const formatDate = () => {
     switch (format) {
-      case "date":
+      case 'date':
         return formatDateOnly(date)
-      case "time":
+      case 'time':
         return formatTimeOnly(date)
-      case "relative":
+      case 'relative':
         return formatRelativeTime(date)
-      case "short":
+      case 'short':
         return formatShortDate(date)
       default:
         return formatToLocalTime(date)

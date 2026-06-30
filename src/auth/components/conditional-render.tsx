@@ -1,15 +1,15 @@
-"use client"
+'use client'
 
-import type React from "react"
+import type React from 'react'
 
-import { usePermissions } from "@/auth/hooks/use-permissions"
-import type { UserRole } from "@/auth/types"
+import { usePermissions } from '@/auth/hooks/use-permissions'
+import type { UserRole } from '@/auth/types'
 
 interface ConditionalRenderProps {
   children: React.ReactNode
   requiredRoles?: UserRole[]
   resource?: string
-  action?: "create" | "read" | "update" | "delete"
+  action?: 'create' | 'read' | 'update' | 'delete'
   fallback?: React.ReactNode
 }
 

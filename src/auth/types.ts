@@ -1,4 +1,4 @@
-export type UserRole = "admin" | "manager" | "employee" | "viewer"
+export type UserRole = 'admin' | 'manager' | 'employee' | 'viewer'
 
 export interface UserProfile {
   id: string
@@ -17,6 +17,6 @@ export interface UserRoleData {
 
 export interface Permission {
   resource: string
-  action: "create" | "read" | "update" | "delete"
+  action: 'create' | 'read' | 'update' | 'delete'
   roles: UserRole[]
 }

@@ -1,4 +1,3 @@
-
 export const SEARCH_CUSTOMER = `
   id,
   first_name,
@@ -8,5 +7,7 @@ export const SEARCH_CUSTOMER = `
   phone,
   created_at,
   assistance_count,
-  customer_membership!inner (membership_type)
+  customer_membership (membership_type)
 ` as const
+
+export const CUSTOMERS_PAGE_SIZE = 20

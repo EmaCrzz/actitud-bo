@@ -4,15 +4,17 @@
 
 ### **Development (Preview)**
 - **Rama:** `develop`
-- **URL:** `actitud-bo-git-develop-*.vercel.app` 
-- **Supabase:** Proyecto de desarrollo
+- **URL:** `actitud-bo-git-develop-*.vercel.app`
+- **Supabase:** Proyecto de desarrollo separado
 - **Rate Limiting:** Cache local (sin Redis)
+- **Base de Datos:** Independiente de producción
 
-### **Production**  
+### **Production**
 - **Rama:** `main`
 - **URL:** `actitud-bo.vercel.app`
-- **Supabase:** Proyecto de producción  
+- **Supabase:** Proyecto de producción
 - **Rate Limiting:** Upstash Redis
+- **Base de Datos:** Datos reales de producción
 
 ---
 
@@ -27,7 +29,11 @@ git pull origin develop
 # Crear rama de feature (opcional)
 git checkout -b feature/nueva-funcionalidad
 
-# Hacer cambios...
+# Hacer cambios en código...
+# Si necesitas cambios en BD:
+npm run db:new          # Crear nueva migración
+npm run db:push-dev     # Aplicar a desarrollo
+
 git add .
 git commit -m "Add: nueva funcionalidad para X"
 git push origin feature/nueva-funcionalidad
@@ -50,6 +56,9 @@ git push origin develop
 git checkout main
 git merge develop
 
+# Si hay migraciones, aplicar a producción:
+npm run db:push-prod    # ⚠️ Con confirmación obligatoria
+
 # Crear tag de versión
 git tag -a v1.2.0 -m "Release v1.2.0: Descripción de cambios"
 git push origin main --tags
@@ -57,6 +66,76 @@ git push origin main --tags
 # ✅ Vercel despliega automáticamente a Production
 # ✅ URL: actitud-bo.vercel.app
 ```
+
+---
+
+## 🗄️ **Gestión de Base de Datos**
+
+### **Setup Inicial (Una sola vez)**
+
+#### **1. Configurar Supabase CLI**
+```bash
+# Login en Supabase CLI
+supabase login
+# Usar token de: https://supabase.com/dashboard/account/tokens
+```
+
+#### **2. Generar Migración Inicial desde Producción**
+```bash
+npm run db:init-prod
+# Te pedirá el Project ID de producción
+# Genera la migración inicial basada en tu esquema actual
+```
+
+#### **3. Aplicar Migración a Desarrollo**
+```bash
+npm run db:link-dev
+# Te pedirá el Project ID de desarrollo
+# Aplica todas las migraciones al proyecto de desarrollo
+```
+
+### **Comandos de Base de Datos**
+
+```bash
+# Gestión de migraciones
+npm run db:new          # Crear nueva migración
+npm run db:status       # Ver estado de migraciones
+npm run db:push-dev     # Aplicar migraciones a desarrollo
+npm run db:push-prod    # Aplicar migraciones a producción (con confirmación)
+```
+
+### **Workflow de Migraciones**
+
+#### **Para Desarrollo:**
+1. **Crear migración:** `npm run db:new nombre-migracion`
+2. **Editar archivo:** `supabase/migrations/XXXXXX_nombre-migracion.sql`
+3. **Aplicar a desarrollo:** `npm run db:push-dev`
+4. **Probar en preview:** Hacer commit y push a develop
+
+#### **Para Producción:**
+1. **Verificar en desarrollo:** Todo funciona correctamente
+2. **Aplicar a producción:** `npm run db:push-prod`
+3. **Confirmar cuando pregunte:** Escribir "yes" para confirmar
+4. **Hacer release:** Continuar con proceso normal de release
+
+### **Proyectos Separados**
+
+#### **Development Project**
+- **Propósito:** Testing y desarrollo seguro
+- **Datos:** Datos de prueba, no críticos
+- **Migraciones:** Se aplican primero aquí
+
+#### **Production Project**
+- **Propósito:** Aplicación en vivo
+- **Datos:** Datos reales de usuarios
+- **Migraciones:** Se aplican después de testing
+
+### **Beneficios del Setup**
+✅ **Desarrollo seguro** - No afectas datos de producción
+✅ **Testing real** - Pruebas con estructura real de BD
+✅ **Rollback fácil** - Cada migración es reversible
+✅ **Historial claro** - Todas las migraciones versionadas
+✅ **Deploy seguro** - Confirmación obligatoria para producción
 
 ---
 
@@ -206,11 +285,23 @@ git checkout develop
 
 Antes de hacer merge a `main`:
 
+### **Funcionalidad**
 - [ ] Feature funciona correctamente en Preview
 - [ ] Rate limiting probado
 - [ ] No hay errores en console del browser
 - [ ] Responsive design verificado
-- [ ] Base de datos de desarrollo sin datos sensibles
+
+### **Base de Datos**
+- [ ] Migraciones aplicadas y probadas en desarrollo
+- [ ] `npm run db:status` muestra migraciones actualizadas
+- [ ] Datos de prueba funcionan correctamente
+- [ ] No hay datos sensibles en desarrollo
+- [ ] Esquema de BD compatible con producción
+
+### **Código**
+- [ ] Linting pasando: `npm run lint`
+- [ ] Type checking pasando: `npm run type-check`
+- [ ] Build exitoso: `npm run build`
 
 ---
 

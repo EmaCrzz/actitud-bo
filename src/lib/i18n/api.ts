@@ -1,48 +1,58 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
-import type { Language, TranslationKey, TranslationParams } from "./types"
-import { TenantsType } from "../tenants";
+import { cache } from 'react'
+import type { Language, TranslationKey, TranslationParams } from './types'
+import { TenantsType } from '../tenants'
+
+// Usar React.cache para deduplicar llamadas a fetch en el mismo request
+const fetchTranslations = cache(async (lang: Language, tenant: TenantsType) => {
+  try {
+    // Load base dictionary
+    const baseDictionary = await import(`./dictionaries/${lang}.json`).then(
+      (module) => module.default
+    )
+
+    // Try to load tenant-specific overrides
+    let tenantOverrides = {}
+
+    try {
+      tenantOverrides = await import(`./dictionaries/tenant/${tenant}.json`).then(
+        (module) => module.default
+      )
+    } catch (error) {
+      // Tenant overrides are optional, continue without them
+      console.warn(`No tenant overrides found for ${tenant}, using base translations only`, {
+        error,
+      })
+    }
+
+    // Deep merge base dictionary with tenant overrides
+    const mergedDictionary = deepMerge(baseDictionary, tenantOverrides)
+
+    return {
+      dictionary: mergedDictionary,
+      t: createTranslator(mergedDictionary),
+    }
+  } catch (error) {
+    console.error('Failed to fetch dictionary:', error)
+    throw new Error('Failed to fetch dictionary')
+  }
+})
 
 const api = {
-  async fetch(lang: Language, tenant: TenantsType) {
-    try {
-      // Load base dictionary
-      const baseDictionary = await import(`./dictionaries/${lang}.json`).then(
-        (module) => module.default,
-      );
-
-      // Try to load tenant-specific overrides
-      let tenantOverrides = {}
-
-      try {
-        tenantOverrides = await import(`./dictionaries/tenant/${tenant}.json`).then(
-          (module) => module.default,
-        );
-      } catch (error) {
-        // Tenant overrides are optional, continue without them
-        console.warn(`No tenant overrides found for ${tenant}, using base translations only`, { error })
-      }
-
-      // Deep merge base dictionary with tenant overrides
-      const mergedDictionary = deepMerge(baseDictionary, tenantOverrides)
-
-      return {
-        dictionary: mergedDictionary,
-        t: createTranslator(mergedDictionary),
-      };
-    } catch (error) {
-      console.error("Failed to fetch dictionary:", error);
-      throw new Error("Failed to fetch dictionary");
-    }
-  },
-};
+  fetch: fetchTranslations,
+}
 
 // Deep merge utility to combine base and tenant translations
 function deepMerge(base: Record<string, any>, override: Record<string, any>): Record<string, any> {
   const result = { ...base }
 
   for (const key in override) {
-    if (override[key] !== null && typeof override[key] === 'object' && !Array.isArray(override[key])) {
+    if (
+      override[key] !== null &&
+      typeof override[key] === 'object' &&
+      !Array.isArray(override[key])
+    ) {
       result[key] = deepMerge(result[key] || {}, override[key])
     } else {
       result[key] = override[key]
@@ -77,13 +87,13 @@ export function createTranslator(dictionary: Record<string, any>) {
     }
 
     // If no params, return translation as is
-    if (!params) return translation;
+    if (!params) return translation
 
     // Replace parameters in the format {param}
     return translation.replace(/\{(\w+)\}/g, (_: string, param: string) => {
-      return String(params[param] ?? `{${param}}`);
-    });
-  };
+      return String(params[param] ?? `{${param}}`)
+    })
+  }
 }
 
-export default api;
+export default api

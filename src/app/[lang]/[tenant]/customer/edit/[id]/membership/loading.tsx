@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 export default async function EditMembershipLoading() {
   return (
     <>
-      <header className='max-w-3xl mx-auto w-full px-2 sm:px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
+      <header className='max-w-3xl mx-auto w-full px-4 py-3 flex justify-between items-center border-b border-primary pt-4'>
         <div className='flex gap-4 items-center'>
           <Button className='size-6 rounded-full' variant='ghost'>
             <ArrowLeftIcon className='size-6' />
@@ -13,7 +13,7 @@ export default async function EditMembershipLoading() {
           <Skeleton className='h-5 w-40' />
         </div>
       </header>
-      <section className='max-w-3xl mx-auto w-full px-2 sm:px-4 overflow-auto pb-4 pt-12'>
+      <section className='max-w-3xl mx-auto w-full px-4 overflow-auto pb-4 pt-12'>
         <Skeleton className='h-5 w-16 mb-4' />
         <div className='grid grid-cols-2 gap-x-4 gap-y-4'>
           <div className='grid gap-y-2 col-span-2'>

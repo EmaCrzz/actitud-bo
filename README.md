@@ -195,6 +195,14 @@ src/
 - [X] Implementar autenticación de usuarios
 
 ## 🔧 Desarrollo (In Progress)
+- [ ] Revisar el caso de ingresar alguien pasado la mitad del mes, generar asistencia pero no cobrar la membresia en ese momento.
+      Luego querer ir a renovar la membresia y vamos a ver que aplica recargo por todo el mes, no por la mitad del mes.
+- [ ] Revisar contador de asistencias en la tabla customers
+- [ ] Crear page para edicion typo  de membresia no valido
+- [ ] Revisar el uso de las traducciones en constantes, paginas y componentes
+- [ ] Actualizar las traducciones de en respecto a las de es
+- [ ] Rewrite de rutas para que esten en por lang
+- [ ] Revisar rutas que estes con constantes
 - [ ] La sumatoria de membresias separada por tipos esta mal
 - [ ] Verificar proteccion de todas las rutas de la app 🔝 🚩
 - [ ] Implementar delete de asistencia del dia

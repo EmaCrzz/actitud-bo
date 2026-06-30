@@ -1,7 +1,6 @@
-import { TENANT } from "../envs"
-import { TENANTS, TenantsType } from "../tenants"
-import { getTenantFontStyles } from "./fonts"
-
+import { TENANT } from '../envs'
+import { TENANTS, TenantsType } from '../tenants'
+import { getTenantFontStyles } from './fonts'
 
 export type ComponentThemeColors = {
   background?: string
@@ -33,21 +32,23 @@ export const tenantThemes: Record<string, TenantTheme> = {
       text: '#ffffff',
       background: '#260210',
       primary: {
-        '200': '#ff6398',
-        '300': '#ff4284',
-        '400': '#ff2976',
-        '500': '#ff1168',
-        '600': '#e60f5e',
-        '700': '#cc0d54',
+        '300': '#FFBDD3',
+        '400': '#FF6398',
+        '500': '#FF1168',
+        '600': '#B52056',
+        '700': '#9D0058',
+        '800': '#6A2F45',
+        '900': '#4D2331',
         contrast: '#fff',
       },
       secondary: {
-        '200': '#66e6d3',
-        '300': '#33ddc4',
-        '400': '#00d4aa',
-        '500': '#00c299',
-        '600': '#00a085',
-        '700': '#008f75',
+        '300': '#DAE8E0',
+        '400': '#DAD7E0',
+        '500': '#DAD7D8',
+        '600': '#8F878A',
+        '700': '#6A5F63',
+        '800': '#3C3839',
+        '900': '#322D2F',
         contrast: '#fff',
       },
       components: {
@@ -59,64 +60,69 @@ export const tenantThemes: Record<string, TenantTheme> = {
           label: 'rgba(255, 255, 255, 0.3)',
           hover: {
             background: '#3c3839',
-            border: "rgba(255, 255, 255, 0.8)",
-          }
+            border: 'rgba(255, 255, 255, 0.8)',
+          },
         },
         popover: {
           background: '#322d2f',
           border: 'rgba(255, 255, 255, 0.3)',
           text: 'rgba(255, 255, 255, 0.8)',
-        }
-      }
-    }
+        },
+      },
+    },
   },
   [TENANTS.WELLRISE]: {
     colors: {
       text: '#2C2930',
       background: '#FAFAFA',
       primary: {
-        '200': '#ebe4ff',
-        '300': '#ddd1ff',
+        '300': '#ebe4ff',
+        '200': '#ddd1ff',
         '400': '#c4afff',
         '500': '#b094ff',
         '600': '#9c6eff',
         '700': '#8a4eff',
-        contrast: '#fff'
+        '800': '#8a4eff',
+        '900': '#8a4eff',
+        contrast: '#fff',
       },
       secondary: {
-        '200': '#ffd4a8',
-        '300': '#ffc47a',
-        '400': '#ffb347',
-        '500': '#ff9f1a',
-        '600': '#e68a00',
-        '700': '#cc7a00',
+        '300': '#ffd4a8',
+        '400': '#ffc47a',
+        '500': '#ffb347',
+        '600': '#ff9f1a',
+        '700': '#e68a00',
+        '800': '#cc7a00',
+        '900': '#cc7a00',
         contrast: '#fff',
-      }
-    }
+      },
+    },
   },
   [TENANTS.CORE]: {
     colors: {
       text: '#2C2930',
       background: '#FAFAFA',
       primary: {
-        '200': '#d9ff99',
-        '300': '#beff5c',
-        '400': '#affe34',
-        '500': '#8fe012',
-        '600': '#6bb808',
-        '700': '#528c0a',
-        contrast: '#000'
+        '300': '#d9ff99',
+        '400': '#beff5c',
+        '500': '#affe34',
+        '600': '#8fe012',
+        '700': '#6bb808',
+        '800': '#528c0a',
+        '900': '#528c0a',
+        contrast: '#000',
       },
       secondary: {
-        '200': '#ffb3c6',
-        '300': '#ff94ae',
-        '400': '#ff7b9a',
-        '500': '#ff5c85',
-        '600': '#e64d76',
-        '700': '#cc4368',
+        '300': '#ffb3c6',
+        '400': '#ff94ae',
+        '500': '#ff7b9a',
+        '600': '#ff5c85',
+        '700': '#e64d76',
+        '800': '#cc4368',
+        '900': '#cc4368',
         contrast: '#fff',
-      }
-    }
+      },
+    },
   },
 }
 
@@ -147,7 +153,8 @@ export const generateThemeStyles = () => {
           Object.entries(componentStyles).forEach(([styleName, styleValue]) => {
             if (typeof styleValue === 'object' && styleValue !== null) {
               Object.entries(styleValue).forEach(([nestedName, nestedValue]) => {
-                styles[`--color-${componentName}-${styleName}-${nestedName}`] = nestedValue as string
+                styles[`--color-${componentName}-${styleName}-${nestedName}`] =
+                  nestedValue as string
               })
             } else if (typeof styleValue === 'string') {
               styles[`--color-${componentName}-${styleName}`] = styleValue
