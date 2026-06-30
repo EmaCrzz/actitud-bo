@@ -1,6 +1,5 @@
 'use client'
 
-import { toPng } from 'html-to-image'
 import { useCallback, useState } from 'react'
 
 interface UseShareImageReturn {
@@ -19,6 +18,9 @@ export function useShareImage(): UseShareImageReturn {
       setError(null)
 
       try {
+        // Dynamic import para reducir bundle size inicial
+        const { toPng } = await import('html-to-image')
+
         const element = document.getElementById(elementId)
 
         if (!element) {
