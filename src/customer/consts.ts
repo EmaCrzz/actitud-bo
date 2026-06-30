@@ -9,3 +9,5 @@ export const SEARCH_CUSTOMER = `
   assistance_count,
   customer_membership (membership_type)
 ` as const
+
+export const CUSTOMERS_PAGE_SIZE = 20
