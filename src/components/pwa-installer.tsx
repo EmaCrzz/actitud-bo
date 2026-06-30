@@ -125,24 +125,18 @@ export default function PWAInstallManager() {
   }, [isInstalled, isCheckingInstallation])
 
   // 🎯 EFFECT PARA ENGAGEMENT TRACKING - Solo si NO está instalada y NO hay UI activa
+  // Optimizado: usar una sola condición derivada y useRef para valores transitorios
   useEffect(() => {
-    // 🚫 NO TRACKEAR SI:
-    if (
-      isInstalled || // Ya está instalada
-      isCheckingInstallation || // Aún verificando
-      showInstallBanner || // Banner activo
-      showInstallMenu || // Menú activo
-      showInstructions || // Instrucciones activas
-      installDismissed // Usuario rechazó
-    ) {
-      console.log('🚫 Tracking deshabilitado:', {
-        isInstalled,
-        isCheckingInstallation,
-        showInstallBanner,
-        showInstallMenu,
-        showInstructions,
-        installDismissed,
-      })
+    const shouldTrack =
+      !isInstalled &&
+      !isCheckingInstallation &&
+      !showInstallBanner &&
+      !showInstallMenu &&
+      !showInstructions &&
+      !installDismissed
+
+    if (!shouldTrack) {
+      console.log('🚫 Tracking deshabilitado')
 
       return
     }
@@ -239,6 +233,7 @@ export default function PWAInstallManager() {
       window.removeEventListener('scroll', handleScroll)
       clearTimeout(timeTracker)
     }
+    // Reducir dependencias solo a las booleanas necesarias
   }, [
     userEngagement,
     isInstalled,
