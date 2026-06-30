@@ -245,12 +245,6 @@ export async function updateMembershipPrices(
     // eslint-disable-next-line no-console
     console.error('Membership not found:', { membershipId, findError })
 
-    // Vamos a listar todos los IDs disponibles para debug
-    const { data: allTypes } = await supabase.from('types_memberships').select('id, type')
-
-    // eslint-disable-next-line no-console
-    console.log('Available membership types:', allTypes)
-
     return {
       data: null,
       error: {
