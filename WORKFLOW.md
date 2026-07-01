@@ -104,6 +104,31 @@ npm run db:push-dev     # Aplicar migraciones a desarrollo
 npm run db:push-prod    # Aplicar migraciones a producción (con confirmación)
 ```
 
+### **Setup del Session Pooler para `db:push-*`**
+
+Desde 2024 Supabase deprecó la conexión directa por IPv4 al puerto 5432. El CLI intenta conectarse por IPv6, cosa que la mayoría de las redes (incluidos ISPs residenciales y GitHub Actions) no soportan, y `npm run db:push-dev` falla con `dial tcp [...]:5432: connect: no route to host`.
+
+**Solución**: usar el **Session Pooler** de Supabase (IPv4-compatible, puerto 5432 vía Supavisor).
+
+#### Configurar por primera vez (DEV)
+
+1. Dashboard de Supabase (proyecto DEV) → **Project Settings → Database**
+2. En el bloque **Connection string**, elegir la tab **Session pooler** (no "Direct connection" ni "Transaction pooler")
+3. Copiar el string. Se ve así:
+   ```
+   postgresql://postgres.PROJECT_REF:[YOUR-PASSWORD]@aws-0-REGION.pooler.supabase.com:5432/postgres
+   ```
+4. Si no tenés la password: **Reset database password** en la misma página, guardala en un password manager. Reemplazá `[YOUR-PASSWORD]` con la password real.
+5. Agregarlo a `.env.local` (que ya está gitignored):
+   ```
+   SUPABASE_DB_URL_DEV=postgresql://postgres.PROJECT_REF:REAL_PASSWORD@...
+   ```
+6. Correr `npm run db:push-dev`. El script detecta la env var y usa el pooler automáticamente.
+
+Si `SUPABASE_DB_URL_DEV` no está seteada, el script cae al flujo antiguo (pide project ID interactivo) y avisa que probablemente falle con IPv6.
+
+Para PROD el flujo va a ser el mismo con `SUPABASE_DB_URL_PROD` — todavía no está implementado. Mientras tanto, aplicar migrations en PROD manualmente pegando el SQL en el SQL Editor del dashboard.
+
 ### **Estructura de la carpeta `supabase/`**
 
 ```

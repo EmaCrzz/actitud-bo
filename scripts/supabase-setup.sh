@@ -21,6 +21,17 @@ echo_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Carga variables SUPABASE_DB_URL_* de .env.local si existe.
+# Grep filtra para no exportar otras variables por accidente.
+load_supabase_db_urls() {
+    if [ -f .env.local ]; then
+        set -a
+        # shellcheck disable=SC2046
+        eval $(grep -E '^SUPABASE_DB_URL_[A-Z]+=' .env.local | sed 's/^/export /')
+        set +a
+    fi
+}
+
 # Function to link to production and generate migration
 link_production() {
     echo_info "Linking to production project..."
@@ -77,6 +88,22 @@ new_migration() {
 # Function to push to development
 push_dev() {
     echo_info "Pushing migrations to development..."
+
+    load_supabase_db_urls
+
+    if [ -n "$SUPABASE_DB_URL_DEV" ]; then
+        # Modo pooler: usa el connection string del Session Pooler (IPv4).
+        # Bypassa `supabase link` y la conexión directa por IPv6 que falla
+        # en la mayoría de las redes desde 2024.
+        echo_info "Using SUPABASE_DB_URL_DEV from .env.local (Session Pooler)"
+        supabase db push --db-url "$SUPABASE_DB_URL_DEV"
+        echo_info "Migrations pushed to development successfully"
+        return
+    fi
+
+    # Fallback interactivo (probablemente falla con "no route to host" en IPv6).
+    echo_warn "SUPABASE_DB_URL_DEV no está en .env.local. Puede fallar con IPv6."
+    echo_warn "Ver instrucciones en WORKFLOW.md para configurar el Session Pooler."
     read -p "Enter your development project ID: " DEV_PROJECT_ID
 
     if [ -z "$DEV_PROJECT_ID" ]; then
