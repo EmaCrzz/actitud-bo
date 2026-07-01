@@ -1,5 +1,6 @@
 import { CustomerWithMembership } from '@/customer/types'
 import { MembershipTypes } from '@/membership/consts'
+import { isExpiredInAppTz } from '@/lib/timezone'
 
 // customer_membership viene como objeto cuando la relación tiene UNIQUE en customer_id,
 // y como array cuando Supabase la resuelve como 1:N. Esta normalización cubre ambos casos.
@@ -108,10 +109,9 @@ export function basicMembershipValidation(formData: FormData) {
   }
 
   if (isFirstAssistance) {
-    const today = new Date()
-
-    // check if the end date is before today
-    if (endDateObj < today) {
+    // La membresía está vencida cuando el día calendario de fin (en Argentina)
+    // es anterior a hoy. Comparar timestamps daría "vencida" a las 21hs.
+    if (isExpiredInAppTz(endDateObj)) {
       errors.first_assistance =
         'No se puede registrar una asistencia si la membresía no está pagada o está vencida'
     }
