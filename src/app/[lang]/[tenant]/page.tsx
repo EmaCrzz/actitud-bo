@@ -1,6 +1,7 @@
 import AssistanceCounter, { AssistanceCounterLoader } from '@/assistance/counter'
 import AutocompleteInput from '@/assistance/search'
 import AuthHeader, { AuthHeaderLoader } from '@/auth/components/header'
+import UnauthorizedToast from '@/auth/components/unauthorized-toast'
 import FooterNavigation from '@/components/nav'
 import { Suspense } from 'react'
 import { type Language } from '@/lib/i18n/types'
@@ -15,6 +16,9 @@ export default async function Home({
 
   return (
     <>
+      <Suspense fallback={null}>
+        <UnauthorizedToast />
+      </Suspense>
       <Suspense fallback={<AuthHeaderLoader />}>
         <AuthHeader lang={lang} tenant={tenant} />
       </Suspense>

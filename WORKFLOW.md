@@ -104,11 +104,25 @@ npm run db:push-dev     # Aplicar migraciones a desarrollo
 npm run db:push-prod    # Aplicar migraciones a producción (con confirmación)
 ```
 
+### **Estructura de la carpeta `supabase/`**
+
+```
+supabase/
+├── migrations/   ← versionadas, se aplican con db:push-dev / db:push-prod
+└── scripts/      ← manuales, se pegan en SQL Editor cuando hace falta
+    ├── grant-admin.sql  ← asigna rol admin a un email (editar el email dentro)
+    └── seed-dev.sql     ← seed solo para entornos de desarrollo
+```
+
+**Regla simple:**
+- Cambios de schema o policies → archivo nuevo en `migrations/`
+- Operaciones puntuales o específicas de entorno (asignar admin, seed, fixes ad-hoc) → archivo en `scripts/`, no van al CLI
+
 ### **Workflow de Migraciones**
 
 #### **Para Desarrollo:**
 1. **Crear migración:** `npm run db:new nombre-migracion`
-2. **Editar archivo:** `supabase/migrations/XXXXXX_nombre-migracion.sql`
+2. **Editar archivo:** `supabase/migrations/XXXXXX_nombre-migracion.sql` — escribir SQL idempotente (`IF NOT EXISTS`, `CREATE OR REPLACE`, `DROP POLICY IF EXISTS`) para que aplicar la misma migration dos veces no rompa
 3. **Aplicar a desarrollo:** `npm run db:push-dev`
 4. **Probar en preview:** Hacer commit y push a develop
 
@@ -116,7 +130,8 @@ npm run db:push-prod    # Aplicar migraciones a producción (con confirmación)
 1. **Verificar en desarrollo:** Todo funciona correctamente
 2. **Aplicar a producción:** `npm run db:push-prod`
 3. **Confirmar cuando pregunte:** Escribir "yes" para confirmar
-4. **Hacer release:** Continuar con proceso normal de release
+4. **Correr scripts manuales si la migration los requiere** (ej. después del setup de RBAC, pegar `supabase/scripts/grant-admin.sql` en el SQL Editor de PROD con tu email para asignarte rol admin)
+5. **Hacer release:** Continuar con proceso normal de release
 
 ### **Proyectos Separados**
 
