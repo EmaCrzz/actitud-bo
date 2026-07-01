@@ -1,16 +1,16 @@
 /* eslint-disable no-console */
 import { createClient } from '@/lib/supabase/server'
+import { getDayRangeInAppTz, getTodayRangeInAppTz } from '@/lib/timezone'
 
 export const getTotalAssistancesToday = async () => {
   const supabase = await createClient()
-  const today = new Date().toISOString().split('T')[0]
-  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  const { start, end } = getTodayRangeInAppTz()
 
   const { count } = await supabase
     .from('assistance')
     .select('*', { count: 'exact', head: true })
-    .gte('assistance_date', `${today}T00:00:00.000Z`)
-    .lt('assistance_date', `${tomorrow}T00:00:00.000Z`)
+    .gte('assistance_date', start.toISOString())
+    .lt('assistance_date', end.toISOString())
 
   return count || 0
 }
@@ -31,15 +31,8 @@ interface AssistanceByDate {
 
 // Función para obtener todas las asistencias de una fecha específica
 export async function getAssistancesByDate(date: Date): Promise<AssistanceByDate[]> {
-  // Crear el rango de la fecha (desde 00:00:00 hasta 23:59:59)
   const supabase = await createClient()
-  const startOfDay = new Date(date)
-
-  startOfDay.setHours(0, 0, 0, 0)
-
-  const endOfDay = new Date(date)
-
-  endOfDay.setHours(23, 59, 59, 999)
+  const { start, end } = getDayRangeInAppTz(date)
 
   const { data, error } = await supabase
     .from('assistance')
@@ -57,8 +50,8 @@ export async function getAssistancesByDate(date: Date): Promise<AssistanceByDate
       )
     `
     )
-    .gte('assistance_date', startOfDay.toISOString())
-    .lte('assistance_date', endOfDay.toISOString())
+    .gte('assistance_date', start.toISOString())
+    .lt('assistance_date', end.toISOString())
     .order('assistance_date', { ascending: false })
 
   const assistances = data as unknown as AssistanceByDate[]

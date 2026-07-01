@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import api from '@/lib/i18n/api'
 import { type Language } from '@/lib/i18n/types'
 import { type TenantsType } from '@/lib/tenants'
+import { APP_TIMEZONE } from '@/lib/timezone'
 
 export default async function AssistanceCardToday({
   lang,
@@ -16,6 +17,7 @@ export default async function AssistanceCardToday({
   const count = await getTotalAssistancesToday()
   const { t } = await api.fetch(lang, tenant)
   const today = new Intl.DateTimeFormat('es-ES', {
+    timeZone: APP_TIMEZONE,
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -48,6 +50,7 @@ export const AssistanceCardTodaySkeleton = async ({
 }) => {
   const { t } = await api.fetch(lang, tenant)
   const today = new Intl.DateTimeFormat('es-ES', {
+    timeZone: APP_TIMEZONE,
     weekday: 'long',
     day: 'numeric',
     month: 'long',

@@ -19,6 +19,7 @@ import { TooltipTrigger, Tooltip, TooltipContent } from '@/components/ui/tooltip
 import AssistanceToday from '@/assistance/assistance-alert-today'
 import { cn } from '@/lib/utils'
 import { useTranslations } from '@/lib/i18n/context'
+import { getAppTzDateParts, isSameDayInAppTz } from '@/lib/timezone'
 import type { MembershipType } from '@/membership/types'
 import { useMemberships } from '@/membership/membership-context'
 import { useInvalidateCustomerStats } from '@/customer/hooks/use-customer-stats'
@@ -51,7 +52,6 @@ export default function MembershipForm({
   errors: errorProps,
   callbackSubmitMultiStep,
 }: Props) {
-  const today = new Date()
   const router = useRouter()
   const { t } = useTranslations()
   const { memberships, isLoading: isLoadingMemberships } = useMemberships()
@@ -88,16 +88,12 @@ export default function MembershipForm({
   const hasAssistancesThisMonth = useMemo(() => {
     if (!customer?.assistance || customer.assistance.length === 0) return false
 
-    const today = new Date()
-    const currentMonth = today.getMonth()
-    const currentYear = today.getFullYear()
+    const { year: currentYear, month: currentMonth } = getAppTzDateParts()
 
     return customer.assistance.some((assistance) => {
-      const assistanceDate = new Date(assistance.assistance_date)
+      const { year, month } = getAppTzDateParts(new Date(assistance.assistance_date))
 
-      return (
-        assistanceDate.getMonth() === currentMonth && assistanceDate.getFullYear() === currentYear
-      )
+      return year === currentYear && month === currentMonth
     })
   }, [customer?.id, customer?.assistance?.length])
 
@@ -108,8 +104,7 @@ export default function MembershipForm({
     const renewalDate = customer?.customer_membership?.renewal_date
       ? new Date(customer.customer_membership.renewal_date)
       : new Date()
-
-    const dayOfMonth = renewalDate.getDate()
+    const { day: dayOfMonth } = getAppTzDateParts(renewalDate)
 
     // Si renovó después del día 15, aplica precio medio independientemente de asistencias
     return dayOfMonth >= 15
@@ -120,8 +115,7 @@ export default function MembershipForm({
     if (shouldApplyMiddleAmount) return false
     if (membershipSelected?.type === MEMBERSHIP_TYPE_VIP) return false
     if (membershipSelected?.type === MEMBERSHIP_TYPE_DAILY) return false
-    const today = new Date()
-    const dayOfMonth = today.getDate()
+    const { day: dayOfMonth } = getAppTzDateParts()
 
     // Condiciones para recargo:
     // 1. Tiene asistencias este mes
@@ -215,8 +209,13 @@ export default function MembershipForm({
   const [payment, setPayment] = useState<CheckedState>(() => {
     if (!customer?.customer_membership?.last_payment_date) return false
     const lastPaymentDate = new Date(customer.customer_membership.last_payment_date)
+    const now = new Date()
+    const lastParts = getAppTzDateParts(lastPaymentDate)
+    const nowParts = getAppTzDateParts(now)
+    const lastKey = lastParts.year * 10000 + lastParts.month * 100 + lastParts.day
+    const nowKey = nowParts.year * 10000 + nowParts.month * 100 + nowParts.day
 
-    if (lastPaymentDate.toDateString() > today.toDateString()) {
+    if (lastKey > nowKey) {
       return false
     }
 
@@ -235,8 +234,9 @@ export default function MembershipForm({
     return innerErrors || {}
   }, [errorProps, innerErrors])
 
-  const hasAssistanceToday = customer?.assistance.some(
-    (assistance) => new Date(assistance.assistance_date).toDateString() === today.toDateString()
+  const now = new Date()
+  const hasAssistanceToday = customer?.assistance.some((assistance) =>
+    isSameDayInAppTz(assistance.assistance_date, now)
   )
 
   return (

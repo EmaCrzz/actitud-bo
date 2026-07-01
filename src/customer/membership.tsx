@@ -7,31 +7,23 @@ import CheckCircleContained from '@/components/icons/check-circle-contained'
 import { CustomerComplete } from '@/customer/types'
 import { useMemo } from 'react'
 import { useTranslations } from '@/lib/i18n/context'
+import { daysUntilInAppTz, isExpiredInAppTz } from '@/lib/timezone'
 import { StarIcon } from 'lucide-react'
 
 export default function CustomerMembership({ customer }: { customer: CustomerComplete }) {
-  const today = new Date()
   const { t } = useTranslations()
   const membershipTransaltionTowLines = customer.customer_membership?.membership_type
     ? MembershipTranslationTwoLines[customer.customer_membership.membership_type]
     : null
   const isVIPMembership = customer.customer_membership?.membership_type === MEMBERSHIP_TYPE_VIP
-  const isExpired = useMemo(() => {
-    if (!customer.customer_membership?.expiration_date) return true
-    const expirationDate = new Date(customer.customer_membership.expiration_date)
-
-    return expirationDate < today
-  }, [])
+  const expirationDate = customer.customer_membership?.expiration_date
+  const isExpired = useMemo(() => isExpiredInAppTz(expirationDate), [expirationDate])
   const aboutToExpire = useMemo(() => {
-    // Check if the membership is about to expire in the next 5 days
-    if (!customer.customer_membership?.expiration_date) return false
-    const expirationDate = new Date(customer.customer_membership.expiration_date)
-    const fiveDaysFromNow = new Date(today)
+    if (!expirationDate) return false
+    const daysLeft = daysUntilInAppTz(expirationDate)
 
-    fiveDaysFromNow.setDate(today.getDate() + 5)
-
-    return expirationDate > today && expirationDate <= fiveDaysFromNow
-  }, [])
+    return daysLeft >= 0 && daysLeft <= 5
+  }, [expirationDate])
 
   return (
     <div className='grid grid-cols-3 gap-x-3 font-secondary'>
