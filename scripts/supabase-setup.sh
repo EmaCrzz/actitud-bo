@@ -127,6 +127,20 @@ push_prod() {
     fi
 
     echo_info "Pushing migrations to production..."
+
+    load_supabase_db_urls
+
+    if [ -n "$SUPABASE_DB_URL_PROD" ]; then
+        # Modo pooler: mismo mecanismo que push_dev pero apuntando a PROD.
+        echo_info "Using SUPABASE_DB_URL_PROD from .env.local (Session Pooler)"
+        supabase db push --db-url "$SUPABASE_DB_URL_PROD"
+        echo_info "Migrations pushed to production successfully"
+        return
+    fi
+
+    # Fallback interactivo (probablemente falla con IPv6).
+    echo_warn "SUPABASE_DB_URL_PROD no está en .env.local. Puede fallar con IPv6."
+    echo_warn "Ver instrucciones en WORKFLOW.md para configurar el Session Pooler."
     read -p "Enter your production project ID: " PROD_PROJECT_ID
 
     if [ -z "$PROD_PROJECT_ID" ]; then

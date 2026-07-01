@@ -127,7 +127,17 @@ Desde 2024 Supabase deprecó la conexión directa por IPv4 al puerto 5432. El CL
 
 Si `SUPABASE_DB_URL_DEV` no está seteada, el script cae al flujo antiguo (pide project ID interactivo) y avisa que probablemente falle con IPv6.
 
-Para PROD el flujo va a ser el mismo con `SUPABASE_DB_URL_PROD` — todavía no está implementado. Mientras tanto, aplicar migrations en PROD manualmente pegando el SQL en el SQL Editor del dashboard.
+#### Configurar PROD
+
+Mismos pasos que DEV pero apuntando al proyecto de producción:
+
+1. Dashboard PROD → botón **Connect** → tab **Session pooler** → copiar
+2. Si hace falta, resetear la password (no rompe la app: usa el anon key)
+3. Agregar a `.env.local`:
+   ```
+   SUPABASE_DB_URL_PROD=postgresql://postgres.PROJECT_REF_PROD:REAL_PASSWORD@...
+   ```
+4. Correr `npm run db:push-prod` (te va a pedir confirmar con "yes" antes de tocar prod)
 
 ### **Estructura de la carpeta `supabase/`**
 
