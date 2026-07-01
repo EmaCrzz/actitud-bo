@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
 import { Label } from '@/components/ui/label'
 import { InputCurrency } from '@/components/ui/input-currency'
 import { Button } from '@/components/ui/button'
@@ -23,6 +24,7 @@ export default function MembershipAmountForm({
   const [loading, setLoading] = useState(false)
   const { t } = useTranslations()
   const { replace } = useRouter()
+  const queryClient = useQueryClient()
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -61,6 +63,8 @@ export default function MembershipAmountForm({
           description: t('messages.successUpdatePriceDescription'),
         })
         onSuccess?.(data)
+        // Invalidar el cache del listado para que al volver muestre los precios nuevos
+        await queryClient.invalidateQueries({ queryKey: ['membership-types'] })
         replace(`${STATS}${ACCOUNTING}?tab=${ACCOUNTING_TAB_MEMBERSHIP}`)
       }
     } catch (error) {

@@ -16,6 +16,11 @@ export const getMembershipPayments = async (
 ): Promise<MembershipPayment[]> => {
   const supabase = await createClient()
 
+  // Verify admin role
+  const { requireAdmin } = await import('@/auth/api/server')
+
+  await requireAdmin()
+
   let query = supabase
     .from('membership_payments')
     .select(
@@ -51,10 +56,10 @@ export const createMembershipPayment = async (
 ): Promise<MembershipPayment | null> => {
   const supabase = await createClient()
 
-  // Verify authentication usando getCurrentUser cacheado
-  const { getCurrentUser } = await import('@/auth/api/server')
+  // Verify admin role
+  const { requireAdmin } = await import('@/auth/api/server')
 
-  await getCurrentUser()
+  await requireAdmin()
 
   const { data, error } = await supabase
     .from('membership_payments')
@@ -79,10 +84,10 @@ export const updateMembershipPayment = async (
 ): Promise<MembershipPayment | null> => {
   const supabase = await createClient()
 
-  // Verify authentication usando getCurrentUser cacheado
-  const { getCurrentUser } = await import('@/auth/api/server')
+  // Verify admin role
+  const { requireAdmin } = await import('@/auth/api/server')
 
-  await getCurrentUser()
+  await requireAdmin()
 
   const { id, ...updateData } = paymentData
 
@@ -108,10 +113,10 @@ export const updateMembershipPayment = async (
 export const deleteMembershipPayment = async (id: string): Promise<boolean> => {
   const supabase = await createClient()
 
-  // Verify authentication usando getCurrentUser cacheado
-  const { getCurrentUser } = await import('@/auth/api/server')
+  // Verify admin role
+  const { requireAdmin } = await import('@/auth/api/server')
 
-  await getCurrentUser()
+  await requireAdmin()
 
   const { error } = await supabase.from('membership_payments').delete().eq('id', id)
 
@@ -125,6 +130,11 @@ export const deleteMembershipPayment = async (id: string): Promise<boolean> => {
 // Expenses
 export const getExpenses = async (filters?: AccountingFilters): Promise<Expense[]> => {
   const supabase = await createClient()
+
+  // Verify admin role
+  const { requireAdmin } = await import('@/auth/api/server')
+
+  await requireAdmin()
 
   let query = supabase.from('expenses').select('*').order('expense_date', { ascending: false })
 
@@ -147,10 +157,10 @@ export const getExpenses = async (filters?: AccountingFilters): Promise<Expense[
 export const createExpense = async (expenseData: CreateExpenseData): Promise<Expense | null> => {
   const supabase = await createClient()
 
-  // Verify authentication usando getCurrentUser cacheado
-  const { getCurrentUser } = await import('@/auth/api/server')
+  // Verify admin role
+  const { requireAdmin } = await import('@/auth/api/server')
 
-  await getCurrentUser()
+  await requireAdmin()
 
   const { data, error } = await supabase.from('expenses').insert([expenseData]).select('*').single()
 
@@ -164,10 +174,10 @@ export const createExpense = async (expenseData: CreateExpenseData): Promise<Exp
 export const updateExpense = async (expenseData: UpdateExpenseData): Promise<Expense | null> => {
   const supabase = await createClient()
 
-  // Verify authentication usando getCurrentUser cacheado
-  const { getCurrentUser } = await import('@/auth/api/server')
+  // Verify admin role
+  const { requireAdmin } = await import('@/auth/api/server')
 
-  await getCurrentUser()
+  await requireAdmin()
 
   const { id, ...updateData } = expenseData
 
@@ -188,10 +198,10 @@ export const updateExpense = async (expenseData: UpdateExpenseData): Promise<Exp
 export const deleteExpense = async (id: string): Promise<boolean> => {
   const supabase = await createClient()
 
-  // Verify authentication usando getCurrentUser cacheado
-  const { getCurrentUser } = await import('@/auth/api/server')
+  // Verify admin role
+  const { requireAdmin } = await import('@/auth/api/server')
 
-  await getCurrentUser()
+  await requireAdmin()
 
   const { error } = await supabase.from('expenses').delete().eq('id', id)
 
@@ -205,6 +215,11 @@ export const deleteExpense = async (id: string): Promise<boolean> => {
 // Monthly Statistics
 export const getMonthlyStats = async (month: string): Promise<MonthlyStats[]> => {
   const supabase = await createClient()
+
+  // Verify admin role
+  const { requireAdmin } = await import('@/auth/api/server')
+
+  await requireAdmin()
 
   // Filter by specific month (format: YYYY-MM)
   const startDate = `${month}-01`

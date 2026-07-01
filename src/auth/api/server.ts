@@ -1,7 +1,9 @@
 import { cache } from 'react'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { type UserProfile, type UserRole } from '@/auth/types'
 import { hasPermission } from '@/auth/permissions'
+import { HOME } from '@/consts/routes'
 
 // Usar React.cache para deduplicar llamadas en el mismo request
 export const getCurrentUser = cache(async () => {
@@ -33,7 +35,8 @@ export async function getProfile(userId?: string): Promise<UserProfile | null> {
   return data
 }
 
-export async function getCurrentUserRoles(): Promise<UserRole[]> {
+// Cacheado con React.cache para deduplicar llamadas dentro del mismo SSR request
+export const getCurrentUserRoles = cache(async (): Promise<UserRole[]> => {
   const supabase = await createClient()
 
   const {
@@ -53,7 +56,7 @@ export async function getCurrentUserRoles(): Promise<UserRole[]> {
   const { data: roles } = await supabase.from('user_roles').select('role').eq('user_id', profile.id)
 
   return roles?.map((r) => r.role as UserRole) || []
-}
+})
 
 export async function requirePermission(
   resource: string,
@@ -66,4 +69,28 @@ export async function requirePermission(
   }
 
   return true
+}
+
+// Devuelve true si el usuario tiene rol admin. No throwea, útil para checks
+// condicionales (ej. ocultar links en server components).
+export async function isAdmin(): Promise<boolean> {
+  const roles = await getCurrentUserRoles()
+
+  return roles.includes('admin')
+}
+
+// Guard para layouts/pages server-side: si no es admin redirige a home con
+// el query param ?error=unauthorized para que home dispare el toast.
+export async function requireAdminOrRedirect() {
+  if (!(await isAdmin())) {
+    redirect(`${HOME}?error=unauthorized`)
+  }
+}
+
+// Guard para server actions y API route handlers: si no es admin throwea.
+// El caller (try/catch) traduce el error a 403/500 según corresponda.
+export async function requireAdmin() {
+  if (!(await isAdmin())) {
+    throw new Error('Insufficient permissions')
+  }
 }

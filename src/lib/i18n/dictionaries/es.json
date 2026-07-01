@@ -277,6 +277,7 @@
     "invalidCredentials": "Credenciales inválidas",
     "sessionExpired": "Tu sesión ha expirado",
     "accessDenied": "Acceso denegado",
+    "accessDeniedDescription": "No tenés permisos para ver esta sección.",
     "signUpSuccess": {
       "title": "¡Gracias por registrarte!",
       "description": "Revisa tu email para confirmar",

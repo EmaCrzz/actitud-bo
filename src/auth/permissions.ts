@@ -20,6 +20,12 @@ export const PERMISSIONS: Permission[] = [
   { resource: 'assistance', action: 'update', roles: ['admin', 'manager'] },
   { resource: 'assistance', action: 'delete', roles: ['admin'] },
 
+  // Finances (módulo de contaduría: ingresos, gastos, stats)
+  { resource: 'finances', action: 'read', roles: ['admin'] },
+  { resource: 'finances', action: 'create', roles: ['admin'] },
+  { resource: 'finances', action: 'update', roles: ['admin'] },
+  { resource: 'finances', action: 'delete', roles: ['admin'] },
+
   // Admin panel
   { resource: 'admin', action: 'read', roles: ['admin'] },
   { resource: 'users', action: 'read', roles: ['admin'] },
