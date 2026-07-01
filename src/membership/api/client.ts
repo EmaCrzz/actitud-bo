@@ -207,7 +207,6 @@ export async function getMembershipTypes(typeFilter?: string) {
   let query = supabase
     .from('types_memberships')
     .select('id, type, amount, amount_surcharge, middle_amount, last_update')
-    .not('amount', 'is', null)
     .order('type', { ascending: true })
 
   if (typeFilter) {
