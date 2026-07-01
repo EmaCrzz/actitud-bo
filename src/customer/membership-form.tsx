@@ -20,8 +20,8 @@ import AssistanceToday from '@/assistance/assistance-alert-today'
 import { cn } from '@/lib/utils'
 import { useTranslations } from '@/lib/i18n/context'
 import { getAppTzDateParts, isSameDayInAppTz } from '@/lib/timezone'
-import type { MembershipType } from '@/membership/types'
-import { useMemberships } from '@/membership/membership-context'
+import { useQuery } from '@tanstack/react-query'
+import { getMembershipTypes } from '@/membership/api/client'
 import { useInvalidateCustomerStats } from '@/customer/hooks/use-customer-stats'
 import { HybridSelect } from '@/components/ui/select-hybrid'
 import {
@@ -54,16 +54,22 @@ export default function MembershipForm({
 }: Props) {
   const router = useRouter()
   const { t } = useTranslations()
-  const { memberships, isLoading: isLoadingMemberships } = useMemberships()
+  const { data: memberships = [], isLoading: isLoadingMemberships } = useQuery({
+    queryKey: ['membership-types'],
+    queryFn: () => getMembershipTypes(),
+    select: (response) => response.data,
+  })
   const invalidateStats = useInvalidateCustomerStats()
   const isLargerThan430 = useMediaQuery('(min-width: 430px)')
   const [loading, setLoading] = useState(false)
   const [innerErrors, setInnerErrors] = useState<DatabaseResult['data']>()
-  const [membershipSelected, setMembershipSelected] = useState<MembershipType | undefined>(() => {
-    if (!customer?.customer_membership?.membership_type) return undefined
-
-    return memberships.find((m) => m.type === customer.customer_membership?.membership_type)
-  })
+  const [selectedType, setSelectedType] = useState<string | undefined>(
+    customer?.customer_membership?.membership_type
+  )
+  const membershipSelected = useMemo(
+    () => memberships.find((m) => m.type === selectedType),
+    [memberships, selectedType]
+  )
 
   const membershipOptions = memberships.map((membership) => ({
     value: membership.type,
@@ -76,9 +82,7 @@ export default function MembershipForm({
   }))
 
   const handleMembershipChange = (value: string) => {
-    const selected = memberships.find((m) => m.type === value)
-
-    setMembershipSelected(selected)
+    setSelectedType(value)
   }
 
   const isVIPMembership = membershipSelected?.type === MEMBERSHIP_TYPE_VIP

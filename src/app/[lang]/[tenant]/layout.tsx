@@ -10,7 +10,6 @@ import type { TenantsType } from '@/lib/tenants'
 import { generateThemeStyles } from '@/lib/themes'
 import { I18nServerProvider } from '@/lib/i18n/server-provider'
 import { type Language } from '@/lib/i18n/types'
-import { MembershipProvider } from '@/membership/membership-context'
 import { QueryProvider } from '@/lib/query-client'
 
 export const metadata: Metadata = {
@@ -257,7 +256,7 @@ export default async function RootLayout({
       <body className={`${tenantFontVariables} h-dvh grid grid-rows-[auto_1fr_auto]`}>
         <QueryProvider>
           <I18nServerProvider lang={lang} tenant={tenant}>
-            <MembershipProvider>{children}</MembershipProvider>
+            {children}
             <PWAInstaller />
           </I18nServerProvider>
           <SWUpdateManager />
