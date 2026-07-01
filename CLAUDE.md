@@ -2,6 +2,40 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Protocolo de trabajo
+
+Aplica a cualquier request en este repo, con Claude o cualquier otro agente. Adaptá la profundidad al tamaño de la tarea — no infles fixes triviales.
+
+1. **Entender el pedido.** Reformular en una línea qué se pide. Si hay ambigüedad (alcance, comportamiento esperado, edge cases), preguntar antes de tocar código.
+
+2. **Crear rama de trabajo desde `develop`.**
+   ```bash
+   git checkout develop && git pull
+   git checkout -b <tipo>/<slug-corto>
+   ```
+   Tipos: `fix/`, `feat/`, `chore/`, `refactor/`, `docs/`. Slug en kebab-case. Ejemplo: `fix/membership-price-cache`.
+
+3. **Explorar código relevante antes de proponer.** Grep/read para entender convenciones existentes y quiénes consumen lo que vas a tocar.
+
+4. **Presentar un plan para tareas no triviales.** Approach + archivos afectados + tradeoffs. Confirmar antes de implementar. Saltar solo para cambios realmente triviales.
+
+5. **Implementar sin commitear.** Escribir el código en la rama de trabajo. Nada de commits todavía.
+
+6. **Verificar localmente.** `npm run type-check` y `npm run lint` deben pasar (o quedar en el mismo estado que en `main` si hay errores preexistentes documentados). Reportar cualquier warning nuevo.
+
+7. **Documentar la decisión arquitectónica si corresponde.** Si el cambio implica una decisión de diseño con impacto futuro, agregar un ADR en `docs/architecture/decisions/` siguiendo las reglas de [docs/architecture/decisions/README.md](docs/architecture/decisions/README.md).
+
+8. **Reportar cambios + checklist de pruebas locales.** En 1–2 oraciones: qué cambió. Después, un checklist claro de qué debe probar el usuario en localhost antes de aprobar (golden path + edge cases + regresiones sospechosas).
+
+9. **Esperar confirmación explícita del usuario.** No commitear, no pushear, no abrir PR sin un OK explícito en la sesión.
+
+10. **Con la confirmación: commitear, pushear y abrir PR.**
+    - Commit: `<tipo>(<scope>): <descripción en minúscula>`
+    - Push: `git push -u origin <rama>` — dispara el preview de Vercel en `actitud-bo-git-<rama>-*.vercel.app`.
+    - Abrir el PR contra `develop` para que el dev valide el cambio en el preview.
+    - Nunca usar `--force` ni `--force-with-lease` sin pedido explícito.
+    - Siempre crear commits nuevos en vez de amendar los existentes.
+
 ## Common Development Commands
 
 ### Development
