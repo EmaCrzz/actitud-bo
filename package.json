@@ -1,6 +1,6 @@
 {
   "name": "bo-actitud",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "scripts": {
     "dev": "node ./src/scripts/generate-sw.js && next dev -p 3001",
