@@ -277,6 +277,7 @@
     "invalidCredentials": "Invalid credentials",
     "sessionExpired": "Your session has expired",
     "accessDenied": "Access denied",
+    "accessDeniedDescription": "You don't have permission to view this section.",
     "signUpSuccess": {
       "title": "Thank you for signing up!",
       "description": "Check your email to confirm",

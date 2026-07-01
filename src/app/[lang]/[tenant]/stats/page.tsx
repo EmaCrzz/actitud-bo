@@ -23,6 +23,7 @@ import UserCheck from '@/components/icons/user-check'
 import Chart from '@/components/icons/chart'
 import MoneyBag from '@/components/icons/money-bag'
 import { cn } from '@/lib/utils'
+import { isAdmin } from '@/auth/api/server'
 
 const NavegableRowIcon: Record<string, React.ReactElement> = {
   'customer.actives': <UserCheck className='size-6 stroke-2 inline mr-2 -mt-1' />,
@@ -68,6 +69,7 @@ export default async function DashboardStats({
 }) {
   const { lang, tenant } = await params
   const { t } = await api.fetch(lang, tenant)
+  const userIsAdmin = await isAdmin()
 
   return (
     <>
@@ -95,12 +97,14 @@ export default async function DashboardStats({
           tenant={tenant}
           title='membership.types.title'
         />
-        <NavegableRow
-          href='/stats/accounting'
-          lang={lang}
-          tenant={tenant}
-          title='accounting.accountingAndFinance.title'
-        />
+        {userIsAdmin && (
+          <NavegableRow
+            href='/stats/accounting'
+            lang={lang}
+            tenant={tenant}
+            title='accounting.accountingAndFinance.title'
+          />
+        )}
         <Suspense fallback={<TopMonthlyAssintantSkeleton lang={lang} tenant={tenant} />}>
           <TopMonthlyAssintant lang={lang} tenant={tenant} />
         </Suspense>
