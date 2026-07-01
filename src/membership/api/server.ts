@@ -2,6 +2,7 @@ import { CustomerMembership } from '@/customer/types'
 import { createClient } from '@/lib/supabase/server'
 import { ActiveMembership, MembershipType } from '@/membership/types'
 import { MembershipTypes } from '../consts'
+import { getMonthRangeInAppTz } from '@/lib/timezone'
 
 type MembershipStatsRPCResult = {
   segment_type: string
@@ -55,8 +56,7 @@ export async function getActiveMemberships() {
 // Función para obtener clientes con asistencias del mes pero sin membresía activa (pendientes de pago)
 export async function getPendingPaymentCustomers() {
   const supabase = await createClient()
-  const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-  const endOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
+  const { start: startOfMonth, end: endOfMonth } = getMonthRangeInAppTz()
   const now = new Date()
 
   const { data, error } = await supabase
@@ -85,7 +85,7 @@ export async function getPendingPaymentCustomers() {
     `
     )
     .gte('assistance.assistance_date', startOfMonth.toISOString())
-    .lte('assistance.assistance_date', endOfMonth.toISOString())
+    .lt('assistance.assistance_date', endOfMonth.toISOString())
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -130,7 +130,7 @@ export async function getPendingPaymentCustomers() {
 // Función para obtener membresías typo MEMBERSHIP_TYPE_DAILY en lo que va del mes
 export async function getDailyMembershipsThisMonth() {
   const supabase = await createClient()
-  const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+  const { start: startOfMonth } = getMonthRangeInAppTz()
   const { data, error } = await supabase
     .from('customer_membership')
     .select(

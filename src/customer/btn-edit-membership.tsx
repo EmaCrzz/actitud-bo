@@ -7,26 +7,18 @@ import { CustomerComplete } from './types'
 import { useMemo } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { useTranslations } from '@/lib/i18n/context'
+import { daysUntilInAppTz, isExpiredInAppTz } from '@/lib/timezone'
 
 export default function BtnEditMembership({ customer }: { customer: CustomerComplete }) {
-  const today = new Date()
   const { t } = useTranslations()
-  const isExpired = useMemo(() => {
-    if (!customer.customer_membership?.expiration_date) return true
-    const expirationDate = new Date(customer.customer_membership.expiration_date)
-
-    return expirationDate < today
-  }, [])
+  const expirationDate = customer.customer_membership?.expiration_date
+  const isExpired = useMemo(() => isExpiredInAppTz(expirationDate), [expirationDate])
   const aboutToExpire = useMemo(() => {
-    // Check if the membership is about to expire in the next 5 days
-    if (!customer.customer_membership?.expiration_date) return false
-    const expirationDate = new Date(customer.customer_membership.expiration_date)
-    const fiveDaysFromNow = new Date(today)
+    if (!expirationDate) return false
+    const daysLeft = daysUntilInAppTz(expirationDate)
 
-    fiveDaysFromNow.setDate(today.getDate() + 5)
-
-    return expirationDate > today && expirationDate <= fiveDaysFromNow
-  }, [])
+    return daysLeft >= 0 && daysLeft <= 5
+  }, [expirationDate])
   const hasMembership = customer.customer_membership?.membership_type
 
   return (

@@ -2,13 +2,14 @@ import AlertContainedIcon from '@/components/icons/alert-contained'
 import { Alert, AlertTitle } from '@/components/ui/alert'
 import { Assistance } from '@/customer/types'
 import { useTranslations } from '@/lib/i18n/context'
+import { isSameDayInAppTz } from '@/lib/timezone'
 
 export default function AssistanceToday({ assistance = [] }: { assistance?: Assistance[] }) {
   const { t } = useTranslations()
   const today = new Date()
 
-  const hasAssistanceToday = assistance.some(
-    (assistance) => new Date(assistance.assistance_date).toDateString() === today.toDateString()
+  const hasAssistanceToday = assistance.some((assistance) =>
+    isSameDayInAppTz(assistance.assistance_date, today)
   )
 
   if (hasAssistanceToday) {

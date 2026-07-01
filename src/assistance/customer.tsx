@@ -15,6 +15,7 @@ import CustomerMembership from '@/customer/membership'
 import BtnEditMembership from '@/customer/btn-edit-membership'
 import AssistanceToday from './assistance-alert-today'
 import { useTranslations } from '@/lib/i18n/context'
+import { isSameDayInAppTz } from '@/lib/timezone'
 
 export default function CustomerAssistance({ customer }: { customer: CustomerComplete }) {
   const [isPending, setIsPending] = useState(false)
@@ -48,17 +49,15 @@ export default function CustomerAssistance({ customer }: { customer: CustomerCom
     router.push(HOME)
   }
 
-  const hasAssistanceToday = customer.assistance.some(
-    (assistance) => new Date(assistance.assistance_date).toDateString() === today.toDateString()
+  const hasAssistanceToday = customer.assistance.some((assistance) =>
+    isSameDayInAppTz(assistance.assistance_date, today)
   )
   const fullMembership = useMemo(() => {
     if (!customer.customer_membership?.membership_type) return false
     const { membership_type } = customer.customer_membership
 
     if (membership_type === MEMBERSHIP_TYPE_3_DAYS && customer.assistance.length === 3) {
-      if (
-        new Date(customer.assistance[2].assistance_date).toDateString() === today.toDateString()
-      ) {
+      if (isSameDayInAppTz(customer.assistance[2].assistance_date, today)) {
         return false
       }
 

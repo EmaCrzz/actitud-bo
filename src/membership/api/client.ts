@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/client'
 import { CustomerMembership } from '@/customer/types'
 import { ActiveMembership, MembershipType } from '@/membership/types'
+import { getMonthRangeInAppTz } from '@/lib/timezone'
 
 type MembershipStatsRPCResult = {
   segment_type: string
@@ -17,8 +18,7 @@ type MembershipSegment = {
 // Función para obtener clientes con asistencias del mes pero sin membresía activa (pendientes de pago)
 export async function getPendingPaymentCustomers() {
   const supabase = createClient()
-  const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-  const endOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
+  const { start: startOfMonth, end: endOfMonth } = getMonthRangeInAppTz()
   const now = new Date()
 
   const { data, error } = await supabase
@@ -47,7 +47,7 @@ export async function getPendingPaymentCustomers() {
     `
     )
     .gte('assistance.assistance_date', startOfMonth.toISOString())
-    .lte('assistance.assistance_date', endOfMonth.toISOString())
+    .lt('assistance.assistance_date', endOfMonth.toISOString())
     .order('created_at', { ascending: false })
 
   if (error) {
