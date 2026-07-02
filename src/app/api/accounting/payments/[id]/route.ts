@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { updateMembershipPayment, deleteMembershipPayment } from '@/accounting/api/server'
+import { accountingErrorResponse } from '@/accounting/api/http'
 import type { UpdateMembershipPaymentData } from '@/accounting/types'
 
 interface RouteParams {
@@ -23,14 +24,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       success: true,
     })
   } catch (error) {
-    return NextResponse.json(
-      {
-        data: null,
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to update membership payment',
-      },
-      { status: 500 }
-    )
+    return accountingErrorResponse(error, 'Failed to update membership payment')
   }
 }
 
@@ -44,12 +38,6 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       success: true,
     })
   } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to delete membership payment',
-      },
-      { status: 500 }
-    )
+    return accountingErrorResponse(error, 'Failed to delete membership payment')
   }
 }

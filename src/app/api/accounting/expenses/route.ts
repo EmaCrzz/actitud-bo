@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getExpenses, createExpense } from '@/accounting/api/server'
+import { accountingErrorResponse } from '@/accounting/api/http'
 import type { AccountingFilters, CreateExpenseData } from '@/accounting/types'
 
 export async function GET(request: NextRequest) {
@@ -18,14 +19,7 @@ export async function GET(request: NextRequest) {
       success: true,
     })
   } catch (error) {
-    return NextResponse.json(
-      {
-        data: [],
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch expenses',
-      },
-      { status: 500 }
-    )
+    return accountingErrorResponse(error, 'Failed to fetch expenses', [])
   }
 }
 
@@ -40,13 +34,6 @@ export async function POST(request: NextRequest) {
       success: true,
     })
   } catch (error) {
-    return NextResponse.json(
-      {
-        data: null,
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to create expense',
-      },
-      { status: 500 }
-    )
+    return accountingErrorResponse(error, 'Failed to create expense')
   }
 }
