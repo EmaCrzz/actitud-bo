@@ -445,6 +445,11 @@
         "step2": "2. It's usually in the menu or address bar",
         "step3": "3. Confirm installation"
       }
+    },
+    "update": {
+      "title": "New version available",
+      "description": "Update to get the latest improvements.",
+      "button": "Update"
     }
   },
   "time": {
