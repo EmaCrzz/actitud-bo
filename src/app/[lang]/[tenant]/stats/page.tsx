@@ -26,9 +26,9 @@ import { cn } from '@/lib/utils'
 import { isAdmin } from '@/auth/api/server'
 
 const NavegableRowIcon: Record<string, React.ReactElement> = {
-  'customer.actives': <UserCheck className='size-6 stroke-2 inline mr-2 -mt-1' />,
-  'membership.types.title': <Chart className='size-6 stroke-2 inline mr-2 -mt-1' />,
-  'finance.accountingAndFinance.title': <MoneyBag className='size-6 stroke-2 inline mr-2 -mt-1' />,
+  'customer.actives': <UserCheck className='size-6 inline mr-2 -mt-1' />,
+  'membership.types.title': <Chart className='size-6 inline mr-2 -mt-1' />,
+  'accounting.accountingAndFinance.title': <MoneyBag className='size-6 inline mr-2 -mt-1' />,
 }
 
 const NavegableRow = async ({
