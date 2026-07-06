@@ -6,7 +6,7 @@ import { CustomerComplete } from '@/customer/types'
 import { formatPersonId } from '@/lib/format-person-id'
 import { formatPhone } from '@/lib/format-phone'
 import { formatDate } from '@/lib/format-date'
-import { PAYMENT_METHOD_LABELS, type PaymentMethod } from '@/accounting/consts'
+import { PaymentsTranslation, type PaymentType } from '@/membership/consts'
 import Link from 'next/link'
 import { type Language } from '@/lib/i18n/types'
 import { type TenantsType } from '@/lib/tenants'
@@ -24,10 +24,12 @@ export default async function InfoResume({
   const { t } = await api.fetch(lang, tenant)
 
   const lastPaymentDate = customer.customer_membership?.last_payment_date
-  const paymentMethodLabel = customer.last_payment_method
-    ? (PAYMENT_METHOD_LABELS[customer.last_payment_method as PaymentMethod] ??
-      customer.last_payment_method)
-    : '-'
+  const paymentTranslationKey = customer.last_payment_method
+    ? PaymentsTranslation[customer.last_payment_method as PaymentType]
+    : null
+  const paymentMethodLabel = paymentTranslationKey
+    ? t(paymentTranslationKey)
+    : (customer.last_payment_method ?? '-')
 
   return (
     <section>
@@ -43,12 +45,10 @@ export default async function InfoResume({
           </Button>
         </div>
         <div className='grid gap-y-2'>
-          <Label className='font-light text-xs leading-6'>{t('membership.firstName')}</Label>
-          <span className='font-medium leading-6'>{customer.first_name}</span>
-        </div>
-        <div className='grid gap-y-2'>
-          <Label className='font-light text-xs leading-6'>{t('membership.lastName')}</Label>
-          <span className='font-medium leading-6'>{customer.last_name}</span>
+          <Label className='font-light text-xs leading-6'>{t('membership.fullName')}</Label>
+          <span className='font-medium leading-6'>
+            {customer.first_name} {customer.last_name}
+          </span>
         </div>
         <div className='grid gap-y-2'>
           <Label className='font-light text-xs leading-6'>{t('membership.idNumber')}</Label>
