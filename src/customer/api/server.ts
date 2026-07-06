@@ -66,7 +66,7 @@ export const searchCustomersById = async (id: string): Promise<CustomerComplete 
       .from('membership_payments')
       .select('payment_method')
       .eq('customer_id', id)
-      .order('payment_date', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle(),
   ])

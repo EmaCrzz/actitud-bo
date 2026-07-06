@@ -349,6 +349,7 @@ export default function MembershipForm({
                 </Label>
                 <HybridSelect
                   className='font-light'
+                  defaultValue={customer?.last_payment_method || ''}
                   helperText={errors?.payment_type}
                   isDisabled={payment !== true || loading}
                   isInvalid={!!errors?.payment_type}
