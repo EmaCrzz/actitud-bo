@@ -44,11 +44,12 @@ export const searchCustomersById = async (id: string): Promise<CustomerComplete 
   const supabase = await createClient()
   const week = getWeekRange()
 
-  // Ejecutar las 3 consultas en paralelo con Promise.all para evitar waterfalls
+  // Ejecutar las consultas en paralelo con Promise.all para evitar waterfalls
   const [
     { data: customer, error: customerError },
     { data: membership },
     { data: assistances },
+    { data: lastPayment },
   ] = await Promise.all([
     supabase.from('customers').select('*').eq('id', id).single(),
     supabase.from('customer_membership').select().eq('customer_id', id).single(),
@@ -59,6 +60,15 @@ export const searchCustomersById = async (id: string): Promise<CustomerComplete 
       .gte('assistance_date', week.start.toISOString())
       .lte('assistance_date', week.end.toISOString())
       .order('assistance_date', { ascending: true }),
+    // Último pago registrado del cliente: la forma de pago vive en
+    // membership_payments (la renovación la inserta ahí), no en customer_membership.
+    supabase
+      .from('membership_payments')
+      .select('payment_method')
+      .eq('customer_id', id)
+      .order('payment_date', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ])
 
   if (customerError || !customer) {
@@ -69,6 +79,7 @@ export const searchCustomersById = async (id: string): Promise<CustomerComplete 
     ...customer,
     customer_membership: membership || null,
     assistance: assistances || [],
+    last_payment_method: lastPayment?.payment_method ?? null,
   }
 }
 
