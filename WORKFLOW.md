@@ -18,6 +18,31 @@
 
 ---
 
+## 🔒 **Protección de `main`**
+
+`main` es la rama de producción y está protegida en GitHub. **Nunca se mergea por PR manual** — el único camino válido es `./scripts/release.sh`, que garantiza bump de versión, tag y merge atómicos.
+
+### Configuración vigente
+
+- **Default branch del repo:** `develop` — todos los PRs nuevos apuntan por default a `develop`, no a `main`.
+- **Branch protection en `main`:**
+  - PR obligatorio antes de mergear
+  - 1 approval requerido
+  - Review de code owner requerida (definido en [`.github/CODEOWNERS`](.github/CODEOWNERS))
+  - Force push bloqueado
+  - Deletion bloqueada
+  - Conversation resolution requerida antes de mergear
+  - Admin bypass habilitado (el owner puede saltearse las reglas para hotfix o rollback de emergencia)
+
+### Reglas para devs
+
+1. Toda rama de trabajo (`feat/*`, `fix/*`, `chore/*`, etc.) abre PR a `develop`.
+2. **Nunca** abras un PR de `develop → main` a mano. Si GitHub te sugiere ese PR, ignorá el banner.
+3. Cuando develop está listo para prod: correr `./scripts/release.sh [patch|minor|major]` desde local. El script hace merge + tag + push en un solo paso.
+4. Si necesitás un hotfix urgente saltando el flujo normal, coordinalo con el owner — es el único con bypass.
+
+---
+
 ## 📝 **Workflow Diario**
 
 ### **1. Desarrollar Nueva Feature**
