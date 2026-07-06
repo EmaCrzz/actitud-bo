@@ -115,26 +115,29 @@ export default function ListCustomers({ initialCustomers }: Props) {
               <li
                 key={customer.id}
                 className={cn(
-                  'grid grid-cols-[1fr_auto] border-b-[0.5px] px-2 py-1 items-center',
+                  'border-b-[0.5px]',
                   isLast && !hasNextPage && 'border-b-0'
                 )}
               >
-                <div className='grid grid-cols-1'>
-                  <span className='leading-6 text-sm font-medium'>
-                    {`${customer.first_name} ${customer.last_name}`}
-                  </span>
-                  <Label className='font-light text-xs leading-6'>
-                    {customer.membership_type
-                      ? t(MembershipTranslation[customer.membership_type])
-                      : t('membership.noMembership')}
-                    {isVIPMembership && <StarIcon className='font-light size-2 inline-block' />}
-                  </Label>
-                </div>
-                <Button className='size-6' size={'icon'} variant={'ghost'}>
-                  <Link href={`${CUSTOMER}/${customer.id}`}>
+                <Link
+                  className='grid grid-cols-[1fr_auto] px-2 py-1 items-center rounded-[4px] transition-colors outline-none hover:bg-input-hover-background active:bg-input-background focus-visible:ring-ring/50 focus-visible:ring-[3px]'
+                  href={`${CUSTOMER}/${customer.id}`}
+                >
+                  <div className='grid grid-cols-1'>
+                    <span className='leading-6 text-sm font-medium'>
+                      {`${customer.first_name} ${customer.last_name}`}
+                    </span>
+                    <Label className='font-light text-xs leading-6'>
+                      {customer.membership_type
+                        ? t(MembershipTranslation[customer.membership_type])
+                        : t('membership.noMembership')}
+                      {isVIPMembership && <StarIcon className='font-light size-2 inline-block' />}
+                    </Label>
+                  </div>
+                  <span className='size-6 flex items-center justify-center text-primary200'>
                     <EyeIcon className='size-6' />
-                  </Link>
-                </Button>
+                  </span>
+                </Link>
               </li>
             )
           })}
