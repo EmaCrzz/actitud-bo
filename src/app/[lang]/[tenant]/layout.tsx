@@ -52,7 +52,7 @@ export default async function RootLayout({
   params,
 }: Readonly<{
   children: React.ReactNode
-  params: Promise<{ lang: Language; tenant: TenantsType }>
+  params: Promise<{ lang: string; tenant: string }>
 }>) {
   const { tenant, lang } = await params
 
@@ -255,11 +255,11 @@ export default async function RootLayout({
       </head>
       <body className={`${tenantFontVariables} h-dvh grid grid-rows-[auto_1fr_auto]`}>
         <QueryProvider>
-          <I18nServerProvider lang={lang} tenant={tenant}>
+          <I18nServerProvider lang={lang as Language} tenant={tenant as TenantsType}>
             {children}
             <PWAInstaller />
+            <SWUpdateManager />
           </I18nServerProvider>
-          <SWUpdateManager />
           <Toaster richColors expand={true} />
         </QueryProvider>
       </body>

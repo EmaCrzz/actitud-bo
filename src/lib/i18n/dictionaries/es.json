@@ -447,6 +447,11 @@
         "step2": "2. Generalmente está en el menú o barra de direcciones",
         "step3": "3. Confirma la instalación"
       }
+    },
+    "update": {
+      "title": "Nueva versión disponible",
+      "description": "Actualiza para obtener las últimas mejoras.",
+      "button": "Actualizar"
     }
   },
   "time": {
