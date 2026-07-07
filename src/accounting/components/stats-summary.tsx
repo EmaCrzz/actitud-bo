@@ -7,7 +7,6 @@ import { formatCurrency } from '@/lib/format-currency'
 import CourseUp from '@/components/icons/course-up'
 import CourseDown from '@/components/icons/corse-down'
 import DiagramUp from '@/components/icons/diagram-up'
-import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import EyeIcon from '@/components/icons/eye'
 import { EXPENSES, INCOMES } from '@/consts/routes'
@@ -47,32 +46,34 @@ export default function StatsSummary({ month }: StatsSummaryProps) {
 
   return (
     <section className='grid gap-3'>
-      <div className='p-4 rounded bg-input-background border-[0.5px] border-[#DAD7D8]'>
+      <Link
+        className='block p-4 rounded bg-input-background border-[0.5px] border-[#DAD7D8] transition-colors outline-none hover:bg-input-hover-background active:bg-input-background focus-visible:ring-ring/50 focus-visible:ring-[3px]'
+        href={INCOMES}
+      >
         <div className='flex items-center justify-between border-b border-primary400 pb-[0.5] mb-6'>
           <h3 className='text-start text-primary400 text-xl font-semibold'>{incomeTitle}</h3>
-          <Button className='size-8 rounded-full' variant='ghost'>
-            <Link href={INCOMES}>
-              <EyeIcon className='size-6' />
-            </Link>
-          </Button>
+          <span className='size-8 flex items-center justify-center text-primary200'>
+            <EyeIcon className='size-6' />
+          </span>
         </div>
         <p className='font-headline font-semibold text-2xl text-start'>
           {formatCurrency(income)} <CourseUp className='inline-block ml-2 mb-1 text-green-400' />
         </p>
-      </div>
-      <div className='p-4 rounded bg-input-background border-[0.5px] border-[#DAD7D8]'>
+      </Link>
+      <Link
+        className='block p-4 rounded bg-input-background border-[0.5px] border-[#DAD7D8] transition-colors outline-none hover:bg-input-hover-background active:bg-input-background focus-visible:ring-ring/50 focus-visible:ring-[3px]'
+        href={EXPENSES}
+      >
         <div className='flex items-center justify-between border-b border-primary400 pb-[0.5] mb-6'>
           <h3 className='text-start text-primary400 text-xl font-semibold'>{expensesTitle}</h3>
-          <Button className='size-8 rounded-full' variant='ghost'>
-            <Link href={EXPENSES}>
-              <EyeIcon className='size-6' />
-            </Link>
-          </Button>
+          <span className='size-8 flex items-center justify-center text-primary200'>
+            <EyeIcon className='size-6' />
+          </span>
         </div>
         <p className='font-headline font-semibold text-2xl text-start'>
           {formatCurrency(expenses)} <CourseDown className='inline-block ml-2 mb-1 text-red-400' />
         </p>
-      </div>
+      </Link>
       <div className='p-4 rounded bg-input-background border-[0.5px] border-[#DAD7D8]'>
         <h3 className='text-start text-primary400 text-xl font-semibold border-b pb-[0.5] mb-6'>
           {balanceTitle}
