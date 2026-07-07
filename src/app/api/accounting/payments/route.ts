@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMembershipPayments, createMembershipPayment } from '@/accounting/api/server'
+import { accountingErrorResponse } from '@/accounting/api/http'
 import type { AccountingFilters, CreateMembershipPaymentData } from '@/accounting/types'
 
 export async function GET(request: NextRequest) {
@@ -19,14 +20,7 @@ export async function GET(request: NextRequest) {
       success: true,
     })
   } catch (error) {
-    return NextResponse.json(
-      {
-        data: [],
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch membership payments',
-      },
-      { status: 500 }
-    )
+    return accountingErrorResponse(error, 'Failed to fetch membership payments', [])
   }
 }
 
@@ -41,13 +35,6 @@ export async function POST(request: NextRequest) {
       success: true,
     })
   } catch (error) {
-    return NextResponse.json(
-      {
-        data: null,
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to create membership payment',
-      },
-      { status: 500 }
-    )
+    return accountingErrorResponse(error, 'Failed to create membership payment')
   }
 }

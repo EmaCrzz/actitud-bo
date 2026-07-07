@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { updateExpense, deleteExpense } from '@/accounting/api/server'
+import { accountingErrorResponse } from '@/accounting/api/http'
 import type { UpdateExpenseData } from '@/accounting/types'
 
 interface RouteParams {
@@ -23,14 +24,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       success: true,
     })
   } catch (error) {
-    return NextResponse.json(
-      {
-        data: null,
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to update expense',
-      },
-      { status: 500 }
-    )
+    return accountingErrorResponse(error, 'Failed to update expense')
   }
 }
 
@@ -44,12 +38,6 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       success: true,
     })
   } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to delete expense',
-      },
-      { status: 500 }
-    )
+    return accountingErrorResponse(error, 'Failed to delete expense')
   }
 }
