@@ -13,24 +13,24 @@ export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number]
 
 // Migration map from old Spanish categories to new English ones
 export const LEGACY_CATEGORY_MAP: Record<string, ExpenseCategory> = {
-  'Servicios': 'SERVICES',
-  'Mantenimiento': 'MAINTENANCE',
-  'Equipamiento': 'EQUIPMENT',
-  'Salarios': 'SALARIES',
-  'Suministros': 'SUPPLIES',
-  'Alquiler': 'RENT',
-  'Impuestos': 'TAXES',
-  'Otros': 'OTHER',
+  Servicios: 'SERVICES',
+  Mantenimiento: 'MAINTENANCE',
+  Equipamiento: 'EQUIPMENT',
+  Salarios: 'SALARIES',
+  Suministros: 'SUPPLIES',
+  Alquiler: 'RENT',
+  Impuestos: 'TAXES',
+  Otros: 'OTHER',
   // Also map uppercase Spanish versions
-  'SERVICIOS': 'SERVICES',
-  'MANTENIMIENTO': 'MAINTENANCE',
-  'EQUIPAMIENTO': 'EQUIPMENT',
-  'SALARIOS': 'SALARIES',
-  'SUMINISTROS': 'SUPPLIES',
-  'SUELDOS': 'SALARIES', // Alternative Spanish term
-  'ALQUILER': 'RENT',
-  'IMPUESTOS': 'TAXES',
-  'OTROS': 'OTHER',
+  SERVICIOS: 'SERVICES',
+  MANTENIMIENTO: 'MAINTENANCE',
+  EQUIPAMIENTO: 'EQUIPMENT',
+  SALARIOS: 'SALARIES',
+  SUMINISTROS: 'SUPPLIES',
+  SUELDOS: 'SALARIES', // Alternative Spanish term
+  ALQUILER: 'RENT',
+  IMPUESTOS: 'TAXES',
+  OTROS: 'OTHER',
 }
 
 // Color mapping for category badges

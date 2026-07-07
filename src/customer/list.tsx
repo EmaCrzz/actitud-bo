@@ -29,22 +29,14 @@ export default function ListCustomers({ initialCustomers }: Props) {
   const [debouncedQuery] = useDebounce(inputValue, 400)
   const { t } = useTranslations()
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isFetching,
-  } = useInfiniteQuery({
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } = useInfiniteQuery({
     queryKey: ['customers', 'list', debouncedQuery],
     queryFn: ({ pageParam }) =>
       fetchCustomersPage({ query: debouncedQuery || undefined, page: pageParam }),
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) =>
       lastPage.length < CUSTOMERS_PAGE_SIZE ? undefined : allPages.length,
-    initialData: debouncedQuery
-      ? undefined
-      : { pages: [initialCustomers], pageParams: [0] },
+    initialData: debouncedQuery ? undefined : { pages: [initialCustomers], pageParams: [0] },
   })
 
   const { ref: sentinelRef } = useIntersectionObserver({
@@ -114,10 +106,7 @@ export default function ListCustomers({ initialCustomers }: Props) {
             return (
               <li
                 key={customer.id}
-                className={cn(
-                  'border-b-[0.5px]',
-                  isLast && !hasNextPage && 'border-b-0'
-                )}
+                className={cn('border-b-[0.5px]', isLast && !hasNextPage && 'border-b-0')}
               >
                 <Link
                   className='grid grid-cols-[1fr_auto] px-2 py-1 items-center rounded-[4px] transition-colors outline-none hover:bg-input-hover-background active:bg-input-background focus-visible:ring-ring/50 focus-visible:ring-[3px]'

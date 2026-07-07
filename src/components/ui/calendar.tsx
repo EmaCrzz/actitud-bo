@@ -155,10 +155,7 @@ function CalendarDayButton({
   }, [modifiers.focused])
 
   const isSingleSelected =
-    modifiers.selected &&
-    !modifiers.range_start &&
-    !modifiers.range_middle &&
-    !modifiers.range_end
+    modifiers.selected && !modifiers.range_start && !modifiers.range_middle && !modifiers.range_end
   const isToday = !!modifiers.today
 
   return (
