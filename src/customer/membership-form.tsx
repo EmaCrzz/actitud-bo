@@ -8,13 +8,13 @@ import { UncontrolledDatePicker } from '@/components/uncontrolled-date-picker'
 import { CustomerComplete } from '@/customer/types'
 import { CheckedState } from '@radix-ui/react-checkbox'
 import { useRouter } from 'next/navigation'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { upsertCustomerMembership } from '@/customer/api/client'
 import { toast } from 'sonner'
 import { DatabaseResult } from '@/types/database-errors'
 import { handleDatabaseError } from './errors'
 import { CUSTOMER } from '@/consts/routes'
-import { InfoIcon, SquareMinusIcon } from 'lucide-react'
+import { InfoIcon } from 'lucide-react'
 import { TooltipTrigger, Tooltip, TooltipContent } from '@/components/ui/tooltip'
 import AssistanceToday from '@/assistance/assistance-alert-today'
 import { cn } from '@/lib/utils'
@@ -35,6 +35,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useMediaQuery } from 'usehooks-ts'
 import { InputCurrency } from '@/components/ui/input-currency'
 import MoneyIcon from '@/components/icons/money'
+import { usePermissions } from '@/auth/hooks/use-permissions'
 
 interface Props {
   pathBack?: string
@@ -54,13 +55,17 @@ export default function MembershipForm({
 }: Props) {
   const router = useRouter()
   const { t } = useTranslations()
+  const { isAdmin } = usePermissions()
   const { data: memberships = [], isLoading: isLoadingMemberships } = useQuery({
     queryKey: ['membership-types'],
     queryFn: () => getMembershipTypes(),
     select: (response) => response.data,
   })
   const invalidateStats = useInvalidateCustomerStats()
-  const isLargerThan430 = useMediaQuery('(min-width: 430px)')
+  const isLargerThan430 = useMediaQuery('(min-width: 430px)', {
+    defaultValue: false,
+    initializeWithValue: false,
+  })
   const [loading, setLoading] = useState(false)
   const [innerErrors, setInnerErrors] = useState<DatabaseResult['data']>()
   const [selectedType, setSelectedType] = useState<string | undefined>(
@@ -71,10 +76,17 @@ export default function MembershipForm({
     [memberships, selectedType]
   )
 
-  const membershipOptions = memberships.map((membership) => ({
-    value: membership.type,
-    label: t(MembershipTranslation[membership.type as keyof typeof MembershipTranslation]),
-  }))
+  const membershipOptions = memberships
+    .filter(
+      (membership) =>
+        isAdmin ||
+        membership.type !== MEMBERSHIP_TYPE_VIP ||
+        membership.type === customer?.customer_membership?.membership_type
+    )
+    .map((membership) => ({
+      value: membership.type,
+      label: t(MembershipTranslation[membership.type as keyof typeof MembershipTranslation]),
+    }))
 
   const paymentTypeOptions = PaymentTypeArray.map((paymentType) => ({
     value: paymentType,
@@ -86,6 +98,61 @@ export default function MembershipForm({
   }
 
   const isVIPMembership = membershipSelected?.type === MEMBERSHIP_TYPE_VIP
+  const isDailyMembership = membershipSelected?.type === MEMBERSHIP_TYPE_DAILY
+
+  const currentMembershipType = customer?.customer_membership?.membership_type
+  const currentMembership = useMemo(
+    () => memberships.find((m) => m.type === currentMembershipType),
+    [memberships, currentMembershipType]
+  )
+
+  const isCurrentActive = useMemo(() => {
+    const expiration = customer?.customer_membership?.expiration_date
+
+    if (!expiration) return false
+    const nowParts = getAppTzDateParts()
+    const expParts = getAppTzDateParts(new Date(expiration))
+    const nowKey = nowParts.year * 10000 + nowParts.month * 100 + nowParts.day
+    const expKey = expParts.year * 10000 + expParts.month * 100 + expParts.day
+
+    return expKey >= nowKey
+  }, [customer?.customer_membership?.expiration_date])
+
+  const isTypeChangeIntraActive =
+    isCurrentActive &&
+    !!currentMembershipType &&
+    !!selectedType &&
+    selectedType !== currentMembershipType &&
+    currentMembershipType !== MEMBERSHIP_TYPE_VIP &&
+    !isVIPMembership &&
+    !isDailyMembership
+
+  const suggestedAdjustment = useMemo(() => {
+    if (!isTypeChangeIntraActive) return 0
+    const paidAmount = currentMembership?.amount ?? 0
+    const newAmount = membershipSelected?.amount ?? 0
+
+    return paidAmount - newAmount
+  }, [isTypeChangeIntraActive, currentMembership?.amount, membershipSelected?.amount])
+
+  const adjustmentAction: 'refund' | 'charge_diff' | null =
+    !isTypeChangeIntraActive || suggestedAdjustment === 0
+      ? null
+      : suggestedAdjustment > 0
+        ? 'refund'
+        : 'charge_diff'
+
+  const todayIsoDate = useMemo(() => new Date().toISOString().slice(0, 10), [])
+  const [registerAdjustment, setRegisterAdjustment] = useState<CheckedState>(false)
+  const [adjustmentValue, setAdjustmentValue] = useState<string>(() =>
+    Math.abs(suggestedAdjustment).toString()
+  )
+
+  // Sincronizar el valor editable cuando cambia el sugerido (el operador
+  // cambia el select de tipo y arranca un cálculo nuevo).
+  useEffect(() => {
+    setAdjustmentValue(Math.abs(suggestedAdjustment).toString())
+  }, [suggestedAdjustment])
 
   // Verificar si el cliente tiene asistencias en el mes actual
   // Usar dependencias primitivas más estables
@@ -210,21 +277,11 @@ export default function MembershipForm({
     }
   }
 
-  const [payment, setPayment] = useState<CheckedState>(() => {
-    if (!customer?.customer_membership?.last_payment_date) return false
-    const lastPaymentDate = new Date(customer.customer_membership.last_payment_date)
-    const now = new Date()
-    const lastParts = getAppTzDateParts(lastPaymentDate)
-    const nowParts = getAppTzDateParts(now)
-    const lastKey = lastParts.year * 10000 + lastParts.month * 100 + lastParts.day
-    const nowKey = nowParts.year * 10000 + nowParts.month * 100 + nowParts.day
-
-    if (lastKey > nowKey) {
-      return false
-    }
-
-    return true
-  })
+  // Default del checkbox "Pagar cuota":
+  // - Membresía vigente → destildado (el operador probablemente entra a
+  //   consultar o corregir un dato, no a re-cobrar).
+  // - Sin membresía o expirada → tildado (renovación por default).
+  const [payment, setPayment] = useState<CheckedState>(!isCurrentActive)
 
   const handleChangeCheckBox = (checked: CheckedState) => {
     setPayment(checked)
@@ -284,10 +341,9 @@ export default function MembershipForm({
               )}
             </div>
 
-            <div className='grid gap-y-2 col-span-2'>
-              <div className='flex items-center gap-3'>
-                {isVIPMembership && <SquareMinusIcon className='size-6 text-primary400' />}
-                {!isVIPMembership && (
+            {!isVIPMembership && (
+              <div className='grid gap-y-2 col-span-2'>
+                <div className='flex items-center gap-3'>
                   <Checkbox
                     checked={payment}
                     className='size-6'
@@ -296,15 +352,12 @@ export default function MembershipForm({
                     name='payment'
                     onCheckedChange={handleChangeCheckBox}
                   />
-                )}
-                <Label
-                  className={cn('text-xs text-white', isVIPMembership && 'text-white/40')}
-                  htmlFor='payment'
-                >
-                  {t('membership.payMembership')}
-                </Label>
+                  <Label className='text-xs text-white' htmlFor='payment'>
+                    {t('membership.payMembership')}
+                  </Label>
+                </div>
               </div>
-            </div>
+            )}
             {shouldSuggestSurcharge && (
               <div className='grid gap-y-2 col-span-2'>
                 <div className='flex items-center gap-3'>
@@ -318,6 +371,67 @@ export default function MembershipForm({
                     {t('membership.aplySurcharge')}
                   </Label>
                 </div>
+              </div>
+            )}
+            {isTypeChangeIntraActive && adjustmentAction && (
+              <div className='col-span-2 grid gap-y-3 border border-destructive/60 rounded-md p-3 bg-destructive/10'>
+                <div className='flex items-start gap-2'>
+                  <InfoIcon className='size-5 text-destructive shrink-0 mt-0.5' />
+                  <div className='grid gap-y-1'>
+                    <span className='text-sm font-semibold text-white'>
+                      {adjustmentAction === 'refund'
+                        ? 'Reintegro sugerido'
+                        : 'Cobro adicional sugerido'}
+                    </span>
+                    <span className='text-xs text-white/80'>
+                      El cliente pasa de{' '}
+                      {t(
+                        MembershipTranslation[
+                          currentMembershipType as keyof typeof MembershipTranslation
+                        ]
+                      )}{' '}
+                      a{' '}
+                      {t(MembershipTranslation[selectedType as keyof typeof MembershipTranslation])}
+                      . Diferencia calculada:{' '}
+                      <strong>${Math.abs(suggestedAdjustment).toLocaleString('es-AR')}</strong>.
+                    </span>
+                  </div>
+                </div>
+                <InputCurrency
+                  className='w-full font-light'
+                  componentRight={<MoneyIcon className='text-[#8F878A]' height={24} width={24} />}
+                  helperText={
+                    adjustmentAction === 'refund'
+                      ? 'Se registrará como gasto con categoría "Reintegros"'
+                      : 'Se registrará como nuevo pago con nota de diferencia'
+                  }
+                  id='adjustment_amount_display'
+                  isDisabled={loading || !registerAdjustment}
+                  minValue={0}
+                  value={adjustmentValue}
+                  onValueChange={(val) => setAdjustmentValue(val ?? '')}
+                />
+                <input name='adjustment_amount' type='hidden' value={adjustmentValue} />
+                <div className='flex items-center gap-3'>
+                  <Checkbox
+                    checked={registerAdjustment}
+                    className='size-6'
+                    disabled={loading}
+                    id='register_adjustment'
+                    onCheckedChange={setRegisterAdjustment}
+                  />
+                  <Label
+                    className='text-xs text-white cursor-pointer'
+                    htmlFor='register_adjustment'
+                  >
+                    {adjustmentAction === 'refund'
+                      ? 'Registrar reintegro en gastos'
+                      : 'Registrar cobro adicional como nuevo pago'}
+                  </Label>
+                </div>
+                {registerAdjustment && (
+                  <input name='type_change_action' type='hidden' value={adjustmentAction} />
+                )}
               </div>
             )}
             {!isVIPMembership && (
@@ -363,65 +477,78 @@ export default function MembershipForm({
                 />
               </div>
             )}
-            <UncontrolledDatePicker
-              className='w-full col-span-2 sm:col-span-1'
-              dateFormat='short'
-              defaultValue={customer?.customer_membership?.last_payment_date || ''}
-              helperText={errors?.start_date}
-              isDisabled={payment !== true || loading}
-              isInvalid={!!errors?.start_date}
-              label={t('membership.startDateLabel')}
-              name='start_date'
-            />
-            <UncontrolledDatePicker
-              className='w-full col-span-2 sm:col-span-1'
-              dateFormat='short'
-              defaultValue={customer?.customer_membership?.expiration_date || ''}
-              helperText={errors?.end_date}
-              isDisabled={payment !== true || loading}
-              isInvalid={!!errors?.end_date}
-              label={t('membership.endDateLabel')}
-              name='end_date'
-            />
-            {!isVIPMembership && (
+            {!isVIPMembership && !isDailyMembership && (
               <>
-                <div className='flex items-center gap-3 col-span-2'>
-                  <Checkbox
-                    className='size-6'
-                    disabled={!payment || hasAssistanceToday || loading}
-                    id='first_assistance'
-                    name='first_assistance'
-                  />
-                  <span className='flex items-center gap-2'>
-                    <Label
-                      className={cn(
-                        'text-xs text-white',
-                        (!payment || hasAssistanceToday || loading) && 'text-white/30'
-                      )}
-                      htmlFor='first_assistance'
-                    >
-                      {t('membership.registerFirstAssistance')}
-                    </Label>
-                    {!payment && (
-                      <Tooltip data-side='left'>
-                        <TooltipTrigger asChild>
-                          <InfoIcon className='size-4 text-destructive' />
-                        </TooltipTrigger>
-                        <TooltipContent side='top'>
-                          <p className='w-[180px]'>{t('membership.paymentRequiredTooltip')}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
-                  </span>
-                </div>
-                {errors?.first_assistance && (
-                  <small className='text-xs text-destructive flex items-center gap-2 col-span-2'>
-                    <InfoIcon className='size-6 text-destructive' />
-                    {errors.first_assistance}
-                  </small>
-                )}
+                <UncontrolledDatePicker
+                  className='w-full col-span-2 sm:col-span-1'
+                  dateFormat='short'
+                  defaultValue={customer?.customer_membership?.last_payment_date || ''}
+                  helperText={errors?.start_date}
+                  isDisabled={payment !== true || loading}
+                  isInvalid={!!errors?.start_date}
+                  label={t('membership.startDateLabel')}
+                  name='start_date'
+                />
+                <UncontrolledDatePicker
+                  className='w-full col-span-2 sm:col-span-1'
+                  dateFormat='short'
+                  defaultValue={customer?.customer_membership?.expiration_date || ''}
+                  helperText={errors?.end_date}
+                  isDisabled={payment !== true || loading}
+                  isInvalid={!!errors?.end_date}
+                  label={t('membership.endDateLabel')}
+                  name='end_date'
+                />
               </>
             )}
+            {isDailyMembership && (
+              <>
+                <input name='start_date' type='hidden' value={todayIsoDate} />
+                <input name='end_date' type='hidden' value={todayIsoDate} />
+              </>
+            )}
+            {(() => {
+              const requiresPayment = !isVIPMembership
+              const assistanceDisabled =
+                hasAssistanceToday || loading || (requiresPayment && !payment)
+
+              return (
+                <>
+                  <div className='flex items-center gap-3 col-span-2'>
+                    <Checkbox
+                      className='size-6'
+                      disabled={assistanceDisabled}
+                      id='first_assistance'
+                      name='first_assistance'
+                    />
+                    <span className='flex items-center gap-2'>
+                      <Label
+                        className={cn('text-xs text-white', assistanceDisabled && 'text-white/30')}
+                        htmlFor='first_assistance'
+                      >
+                        {t('membership.registerFirstAssistance')}
+                      </Label>
+                      {requiresPayment && !payment && (
+                        <Tooltip data-side='left'>
+                          <TooltipTrigger asChild>
+                            <InfoIcon className='size-4 text-destructive' />
+                          </TooltipTrigger>
+                          <TooltipContent side='top'>
+                            <p className='w-[180px]'>{t('membership.paymentRequiredTooltip')}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </span>
+                  </div>
+                  {errors?.first_assistance && (
+                    <small className='text-xs text-destructive flex items-center gap-2 col-span-2'>
+                      <InfoIcon className='size-6 text-destructive' />
+                      {errors.first_assistance}
+                    </small>
+                  )}
+                </>
+              )
+            })()}
           </div>
           <AssistanceToday assistance={customer?.assistance} />
         </section>
