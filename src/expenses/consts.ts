@@ -6,6 +6,7 @@ export const EXPENSE_CATEGORIES = [
   'SUPPLIES',
   'RENT',
   'TAXES',
+  'REFUNDS',
   'OTHER',
 ] as const
 
@@ -20,6 +21,8 @@ export const LEGACY_CATEGORY_MAP: Record<string, ExpenseCategory> = {
   Suministros: 'SUPPLIES',
   Alquiler: 'RENT',
   Impuestos: 'TAXES',
+  Reintegros: 'REFUNDS',
+  Reintegro: 'REFUNDS',
   Otros: 'OTHER',
   // Also map uppercase Spanish versions
   SERVICIOS: 'SERVICES',
@@ -30,7 +33,11 @@ export const LEGACY_CATEGORY_MAP: Record<string, ExpenseCategory> = {
   SUELDOS: 'SALARIES', // Alternative Spanish term
   ALQUILER: 'RENT',
   IMPUESTOS: 'TAXES',
+  REINTEGROS: 'REFUNDS',
+  REINTEGRO: 'REFUNDS',
   OTROS: 'OTHER',
+  // Also map the legacy lowercase Spanish value inserted by the RPC before renaming to REFUNDS
+  reintegros: 'REFUNDS',
 }
 
 // Color mapping for category badges
@@ -42,5 +49,6 @@ export const EXPENSE_CATEGORY_COLORS: Record<ExpenseCategory, string> = {
   SUPPLIES: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
   RENT: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
   TAXES: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
+  REFUNDS: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400',
   OTHER: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400',
 }

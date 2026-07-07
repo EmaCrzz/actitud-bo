@@ -12,7 +12,6 @@ export const EXPENSE_CATEGORIES = [
   'suministros',
   'seguros',
   'impuestos',
-  'reintegros',
   'otro',
 ] as const
 
@@ -37,7 +36,6 @@ export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, string> = {
   suministros: 'Suministros',
   seguros: 'Seguros',
   impuestos: 'Impuestos',
-  reintegros: 'Reintegros',
   otro: 'Otro',
 }
 
