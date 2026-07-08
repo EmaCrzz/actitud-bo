@@ -31,6 +31,9 @@ export interface Assistance {
 export interface CustomerComplete extends Customer {
   customer_membership: CustomerMembership | null
   assistance: Assistance[]
+  // Forma de pago del último pago registrado (viene de membership_payments,
+  // no de customer_membership). Null si el cliente nunca registró un pago (ej. VIP).
+  last_payment_method: string | null
 }
 
 // Tipos específicos para el formulario de cliente

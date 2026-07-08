@@ -25,7 +25,7 @@ function Calendar({
     <DayPicker
       captionLayout={captionLayout}
       className={cn(
-        'group/calendar p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent',
+        'group/calendar p-3 [--cell-size:--spacing(11)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent',
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className
@@ -40,12 +40,12 @@ function Calendar({
         ),
         button_previous: cn(
           buttonVariants({ variant: buttonVariant }),
-          'size-(--cell-size) aria-disabled:opacity-50 p-0 select-none',
+          'size-(--cell-size) aria-disabled:opacity-50 p-0 select-none text-white/70 hover:text-white',
           defaultClassNames.button_previous
         ),
         button_next: cn(
           buttonVariants({ variant: buttonVariant }),
-          'size-(--cell-size) aria-disabled:opacity-50 p-0 select-none',
+          'size-(--cell-size) aria-disabled:opacity-50 p-0 select-none text-white/70 hover:text-white',
           defaultClassNames.button_next
         ),
         month_caption: cn(
@@ -62,40 +62,42 @@ function Calendar({
         ),
         dropdown: cn('absolute inset-0 opacity-0', defaultClassNames.dropdown),
         caption_label: cn(
-          'select-none font-medium',
+          'select-none font-semibold text-white capitalize',
           captionLayout === 'label'
             ? 'text-sm'
-            : 'rounded-md pl-2 pr-1 flex items-center gap-1 text-sm h-8 [&>svg]:text-muted-foreground [&>svg]:size-3.5',
+            : 'rounded-md pl-2 pr-1 flex items-center gap-1 text-sm h-8 [&>svg]:text-white/50 [&>svg]:size-3.5',
           defaultClassNames.caption_label
         ),
         table: 'w-full border-collapse',
         weekdays: cn('flex', defaultClassNames.weekdays),
         weekday: cn(
-          'text-muted-foreground rounded-md flex-1 font-normal text-[0.8rem] select-none',
+          'flex-1 select-none text-[0.72rem] font-medium text-white/40 pb-2 uppercase tracking-wide',
           defaultClassNames.weekday
         ),
-        week: cn('flex w-full mt-2', defaultClassNames.week),
-        week_number_header: cn('select-none w-(--cell-size)', defaultClassNames.week_number_header),
-        week_number: cn(
-          'text-[0.8rem] select-none text-muted-foreground',
-          defaultClassNames.week_number
+        // Caja con borde alrededor de la grilla de días (los weekdays quedan afuera, arriba).
+        weeks: cn(
+          'flex flex-col rounded-lg border border-white/10 overflow-hidden',
+          defaultClassNames.weeks
         ),
+        // Divisores internos: verticales entre celdas (divide-x) y horizontales entre filas (border-b).
+        week: cn(
+          'flex w-full divide-x divide-white/10 border-b border-white/10 last:border-b-0',
+          defaultClassNames.week
+        ),
+        week_number_header: cn('select-none w-(--cell-size)', defaultClassNames.week_number_header),
+        week_number: cn('text-[0.8rem] select-none text-white/40', defaultClassNames.week_number),
         day: cn(
-          'relative w-full h-full p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md group/day aspect-square select-none',
+          'relative flex-1 aspect-square p-1 text-center select-none group/day',
           defaultClassNames.day
         ),
-        range_start: cn('rounded-l-md bg-accent', defaultClassNames.range_start),
+        range_start: cn('rounded-l-md', defaultClassNames.range_start),
         range_middle: cn('rounded-none', defaultClassNames.range_middle),
-        range_end: cn('rounded-r-md bg-accent', defaultClassNames.range_end),
-        today: cn(
-          'bg-accent text-accent-foreground rounded-md data-[selected=true]:rounded-none',
-          defaultClassNames.today
-        ),
-        outside: cn(
-          'text-muted-foreground aria-selected:text-muted-foreground',
-          defaultClassNames.outside
-        ),
-        disabled: cn('text-muted-foreground opacity-50', defaultClassNames.disabled),
+        range_end: cn('rounded-r-md', defaultClassNames.range_end),
+        // El marcado del día actual se resuelve en CalendarDayButton (color + ring).
+        today: '',
+        // Días de otro mes: celda atenuada para que el límite del mes se note.
+        outside: cn('bg-white/[0.03] text-white/25', defaultClassNames.outside),
+        disabled: cn('text-white/20 opacity-50', defaultClassNames.disabled),
         hidden: cn('invisible', defaultClassNames.hidden),
         ...classNames,
       }}
@@ -128,6 +130,8 @@ function Calendar({
       }}
       formatters={{
         formatMonthDropdown: (date) => date.toLocaleString('default', { month: 'short' }),
+        // Weekdays en español, una letra (L M M J V S D), como la referencia.
+        formatWeekdayName: (date) => date.toLocaleDateString('es-ES', { weekday: 'narrow' }),
         ...formatters,
       }}
       showOutsideDays={showOutsideDays}
@@ -150,10 +154,25 @@ function CalendarDayButton({
     if (modifiers.focused) ref.current?.focus()
   }, [modifiers.focused])
 
+  const isSingleSelected =
+    modifiers.selected && !modifiers.range_start && !modifiers.range_middle && !modifiers.range_end
+  const isToday = !!modifiers.today
+
   return (
     <Button
       className={cn(
-        'data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 dark:hover:text-accent-foreground flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-70',
+        'mx-auto flex size-9 aspect-square items-center justify-center rounded-full p-0 text-sm font-normal leading-none text-white transition-colors',
+        'hover:bg-white/10 hover:text-white',
+        // Día de otro mes: número tenue.
+        modifiers.outside && !isToday && !isSingleSelected && 'text-white/25',
+        // Día seleccionado (distinto de hoy): contorno/ring rosa.
+        isSingleSelected &&
+          !isToday &&
+          'text-primary400 font-semibold ring-1 ring-inset ring-primary',
+        // Día actual: círculo relleno rosa (prioritario, incluso si también está seleccionado).
+        isToday && 'bg-primary text-white font-semibold hover:bg-primary hover:text-white',
+        // Rango.
+        'data-[range-start=true]:bg-primary data-[range-start=true]:text-white data-[range-end=true]:bg-primary data-[range-end=true]:text-white data-[range-middle=true]:bg-primary/25 data-[range-middle=true]:rounded-none',
         defaultClassNames.day,
         className
       )}
@@ -161,12 +180,7 @@ function CalendarDayButton({
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       data-range-start={modifiers.range_start}
-      data-selected-single={
-        modifiers.selected &&
-        !modifiers.range_start &&
-        !modifiers.range_end &&
-        !modifiers.range_middle
-      }
+      data-selected-single={isSingleSelected}
       size='icon'
       variant='ghost'
       {...props}

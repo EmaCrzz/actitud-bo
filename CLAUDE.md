@@ -23,7 +23,11 @@ Aplica a cualquier request en este repo, con Claude o cualquier otro agente. Ada
 
 6. **Verificar localmente.** `npm run type-check` y `npm run lint` deben pasar (o quedar en el mismo estado que en `main` si hay errores preexistentes documentados). Reportar cualquier warning nuevo.
 
-7. **Documentar la decisión arquitectónica si corresponde.** Si el cambio implica una decisión de diseño con impacto futuro, agregar un ADR en `docs/architecture/decisions/` siguiendo las reglas de [docs/architecture/decisions/README.md](docs/architecture/decisions/README.md).
+7. **Crear ADR (paso obligatorio, por default).** Por default asumí que el cambio amerita ADR y crealo siguiendo [docs/architecture/decisions/README.md](docs/architecture/decisions/README.md) y su [TEMPLATE.md](docs/architecture/decisions/TEMPLATE.md). Las **únicas** excepciones legítimas son:
+   - Trabajo directo sobre `develop` o `main` (no en rama de trabajo).
+   - Cambios verdaderamente triviales: typos, bumps de dependencias, formatting, renames locales, o bug fixes mecánicos sin ninguna decisión de diseño.
+
+   Si dudás si aplica, **no lo skipees en silencio** — mencionalo explícitamente en el reporte final del paso 8 ("no creé ADR porque X, avisame si querés que igual lo haga"). El ADR se commitea junto con el feature/fix, en el mismo commit o adyacente, nunca en un commit separado a posteriori.
 
 8. **Reportar cambios + checklist de pruebas locales.** En 1–2 oraciones: qué cambió. Después, un checklist claro de qué debe probar el usuario en localhost antes de aprobar (golden path + edge cases + regresiones sospechosas).
 

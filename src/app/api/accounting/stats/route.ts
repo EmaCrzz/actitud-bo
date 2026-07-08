@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMonthlyStats } from '@/accounting/api/server'
+import { accountingErrorResponse } from '@/accounting/api/http'
 import { getCurrentMonth } from '@/lib/format-date'
 
 export async function GET(request: NextRequest) {
@@ -15,13 +16,6 @@ export async function GET(request: NextRequest) {
       success: true,
     })
   } catch (error) {
-    return NextResponse.json(
-      {
-        data: [],
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch monthly statistics',
-      },
-      { status: 500 }
-    )
+    return accountingErrorResponse(error, 'Failed to fetch monthly statistics', [])
   }
 }
