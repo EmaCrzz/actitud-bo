@@ -29,8 +29,8 @@ export const MembershipTranslationTwoLines: Record<
   Record<string, TranslationKey>
 > = {
   [MEMBERSHIP_TYPE_5_DAYS]: {
-    one: 'membership.types.twoLines.3_days.line1',
-    two: 'membership.types.twoLines.3_days.line2',
+    one: 'membership.types.twoLines.5_days.line1',
+    two: 'membership.types.twoLines.5_days.line2',
   },
   [MEMBERSHIP_TYPE_3_DAYS]: {
     one: 'membership.types.twoLines.3_days.line1',
