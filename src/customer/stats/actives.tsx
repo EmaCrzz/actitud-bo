@@ -82,7 +82,7 @@ export default function CustomerActives() {
 
   return (
     <div className='space-y-3'>
-      <div className='bg-background sticky top-0 pb-1'>
+      <div className='bg-background sticky top-0 z-10 pb-1'>
         <Input
           autoComplete={'off'}
           className='py-0 pl-0 mb-0'
@@ -187,9 +187,14 @@ export default function CustomerActives() {
                       </span>
                       <span className='text-xs text-start font-extralight'>Forma de pago</span>
                       <span className='text-xs justify-end flex items-center capitalize'>
-                        {last_payment?.payment_method
-                          ? t(PaymentsTranslation[last_payment.payment_method as PaymentType])
-                          : 'N/A'}
+                        {(() => {
+                          const method = last_payment?.payment_method
+
+                          if (!method) return 'N/A'
+                          const key = PaymentsTranslation[method as PaymentType]
+
+                          return key ? t(key) : method
+                        })()}
                       </span>
                     </section>
                   </AccordionContent>

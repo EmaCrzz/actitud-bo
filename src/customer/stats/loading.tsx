@@ -5,7 +5,7 @@ import { SearchIcon } from 'lucide-react'
 function LoadingCustomerListStats() {
   return (
     <div className='space-y-4'>
-      <div className='bg-background sticky top-0 pb-1'>
+      <div className='bg-background sticky top-0 z-10 pb-1'>
         <Input
           disabled
           autoComplete={'off'}

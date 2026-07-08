@@ -283,6 +283,13 @@ export default function MembershipForm({
   // - Sin membresía o expirada → tildado (renovación por default).
   const [payment, setPayment] = useState<CheckedState>(!isCurrentActive)
 
+  // El select de método de pago también debe habilitarse cuando el operador
+  // registra la diferencia de un upgrade (charge_diff), aunque no marque
+  // "Pagar cuota": esa diferencia se cobra con algún método y debe quedar
+  // registrada — el RPC exige payment_method en ese INSERT.
+  const requiresPaymentType =
+    payment === true || (registerAdjustment === true && adjustmentAction === 'charge_diff')
+
   const handleChangeCheckBox = (checked: CheckedState) => {
     setPayment(checked)
   }
@@ -465,7 +472,7 @@ export default function MembershipForm({
                   className='font-light'
                   defaultValue={customer?.last_payment_method || ''}
                   helperText={errors?.payment_type}
-                  isDisabled={payment !== true || loading}
+                  isDisabled={!requiresPaymentType || loading}
                   isInvalid={!!errors?.payment_type}
                   name='payment_type'
                   options={paymentTypeOptions}

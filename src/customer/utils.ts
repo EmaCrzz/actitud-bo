@@ -72,19 +72,26 @@ export function basicMembershipValidation(formData: FormData) {
   const firstAssistance = formData.get('first_assistance') as 'on' | null
   const paymentType = formData.get('payment_type') as string
   const isFirstAssistance = firstAssistance === 'on' ? true : false
+  const typeChangeAction = formData.get('type_change_action') as 'refund' | 'charge_diff' | null
+  const adjustmentAmountRaw = formData.get('adjustment_amount') as string | null
+  // charge_diff también escribe una fila en membership_payments (rama C
+  // del RPC), así que el método de pago es requerido aunque el checkbox
+  // "Pagar cuota" no esté tildado.
+  const requiresPaymentType =
+    isPaid || (typeChangeAction === 'charge_diff' && !!adjustmentAmountRaw?.trim())
   const errors: Record<string, string> = {}
 
   if (!membershipType?.trim()) {
     errors.membership_type = 'El tipo de membresía es requerido'
+  }
+  if (requiresPaymentType && !paymentType?.trim()) {
+    errors.payment_type = 'El tipo de pago es requerido'
   }
   if (!isPaid) {
     return {
       valid: Object.keys(errors).length === 0,
       errors,
     }
-  }
-  if (!paymentType?.trim()) {
-    errors.payment_type = 'El tipo de pago es requerido'
   }
   if (!startDate?.trim()) {
     errors.start_date = 'La fecha de inicio es requerida'
