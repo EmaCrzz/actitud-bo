@@ -2,6 +2,7 @@ import './globals.css'
 
 import type { Metadata, Viewport } from 'next'
 import { Toaster } from 'sonner'
+import EnvBanner from '@/components/env-banner'
 import PWAInstaller from '@/components/pwa-installer'
 import SWUpdateManager from '@/components/sw-update-manager'
 import { getTenantFontVariables } from '@/lib/themes/fonts'
@@ -55,6 +56,10 @@ export default async function RootLayout({
   params: Promise<{ lang: string; tenant: string }>
 }>) {
   const { tenant, lang } = await params
+  // Cuando el banner de env está visible (no-prod), reservamos su alto (h-7)
+  // en el body para que no tape el header ni descoloque los cálculos de h-dvh
+  // de las páginas hijas.
+  const isProd = process.env.NEXT_PUBLIC_VERCEL_ENV === 'production'
 
   return (
     <html suppressHydrationWarning lang={lang} style={generateThemeStyles()}>
@@ -253,7 +258,10 @@ export default async function RootLayout({
           rel='apple-touch-startup-image'
         />
       </head>
-      <body className={`${tenantFontVariables} h-dvh grid grid-rows-[auto_1fr_auto]`}>
+      <body
+        className={`${tenantFontVariables} h-dvh grid grid-rows-[auto_1fr_auto] ${isProd ? '' : 'pt-7'}`}
+      >
+        <EnvBanner />
         <QueryProvider>
           <I18nServerProvider lang={lang as Language} tenant={tenant as TenantsType}>
             {children}
