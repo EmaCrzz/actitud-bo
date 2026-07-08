@@ -119,11 +119,22 @@ npm run dev
 
 5. **Comandos disponibles:**
 ```bash
-npm run build          # Construir para producción
+# Desarrollo y build
+npm run dev            # Servidor de desarrollo (puerto 3001, con SW)
+npm run build          # Construir para producción (con SW)
 npm run start          # Ejecutar en producción
+
+# Calidad de código
 npm run lint           # Verificar código con ESLint
-npm run lint:fix       # Corregir errores de ESLint y formatear
+npm run lint:fix       # Corregir errores de ESLint y formatear con Prettier
 npm run type-check     # Verificar tipos de TypeScript
+npm run format         # Formatear con Prettier
+
+# Base de datos (ver docs/workflow.md para el setup del Session Pooler)
+npm run db:new         # Crear nueva migración
+npm run db:status      # Ver estado de migraciones
+npm run db:push-dev    # Aplicar migraciones a desarrollo
+npm run db:push-prod   # Aplicar migraciones a producción (con confirmación)
 ```
 
 ## 🏗 Arquitectura del Proyecto
@@ -184,80 +195,14 @@ src/
 - Sistema de notificaciones push
 - Dashboard avanzado con analytics
 
-# TODO List - [Actitud BO]
+## 🚢 Deploy y Base de Datos
 
-## 🚀 Próximas Tareas (High Priority)
-- [X] Implementar eslint y prettier
-- [X] Configurar entorno de desarrollo
-- [X] Definir arquitectura del proyecto
-- [X] Crear mockups/wireframes básicos
-- [X] Configurar base de datos
-- [X] Implementar autenticación de usuarios
+El repo tiene un flujo formal para deploys, releases, gestión de migraciones y rollback de emergencia. Antes de tocar `main` o `db:push-prod`:
 
-## 🔧 Desarrollo (In Progress)
-- [ ] Revisar el caso de ingresar alguien pasado la mitad del mes, generar asistencia pero no cobrar la membresia en ese momento.
-      Luego querer ir a renovar la membresia y vamos a ver que aplica recargo por todo el mes, no por la mitad del mes.
-- [ ] Revisar contador de asistencias en la tabla customers
-- [ ] Crear page para edicion typo  de membresia no valido
-- [ ] Revisar el uso de las traducciones en constantes, paginas y componentes
-- [ ] Actualizar las traducciones de en respecto a las de es
-- [ ] Rewrite de rutas para que esten en por lang
-- [ ] Revisar rutas que estes con constantes
-- [ ] La sumatoria de membresias separada por tipos esta mal
-- [ ] Verificar proteccion de todas las rutas de la app 🔝 🚩
-- [ ] Implementar delete de asistencia del dia
-- [ ] Implementar mensaje de error cuando algun dato del login esta mal
-- [ ] Componentizar el btn de volver atras con el texto y la ruta
-- [ ] Implementar page 404 cuando vamos a un cliente con un id no valido
-- [ ] Implementar ordenamiento de cliente con prioridad de los que tienen membresia activa
-- [ ] Implementar inifinte scroll desde el listado de clientes
-- [ ] Implementar delete de cliente
-- [ ] Implementar rol admin
-- [ ] Verificar porque la fuente no se ve en mobiles
-- [X] Implementar agregar pase adicional si la semana esta completa
-- [X] Crear formulario multi step para crear cliente
-- [X] Loading del perfil del cliente con los nuevo bloques
-- [X] Loading para page editar membresia
-- [X] Implementar manejo de errores con mas ayuda en crar cliente
-- [X] Mostrar en el listado de asistencias del dia la hs en la que se registro
-- [X] Implementar registar primera asistencia al momento de crear cliente
-- [X] Implementar pantalla asistencias del dia
-- [X] Implementar cierre de sesion
-- [X] Validar e informar alta de asistencia del dia si ya fue creada
-- [X] Implementar constantes para las rutas
-- [X] Implementar assistance count en cliente (trigger)
-- [X] Luego de registrar la asistencia voler al home
-- [X] Extender modelo de usuario para tener nombre y apellido
-- [X] Implementar upsert Cliente
-- [X] Implementar crear cliente desde la busqueda en la home
-- [X] Implementar crear cliente desde el listado de clientes
-- [X] Implementar pantalla de estadisticas en progreso
+📖 **Ver [docs/workflow.md](docs/workflow.md)** — cubre:
+- Protección de `main` y flujo de release (`./scripts/release.sh`)
+- Gestión de migraciones (dev / prod) y Session Pooler
+- Disciplina expand-and-contract para migrations
+- Rollback de emergencia (3 escenarios)
 
-## 📱 PWA (In Progress)
-- [ ] Crear manifest
-- [ ] Crear SW
-- [ ] Crear notificaciones
-
-## 🎨 Frontend
-- [X] Estilar correctamente el input y select para mostrar el error o helpertext sin saltos en la pantalla
-- [ ] Estilar toast
-- [ ] Estilar Button outlined, ver estilos de renovar/modificar membresía
-- [ ] Estilar Button ghost, ver estilos de registarar pase diario
-- [ ] Añadir animaciones/transiciones
-
-## 📊 Performance
-- [X] Optimizar tiempo de carga
-- [X] Implementar lazy loading en home
-- [X] Implementar lazy loading en listado de clientes
-- [X] Implementar lazy loading en detalle de cliente
-- [X] Implementar pantallas de carga
-
-## 🐛 Bugs & Issues
-- [ ] Mostrar - en lugar de 0 en el home si no hay asistencias
-- [X] BTN crear cliente desalineado
-- [X] Buscar un cliente que no existe, limpiar el input, queda el menu desplegado con el mensaje de que no se encontraron clientes
-
-## 💡 Ideas Futuras (Backlog)
-- [ ] Crear dashboard de analytics
-- [ ] Añadir funcionalidad offline
-
+Y **[CLAUDE.md](CLAUDE.md)** — protocolo de trabajo para cambios en el repo (ramas, ADRs, checklist previo al commit).
