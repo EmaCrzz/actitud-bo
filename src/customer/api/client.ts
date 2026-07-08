@@ -299,8 +299,12 @@ export async function upsertCustomerMembership({
   const paymentType = formData.get('payment_type') as string
   const membershipAmount = formData.get('membership_amount') as string
   const firstAssistance = formData.get('first_assistance') as 'on' | null
+  const typeChangeAction = formData.get('type_change_action') as 'refund' | 'charge_diff' | null
+  const adjustmentAmountRaw = formData.get('adjustment_amount') as string | null
   const isPaid = payment === 'on'
   const amount = isPaid ? parseCurrency(membershipAmount) : 0
+  const adjustmentAmount =
+    typeChangeAction && adjustmentAmountRaw ? parseCurrency(adjustmentAmountRaw) : null
 
   // Call the RPC function to handle all operations atomically
   const { data, error } = await supabase.rpc('upsert_customer_membership_with_payment', {
@@ -312,6 +316,8 @@ export async function upsertCustomerMembership({
     p_payment_type: paymentType || 'efectivo',
     p_amount: amount,
     p_register_assistance: firstAssistance === 'on',
+    p_type_change_action: typeChangeAction,
+    p_adjustment_amount: adjustmentAmount,
   })
 
   // Handle Supabase/PostgreSQL errors

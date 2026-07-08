@@ -1,5 +1,5 @@
 import { CustomerWithMembership } from '@/customer/types'
-import { MembershipTypes } from '@/membership/consts'
+import { MEMBERSHIP_TYPE_DAILY, MembershipTypes } from '@/membership/consts'
 import { isExpiredInAppTz } from '@/lib/timezone'
 
 // customer_membership viene como objeto cuando la relación tiene UNIQUE en customer_id,
@@ -17,8 +17,8 @@ type CustomerRow = Omit<CustomerWithMembership, 'membership_type'> & {
 export function mapCustomerRow(row: CustomerRow): CustomerWithMembership {
   const membership = row.customer_membership
   const membership_type = Array.isArray(membership)
-    ? membership[0]?.membership_type ?? null
-    : membership?.membership_type ?? null
+    ? (membership[0]?.membership_type ?? null)
+    : (membership?.membership_type ?? null)
 
   return {
     ...row,
@@ -92,10 +92,14 @@ export function basicMembershipValidation(formData: FormData) {
   if (!endDate?.trim()) {
     errors.end_date = 'La fecha de finalización es requerida'
   }
-  if (new Date(startDate) >= new Date(endDate)) {
+
+  const isDaily = membershipType === MEMBERSHIP_TYPE_DAILY
+
+  // Para membresías DAILY, start_date === end_date (mismo día). Saltar los
+  // chequeos de "end > start" y "menos de un mes de diferencia".
+  if (!isDaily && new Date(startDate) >= new Date(endDate)) {
     errors.end_date = 'La fecha de finalización debe ser posterior a la fecha de inicio'
   }
-  // verificar que la la diferencia entre la fecha de inicio y la fecha de finalización sea menor 1 mes
 
   const startDateObj = new Date(startDate)
   const endDateObj = new Date(endDate)
@@ -103,7 +107,7 @@ export function basicMembershipValidation(formData: FormData) {
 
   oneMonthLater.setMonth(oneMonthLater.getMonth() + 1)
 
-  if (endDateObj > oneMonthLater) {
+  if (!isDaily && endDateObj > oneMonthLater) {
     errors.end_date =
       'La fecha de finalización no puede ser mayor a un mes después de la fecha de inicio'
   }

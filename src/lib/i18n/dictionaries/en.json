@@ -374,6 +374,7 @@
         "SUPPLIES": "Supplies",
         "RENT": "Rent",
         "TAXES": "Taxes",
+        "REFUNDS": "Refunds",
         "OTHER": "Other"
       }
     },

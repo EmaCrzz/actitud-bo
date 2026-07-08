@@ -48,13 +48,7 @@ function HelperText({ text, isInvalid }: { text: string; isInvalid?: boolean }) 
   )
 }
 
-function Textarea({
-  className,
-  variant,
-  helperText,
-  isInvalid,
-  ...props
-}: TextareaProps) {
+function Textarea({ className, variant, helperText, isInvalid, ...props }: TextareaProps) {
   const textareaElement = (
     <textarea
       className={cn(

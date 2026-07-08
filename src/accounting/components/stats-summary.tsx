@@ -36,12 +36,8 @@ export default function StatsSummary({ month }: StatsSummaryProps) {
     )
   }
 
-  if(income === 0 && expenses === 0) {
-    return (
-      <section className='grid gap-3'>
-        No existen datos para este mes.
-      </section>
-    )
+  if (income === 0 && expenses === 0) {
+    return <section className='grid gap-3'>No existen datos para este mes.</section>
   }
 
   return (

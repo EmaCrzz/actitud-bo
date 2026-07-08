@@ -146,10 +146,7 @@ export function isExpiredInAppTz(
 }
 
 // Días calendario entre hoy y `expiration` en APP_TIMEZONE. Positivo = futuro, 0 = hoy, negativo = pasado.
-export function daysUntilInAppTz(
-  expiration: Date | string,
-  now: Date = new Date()
-): number {
+export function daysUntilInAppTz(expiration: Date | string, now: Date = new Date()): number {
   const exp = typeof expiration === 'string' ? new Date(expiration) : expiration
   const expParts = getAppTzDateParts(exp)
   const nowParts = getAppTzDateParts(now)

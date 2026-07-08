@@ -16,6 +16,7 @@ export function isValidExpenseCategory(category: string): category is ExpenseCat
     'SUPPLIES',
     'RENT',
     'TAXES',
+    'REFUNDS',
     'OTHER',
   ]
 
