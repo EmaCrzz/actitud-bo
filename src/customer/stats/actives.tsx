@@ -187,9 +187,14 @@ export default function CustomerActives() {
                       </span>
                       <span className='text-xs text-start font-extralight'>Forma de pago</span>
                       <span className='text-xs justify-end flex items-center capitalize'>
-                        {last_payment?.payment_method
-                          ? t(PaymentsTranslation[last_payment.payment_method as PaymentType])
-                          : 'N/A'}
+                        {(() => {
+                          const method = last_payment?.payment_method
+
+                          if (!method) return 'N/A'
+                          const key = PaymentsTranslation[method as PaymentType]
+
+                          return key ? t(key) : method
+                        })()}
                       </span>
                     </section>
                   </AccordionContent>

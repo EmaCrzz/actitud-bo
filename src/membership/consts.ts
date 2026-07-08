@@ -46,14 +46,14 @@ export const MembershipTranslationTwoLines: Record<
   },
 }
 
-export const PAYMENT_CHASH = 'PAYMENT_CHASH' as const
+export const PAYMENT_CASH = 'PAYMENT_CASH' as const
 export const PAYMENT_TRANSFER = 'PAYMENT_TRANSFER' as const
 
-export const PaymentTypeArray = [PAYMENT_CHASH, PAYMENT_TRANSFER]
+export const PaymentTypeArray = [PAYMENT_CASH, PAYMENT_TRANSFER]
 
-export type PaymentType = typeof PAYMENT_CHASH | typeof PAYMENT_TRANSFER
+export type PaymentType = typeof PAYMENT_CASH | typeof PAYMENT_TRANSFER
 
 export const PaymentsTranslation: Record<PaymentType, TranslationKey> = {
-  [PAYMENT_CHASH]: 'payments.cash',
+  [PAYMENT_CASH]: 'payments.cash',
   [PAYMENT_TRANSFER]: 'payments.transfer',
 }

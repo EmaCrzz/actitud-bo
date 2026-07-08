@@ -313,7 +313,7 @@ export async function upsertCustomerMembership({
     p_start_date: isPaid ? startDate : null,
     p_end_date: isPaid ? endDate : null,
     p_is_paid: isPaid,
-    p_payment_type: paymentType || 'efectivo',
+    p_payment_type: paymentType || null,
     p_amount: amount,
     p_register_assistance: firstAssistance === 'on',
     p_type_change_action: typeChangeAction,
