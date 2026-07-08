@@ -27,8 +27,8 @@ export default async function IncomesPage({
           <h5 className='font-bold text-sm font-headline'>{t('accounting.income.title')}</h5>
         </div>
       </header>
-      <section className='max-w-3xl mx-auto w-full px-4 overflow-auto pb-4 pt-6 flex flex-col gap-y-5'>
-        <h3 className='font-extralight text-xs'>{t('accounting.income.payments')}</h3>
+      <section className='max-w-3xl mx-auto w-full px-4 overflow-auto pb-4 flex flex-col gap-y-5'>
+        <h3 className='font-extralight text-xs pt-6'>{t('accounting.income.payments')}</h3>
         <CustomerActives />
       </section>
     </>

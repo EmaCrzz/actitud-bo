@@ -45,3 +45,10 @@ next-env.d.ts
 ./public/sw.js
 
 ./CLAUDE.md
+
+# Docs
+/docs/*
+!/docs/architecture/
+
+# DB backups (contienen PII)
+/backups/

@@ -28,7 +28,7 @@
 - **Branch protection en `main`:**
   - PR obligatorio antes de mergear
   - 1 approval requerido
-  - Review de code owner requerida (definido en [`.github/CODEOWNERS`](.github/CODEOWNERS))
+  - Review de code owner requerida (definido en [`.github/CODEOWNERS`](../.github/CODEOWNERS))
   - Force push bloqueado
   - Deletion bloqueada
   - Conversation resolution requerida antes de mergear
@@ -76,21 +76,20 @@ git push origin develop
 ```
 
 ### **3. Deploy a Production**
-```bash
-# Cuando esté todo probado
-git checkout main
-git merge develop
 
-# Si hay migraciones, aplicar a producción:
+**No se mergea a `main` manualmente.** El único camino a producción es el script de release, que hace bump de versión + merge + tag + push de forma atómica.
+
+```bash
+# 1. Si hay migraciones nuevas, aplicarlas a producción PRIMERO
 npm run db:push-prod    # ⚠️ Con confirmación obligatoria
 
-# Crear tag de versión
-git tag -a v1.2.0 -m "Release v1.2.0: Descripción de cambios"
-git push origin main --tags
-
-# ✅ Vercel despliega automáticamente a Production
-# ✅ URL: actitud-bo.vercel.app
+# 2. Correr el script de release desde develop
+./scripts/release.sh patch   # o minor / major
 ```
+
+El orden importa: migraciones **antes** que el deploy de código. Ver [Disciplina de Migrations](#-disciplina-de-migrations-expand-and-contract) para entender por qué (y qué migrations son seguras hacer así).
+
+Detalles de cada paso: ver [Protección de `main`](#-protección-de-main) y [Script de Release Automatizado](#-script-de-release-automatizado).
 
 ---
 
@@ -193,6 +192,71 @@ supabase/
 4. **Correr scripts manuales si la migration los requiere** (ej. después del setup de RBAC, pegar `supabase/scripts/grant-admin.sql` en el SQL Editor de PROD con tu email para asignarte rol admin)
 5. **Hacer release:** Continuar con proceso normal de release
 
+---
+
+## 🧬 **Disciplina de Migrations (Expand-and-Contract)**
+
+**Regla base:** una migration nunca debe hacer imposible que el código anterior siga funcionando. Si esa regla se cumple, un rollback de código es un botón (Escenario A/B). Si se rompe, entrás en Escenario C — restore de DB con downtime.
+
+### Migrations seguras (aditivas)
+
+Estas son 100% forward-compatible. Se pueden aplicar a prod antes del deploy de código sin riesgo:
+
+- ✅ Crear tabla nueva
+- ✅ Agregar columna **nullable** (o con default)
+- ✅ Agregar índice
+- ✅ Crear función RPC nueva
+- ✅ Crear policy de RLS **nueva** sobre tabla existente
+- ✅ Agregar constraint que **ya se cumple** en todos los datos actuales
+
+### Migrations peligrosas (rompen rollback)
+
+Cualquiera de estas hace que el código viejo no pueda funcionar contra el schema nuevo:
+
+- ⚠️ Dropear columna, tabla, o función
+- ⚠️ Renombrar columna, tabla, o función
+- ⚠️ Cambiar tipo de columna (ej: `text → int`)
+- ⚠️ Agregar columna **`NOT NULL` sin default** a tabla con datos
+- ⚠️ Cambiar el comportamiento de una función RPC que el código ya usa
+- ⚠️ Endurecer una policy de RLS de forma que bloquee accesos actuales
+
+Si necesitás hacer una de estas, **hay que partirla en pasos** para que en todo momento haya un schema compatible con el código viejo Y el nuevo.
+
+### Patrón expand-and-contract
+
+Ejemplo: querés renombrar la columna `customers.phone` a `customers.phone_number`.
+
+**Release N (expand):**
+1. Migration aditiva: agregar `phone_number` nullable
+2. Deploy código que **lee de `phone`** y **escribe en las dos** columnas
+3. Script de backfill: `UPDATE customers SET phone_number = phone WHERE phone_number IS NULL`
+
+**Release N+1 (switch):**
+1. Deploy código que **lee de `phone_number`** y **escribe en las dos**
+2. En este punto ya podés rollback a N sin problema — ambas columnas tienen los datos
+
+**Release N+2 (contract):**
+1. Deploy código que **solo usa `phone_number`**
+2. Después de 1-2 semanas confirmando que anda bien: migration que dropea `phone`
+
+Cada release intermedio es rollbackeable con Vercel Instant Rollback. Nunca necesitás "des-migrar".
+
+Es más lento, sí. Pero un rollback de código en Vercel es 30 segundos vs un PITR de Supabase que puede ser 30 minutos de downtime. La lentitud del proceso te compra la velocidad del rollback.
+
+### Checklist para PRs con migrations
+
+Antes de mergear, respondé:
+
+- [ ] ¿La migration es 100% aditiva (tabla nueva, columna nullable, índice, función nueva, policy nueva)?
+- [ ] Si no lo es: ¿está partida en pasos expand → switch → contract con al menos un release intermedio?
+- [ ] Si es una función RPC modificada: ¿el código actual sigue funcionando con la firma/comportamiento nuevo?
+- [ ] Si cambia RLS: ¿el código anterior no depende de acceso que ahora está bloqueado?
+- [ ] ¿Escribí el SQL de forma idempotente (`IF NOT EXISTS`, `CREATE OR REPLACE`, `DROP POLICY IF EXISTS`)?
+
+Si alguna respuesta es "no sé": **no mergear** hasta discutirlo. Es mejor demorar el release que romper prod sin salida de un botón.
+
+---
+
 ### **Proyectos Separados**
 
 #### **Development Project**
@@ -208,9 +272,10 @@ supabase/
 ### **Beneficios del Setup**
 ✅ **Desarrollo seguro** - No afectas datos de producción
 ✅ **Testing real** - Pruebas con estructura real de BD
-✅ **Rollback fácil** - Cada migración es reversible
 ✅ **Historial claro** - Todas las migraciones versionadas
-✅ **Deploy seguro** - Confirmación obligatoria para producción
+✅ **Deploy con confirmación** - `db:push-prod` pide "yes" antes de aplicar
+
+> ⚠️ **Sobre rollback de migraciones:** el CLI de Supabase **no genera** down migrations automáticas. Si necesitás revertir una migración en prod, hay que escribir SQL de reversa a mano (o usar PITR si el cambio es destructivo). Por eso la disciplina de migrations aditivas es clave — ver [Disciplina de Migrations](#-disciplina-de-migrations-expand-and-contract) y [Rollback de Emergencia](#-rollback-de-emergencia).
 
 ---
 
@@ -328,34 +393,6 @@ git push origin develop
 
 ---
 
-## 🆚 **Comparación: Manual vs Script**
-
-### **Proceso Manual:**
-```bash
-# Más control, más pasos
-git checkout develop
-git pull origin develop
-git checkout main  
-git pull origin main
-git merge develop --no-ff
-git tag v1.3.0 -m "Release v1.3.0: Add reports"
-git push origin main --tags
-git checkout develop
-```
-
-### **Con Script:**
-```bash
-# Un comando, cero errores
-./scripts/release.sh minor
-```
-
-### **Recomendación:**
-- **Empieza manual** para entender el proceso
-- **Usa el script** cuando hagas releases frecuentes
-- **El script es opcional**, tu workflow manual ya funciona perfecto
-
----
-
 ## ✅ **Checklist Pre-Production**
 
 Antes de hacer merge a `main`:
@@ -382,19 +419,77 @@ Antes de hacer merge a `main`:
 
 ## 🚨 **Rollback de Emergencia**
 
-Si algo falla en producción:
+Si prod está roto, **primero estabilizás el tráfico, después limpiás git**. Esta sección está pensada para leer bajo presión — seguí el escenario que corresponda.
 
-```bash
-# Opción 1: Revert último commit
-git checkout main
-git revert HEAD
-git push origin main
+Identificá primero qué tipo de release rompió:
 
-# Opción 2: Volver a tag anterior
-git checkout main  
-git reset --hard v1.1.0
-git push origin main --force
-```
+- **¿Solo código, sin migraciones?** → Escenario A
+- **¿Código + migraciones aditivas** (columnas nullable nuevas, tablas nuevas, funciones nuevas)? → Escenario B
+- **¿Código + migraciones destructivas** (drops, renames, cambios de tipo, NOT NULL sin default)? → Escenario C
+
+> Si no estás seguro, mirá los últimos archivos en [`supabase/migrations/`](../supabase/migrations/) que entraron con el release problemático. Si contienen `DROP`, `ALTER ... TYPE`, `ALTER ... RENAME`, o `NOT NULL` sin default → tratalo como destructiva (Escenario C).
+
+---
+
+### Escenario A — Solo código
+
+**Tiempo estimado: ~30 segundos.**
+
+1. Vercel Dashboard → proyecto `actitud-bo` → **Deployments**
+2. Encontrar el último deployment sano (el anterior al roto, marcado como "Production")
+3. Click en el menú "..." del deployment sano → **Promote to Production**
+4. Confirmar. Vercel cambia el alias de producción al deployment viejo. Esto es instantáneo.
+5. Verificar en https://actitud-bo.vercel.app que anda.
+
+**Después de estabilizar (no urgente):**
+- Crear una rama `fix/rollback-<motivo>` desde el commit que rompió, revertirlo, y seguir el flujo normal de PR + release. Nunca dejes `main` con un commit malo aunque el tráfico esté yendo al deployment viejo.
+
+---
+
+### Escenario B — Código + migraciones aditivas
+
+**Tiempo estimado: ~30 segundos.**
+
+Las migraciones aditivas son forward-compatible: el código viejo no las usa, así que no le molestan. El schema se queda "adelantado" pero funcional.
+
+1. Igual que Escenario A: Vercel → Promote deployment anterior a producción.
+2. **NO tocar la DB.** El schema queda con la migration aplicada, el código viejo la ignora.
+3. Verificar que anda.
+
+**Después de estabilizar:**
+- Igual que Escenario A: revertir el commit malo. La migration puede quedarse aplicada en prod — la próxima vez que quieras usarla (con código corregido), ya está lista.
+
+---
+
+### Escenario C — Código + migraciones destructivas
+
+**Tiempo estimado: minutos a decenas de minutos. Downtime real.**
+
+Este es el escenario doloroso. El deployment viejo espera el schema viejo, pero el schema ya cambió (o se rompió). Vercel rollback solo no alcanza — hay que restaurar la DB.
+
+> **La forma de nunca vivir este escenario es no hacer migraciones destructivas en un solo release.** Ver [Disciplina de Migrations](#-disciplina-de-migrations-expand-and-contract). Si igual llegaste acá, seguí los pasos.
+
+1. **Poner la app en modo mantenimiento si podés** (redirect a página estática desde Vercel, o mensaje en app). Los clientes no deberían estar escribiendo datos mientras restaurás.
+2. **Vercel** → Promote deployment anterior (para dejar de servir el código nuevo lo antes posible).
+3. **Supabase Dashboard** → proyecto de PROD → **Database → Backups** (o **Point in Time Recovery** si está activado).
+   - Si tenés PITR: seleccionar timestamp **anterior** al `db:push-prod` de la migration rota. La restore lleva varios minutos.
+   - Si NO tenés PITR: usar el último backup diario. Vas a perder los datos escritos entre el backup y ahora — anotá qué datos son (si podés) para reingresarlos manualmente.
+4. Esperar a que la restore termine (Supabase te avisa cuando la DB está lista).
+5. Verificar que la app anda con el deployment viejo + DB restaurada.
+6. Sacar el modo mantenimiento.
+
+**Después de estabilizar:**
+- Retrospectiva obligatoria: por qué entró una migration destructiva sin partirla, y cómo evitar el próximo caso. Documentarlo en un ADR.
+- La rama con el fix debe re-hacer el cambio destructivo con expand-and-contract (ver disciplina de migrations).
+
+---
+
+### ❌ Qué NO hacer nunca
+
+- **`git push --force` a `main`**: está bloqueado por branch protection y contradice el protocolo. Si necesitás "borrar" un commit en `main`, se hace con `git revert` (crea un commit nuevo que deshace el malo).
+- **`git reset --hard` sobre `main`** localmente y push: mismo problema que arriba.
+- **Correr `db:push-prod` con SQL de reversa "improvisado" bajo presión**: escribir SQL destructivo con la app caída es la receta para el segundo desastre. Usar PITR o backup.
+- **Rollback silencioso**: siempre avisar al otro dev / dejar registro en un ADR o en el commit de revert. Que nadie descubra por accidente que prod está en una versión distinta a la que dice el tag más reciente.
 
 ---
 

@@ -82,7 +82,7 @@ export default function CustomerActives() {
 
   return (
     <div className='space-y-3'>
-      <div className='bg-background sticky top-0 pb-1'>
+      <div className='bg-background sticky top-0 z-10 pb-1'>
         <Input
           autoComplete={'off'}
           className='py-0 pl-0 mb-0'
