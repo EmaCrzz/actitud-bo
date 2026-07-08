@@ -55,7 +55,7 @@ export default function ListCustomers({ initialCustomers }: Props) {
 
   return (
     <>
-      <div className='bg-background sticky top-0 pb-1 mt-2 sm:mt-6'>
+      <div className='bg-background sticky top-0 z-10 pb-1 pt-2 sm:pt-6'>
         <Input
           autoComplete={'off'}
           className='py-2 pl-0 mb-0'
@@ -162,7 +162,7 @@ export function CustomerListLoading() {
 
   return (
     <>
-      <div className='bg-background sticky top-0 pb-1 mt-6'>
+      <div className='bg-background sticky top-0 z-10 pb-1 pt-6'>
         <Input
           disabled
           autoComplete={'off'}
