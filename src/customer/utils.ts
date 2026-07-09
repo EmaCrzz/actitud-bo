@@ -1,6 +1,6 @@
 import { CustomerWithMembership } from '@/customer/types'
 import { MEMBERSHIP_TYPE_DAILY, MembershipTypes } from '@/membership/consts'
-import { isExpiredInAppTz } from '@/lib/timezone'
+import { isExpiredInAppTz, parseAppTzDateString } from '@/lib/timezone'
 
 // customer_membership viene como objeto cuando la relación tiene UNIQUE en customer_id,
 // y como array cuando Supabase la resuelve como 1:N. Esta normalización cubre ambos casos.
@@ -102,14 +102,18 @@ export function basicMembershipValidation(formData: FormData) {
 
   const isDaily = membershipType === MEMBERSHIP_TYPE_DAILY
 
+  // Las fechas del form llegan como "YYYY-MM-DD" (día calendario AR). Parsear
+  // con `new Date(str)` las trata como medianoche UTC, que en AR es el día
+  // anterior — por eso usamos `parseAppTzDateString` para todas las comparaciones.
+  const startDateObj = parseAppTzDateString(startDate)
+  const endDateObj = parseAppTzDateString(endDate)
+
   // Para membresías DAILY, start_date === end_date (mismo día). Saltar los
   // chequeos de "end > start" y "menos de un mes de diferencia".
-  if (!isDaily && new Date(startDate) >= new Date(endDate)) {
+  if (!isDaily && startDateObj >= endDateObj) {
     errors.end_date = 'La fecha de finalización debe ser posterior a la fecha de inicio'
   }
 
-  const startDateObj = new Date(startDate)
-  const endDateObj = new Date(endDate)
   const oneMonthLater = new Date(startDateObj)
 
   oneMonthLater.setMonth(oneMonthLater.getMonth() + 1)

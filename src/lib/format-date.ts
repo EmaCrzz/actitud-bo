@@ -1,11 +1,14 @@
+import { APP_TIMEZONE, getAppTzDateParts } from './timezone'
+
 export interface FormatDateOptions {
   format?: 'dd/mm/yyyy' | 'mm/dd/yyyy' | 'yyyy-mm-dd' | 'dd-mm-yyyy' | 'dd/MM/yyyy'
   locale?: string
+  timezone?: string
 }
 
 export function formatDate(
   date: Date | string,
-  { format = 'dd/mm/yyyy' }: FormatDateOptions = {}
+  { format = 'dd/mm/yyyy', timezone = APP_TIMEZONE }: FormatDateOptions = {}
 ): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date
 
@@ -13,9 +16,22 @@ export function formatDate(
     throw new Error('Invalid date provided')
   }
 
-  const day = dateObj.getDate().toString().padStart(2, '0')
-  const month = (dateObj.getMonth() + 1).toString().padStart(2, '0')
-  const year = dateObj.getFullYear().toString()
+  // Extraer partes en la TZ solicitada (por default AR). Usar getDate/getMonth
+  // sin TZ explícita mostraba el día equivocado cuando el server corría en UTC
+  // y el timestamp venía cerca de medianoche AR.
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(dateObj)
+
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((p) => p.type === type)?.value ?? ''
+
+  const day = get('day')
+  const month = get('month')
+  const year = get('year')
 
   switch (format) {
     case 'dd/mm/yyyy':
@@ -34,13 +50,11 @@ export function formatDate(
 }
 
 /**
- * Get current month in YYYY-MM format
+ * Get current month in YYYY-MM format en la TZ del negocio (Argentina).
  * @returns Current month string (e.g., '2025-10')
  */
 export function getCurrentMonth(): string {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = (now.getMonth() + 1).toString().padStart(2, '0')
+  const { year, month } = getAppTzDateParts()
 
-  return `${year}-${month}`
+  return `${year}-${String(month).padStart(2, '0')}`
 }
