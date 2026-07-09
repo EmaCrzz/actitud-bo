@@ -159,6 +159,15 @@
     "searchPlaceholder": "¿A quien quieres registrar hoy?",
     "findCustomer": "Buscar cliente",
     "todayAssistances": "Asistencias de Hoy",
+    "yesterdayAssistances": "Asistencias de Ayer",
+    "assistancesOfDay": "Asistencias del {day}",
+    "dayNavigator": {
+      "ariaLabel": "Seleccionar día de asistencias",
+      "today": "Hoy",
+      "yesterday": "Ayer",
+      "previousDay": "Día anterior",
+      "nextDay": "Día siguiente"
+    },
     "weeklyStats": "Estadísticas Semanales",
     "monthlyStats": "Estadísticas Mensuales",
     "noAssistances": "No hay asistencias registradas",
