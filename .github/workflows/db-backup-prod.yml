@@ -1,0 +1,78 @@
+name: DB Backup PROD (daily)
+
+on:
+  schedule:
+    # 06:00 UTC = 03:00 Argentina (UTC-3). Ventana de baja actividad.
+    - cron: '0 6 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Verify prerequisites
+        run: |
+          supabase --version
+          docker --version
+          test -n "$SUPABASE_DB_URL_PROD" || { echo "SUPABASE_DB_URL_PROD secret is missing"; exit 1; }
+        env:
+          SUPABASE_DB_URL_PROD: ${{ secrets.SUPABASE_DB_URL_PROD }}
+
+      - name: Compute timestamp
+        id: ts
+        run: echo "value=$(date -u +%Y%m%d_%H%M%SZ)" >> "$GITHUB_OUTPUT"
+
+      - name: Dump schema (structure only)
+        env:
+          SUPABASE_DB_URL_PROD: ${{ secrets.SUPABASE_DB_URL_PROD }}
+        run: |
+          mkdir -p backups
+          supabase db dump \
+            --db-url "$SUPABASE_DB_URL_PROD" \
+            -f "backups/schema_${{ steps.ts.outputs.value }}.sql"
+
+      - name: Dump data (public schema)
+        env:
+          SUPABASE_DB_URL_PROD: ${{ secrets.SUPABASE_DB_URL_PROD }}
+        run: |
+          supabase db dump \
+            --db-url "$SUPABASE_DB_URL_PROD" \
+            --data-only \
+            -f "backups/data_${{ steps.ts.outputs.value }}.sql"
+
+      - name: Dump migrations table (data-only)
+        env:
+          SUPABASE_DB_URL_PROD: ${{ secrets.SUPABASE_DB_URL_PROD }}
+        run: |
+          # Si el schema supabase_migrations no existe todavia, seguir sin romper.
+          supabase db dump \
+            --db-url "$SUPABASE_DB_URL_PROD" \
+            --data-only \
+            --schema supabase_migrations \
+            -f "backups/migrations_${{ steps.ts.outputs.value }}.sql" \
+            || echo "supabase_migrations schema not found, skipping"
+
+      - name: Sanity check dump sizes
+        run: |
+          ls -lh backups/
+          # Un dump completamente vacio (< 1KB) probablemente es un error silencioso.
+          for f in backups/*.sql; do
+            size=$(stat -c%s "$f")
+            if [ "$size" -lt 512 ]; then
+              echo "WARNING: $f is suspiciously small ($size bytes)"
+            fi
+          done
+
+      - name: Upload dumps as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-prod-${{ steps.ts.outputs.value }}
+          path: backups/
+          retention-days: 30
+          if-no-files-found: error

@@ -471,16 +471,22 @@ Este es el escenario doloroso. El deployment viejo espera el schema viejo, pero 
 
 1. **Poner la app en modo mantenimiento si podés** (redirect a página estática desde Vercel, o mensaje en app). Los clientes no deberían estar escribiendo datos mientras restaurás.
 2. **Vercel** → Promote deployment anterior (para dejar de servir el código nuevo lo antes posible).
-3. **Supabase Dashboard** → proyecto de PROD → **Database → Backups** (o **Point in Time Recovery** si está activado).
-   - Si tenés PITR: seleccionar timestamp **anterior** al `db:push-prod` de la migration rota. La restore lleva varios minutos.
-   - Si NO tenés PITR: usar el último backup diario. Vas a perder los datos escritos entre el backup y ahora — anotá qué datos son (si podés) para reingresarlos manualmente.
-4. Esperar a que la restore termine (Supabase te avisa cuando la DB está lista).
-5. Verificar que la app anda con el deployment viejo + DB restaurada.
+3. **Descargar el último dump automático** desde GitHub Actions:
+   - Ir a [Actions → DB Backup PROD (daily)](https://github.com/EmaCrzz/actitud-bo/actions/workflows/db-backup-prod.yml)
+   - Encontrar el run exitoso más reciente **anterior** al deploy problemático (o el timestamp que necesites).
+   - Descargar el artifact `db-backup-prod-<timestamp>.zip`.
+4. **Restaurar el dump en PROD.** Ver la sección [💊 Restore desde un dump](#-restore-desde-un-dump) más abajo — es un proceso crítico, leer completo antes de correr nada.
+5. Verificar que la app anda con el deployment viejo + DB restaurada (usar el health check: `/api/health`).
 6. Sacar el modo mantenimiento.
+
+**Ventana de pérdida de datos:**
+- El cron corre 1×día a las 03:00 AR. En el peor caso, perdés hasta **~24hs** de datos entre el último backup exitoso y el momento del incidente.
+- Este es el trade-off actual del plan Free. Cuando pases a Pro con clientes pagos, sumamos PITR y la ventana cae a **~2 minutos**.
 
 **Después de estabilizar:**
 - Retrospectiva obligatoria: por qué entró una migration destructiva sin partirla, y cómo evitar el próximo caso. Documentarlo en un ADR.
 - La rama con el fix debe re-hacer el cambio destructivo con expand-and-contract (ver disciplina de migrations).
+- Avisar a los clientes afectados qué ventana de datos se perdió y ofrecer camino de re-ingreso si aplica.
 
 ---
 
@@ -488,14 +494,138 @@ Este es el escenario doloroso. El deployment viejo espera el schema viejo, pero 
 
 - **`git push --force` a `main`**: está bloqueado por branch protection y contradice el protocolo. Si necesitás "borrar" un commit en `main`, se hace con `git revert` (crea un commit nuevo que deshace el malo).
 - **`git reset --hard` sobre `main`** localmente y push: mismo problema que arriba.
-- **Correr `db:push-prod` con SQL de reversa "improvisado" bajo presión**: escribir SQL destructivo con la app caída es la receta para el segundo desastre. Usar PITR o backup.
+- **Correr `db:push-prod` con SQL de reversa "improvisado" bajo presión**: escribir SQL destructivo con la app caída es la receta para el segundo desastre. Usar el dump del backup diario ([Restore desde un dump](#-restore-desde-un-dump)).
 - **Rollback silencioso**: siempre avisar al otro dev / dejar registro en un ADR o en el commit de revert. Que nadie descubra por accidente que prod está en una versión distinta a la que dice el tag más reciente.
+
+---
+
+## 💊 **Restore desde un dump**
+
+Esta sección se usa cuando llegás al Escenario C del rollback y necesitás restaurar PROD desde el backup diario. El proceso es análogo al de [`db:restore-dev`](../scripts/db-restore-dev.sh) pero apuntando a PROD.
+
+> ⚠️ **Este proceso sobreescribe TODA la DB de PROD.** Antes de correrlo, confirmá que estás en Escenario C real (código rollbackeado, DB rota). Si tenés dudas, no lo corras — pedí revisión.
+
+### Prerrequisitos
+
+- **Docker Desktop** corriendo (para el `pg_dump` matching-version del container de la CLI).
+- **Supabase CLI ≥ 2.x** (`brew upgrade supabase/tap/supabase`).
+- **`psql`** instalado (`brew install postgresql`).
+- **`.env.local`** con `SUPABASE_DB_URL_PROD` seteada (Session Pooler URL).
+- Dump descargado y descomprimido en local.
+
+### 1. Descargar el dump del artifact
+
+1. Ir a **[Actions → DB Backup PROD (daily)](https://github.com/EmaCrzz/actitud-bo/actions/workflows/db-backup-prod.yml)** en GitHub.
+2. Encontrar el run exitoso del día/hora que necesitás.
+3. Scroll hasta la sección **Artifacts** al final del run.
+4. Descargar `db-backup-prod-<timestamp>.zip` y descomprimir.
+5. Vas a tener 3 archivos:
+   - `schema_<timestamp>.sql` — DDL del schema public, funciones, policies.
+   - `data_<timestamp>.sql` — Filas de las tablas (data-only).
+   - `migrations_<timestamp>.sql` — Estado de `supabase_migrations.schema_migrations`.
+
+### 2. Sanity check antes de tocar PROD
+
+Confirmá que la variable de entorno realmente apunta a PROD:
+
+```bash
+# Deberías ver el project ref de PROD y NO el de DEV
+echo "$SUPABASE_DB_URL_PROD" | sed -E 's|(://[^:]+:)[^@]+(@)|\1***\2|'
+```
+
+Si por accidente `SUPABASE_DB_URL_PROD` está seteada al de DEV, el restore va a sobreescribir DEV en vez de PROD. Verificalo en el dashboard de Supabase antes de seguir.
+
+### 3. Wipe controlado + restore
+
+**Qué contiene cada archivo del dump** (útil para entender por qué el orden importa):
+
+- **`schema_*.sql`** — DDL del schema `public`: tablas, funciones, policies RLS. Los schemas `auth.*` y `storage.*` **no se dumpean** — Supabase los provee ya montados en cualquier proyecto nuevo.
+- **`data_*.sql`** — Datos de **todas** las tablas del dump: `public.*` (tus datos de negocio), `auth.*` (users, sessions, MFA, oauth, etc), `storage.*` (buckets, objects). Usa `INSERT INTO` con `SET session_replication_role = replica` para ignorar FKs durante los inserts.
+- **`migrations_*.sql`** — Estado de `supabase_migrations.schema_migrations` (qué migrations están aplicadas). Sin este archivo, el próximo `db:push-*` intentaría reaplicar todo y romper.
+
+**Por qué el wipe no es solo `DROP SCHEMA public`:** el `data.sql` incluye INSERTs a `auth.*` y `storage.*`, no solo a `public.*`. Si no vaciás esas tablas antes, chocás con **primary key duplicadas** al insertar (ej: `auth.audit_log_entries_pkey`). Y no podés hardcodear una lista de tablas a truncar porque Supabase agrega tablas nuevas de vez en cuando. Solución: wipe dinámico con exception handler para tablas que el user del pooler no puede tocar (tablas internas managed por Supabase Auth/Storage).
+
+```bash
+cd path/al/dump/descargado
+
+# 1. Wipe: schema public + tablas de auth/storage que el data.sql va a repoblar.
+#    El DO block trunca dinámicamente todas las tablas de auth y storage.
+#    Si alguna no tiene permisos para el user del pooler (ej: auth.schema_migrations,
+#    storage.migrations, storage.buckets_vectors), se skipea con NOTICE y sigue.
+psql "$SUPABASE_DB_URL_PROD" -v ON_ERROR_STOP=1 <<'SQL'
+DROP SCHEMA IF EXISTS public CASCADE;
+CREATE SCHEMA public;
+
+DO $$
+DECLARE t text;
+BEGIN
+  FOR t IN
+    SELECT quote_ident(schemaname)||'.'||quote_ident(tablename)
+    FROM pg_tables
+    WHERE schemaname IN ('auth', 'storage')
+  LOOP
+    BEGIN
+      EXECUTE 'TRUNCATE TABLE ' || t || ' CASCADE';
+    EXCEPTION
+      WHEN OTHERS THEN
+        RAISE NOTICE 'Skipped %: %', t, SQLERRM;
+    END;
+  END LOOP;
+END $$;
+
+TRUNCATE TABLE supabase_migrations.schema_migrations;
+SQL
+
+# 2. Restore en orden: schema (DDL) → data (rows) → migrations
+psql "$SUPABASE_DB_URL_PROD" -v ON_ERROR_STOP=1 -f schema_<timestamp>.sql
+psql "$SUPABASE_DB_URL_PROD" -v ON_ERROR_STOP=1 -f data_<timestamp>.sql
+psql "$SUPABASE_DB_URL_PROD" -v ON_ERROR_STOP=1 -f migrations_<timestamp>.sql
+
+# 3. Verificar counts razonables (compará contra el snapshot de PROD que recordás)
+psql "$SUPABASE_DB_URL_PROD" -c "SELECT
+  (SELECT COUNT(*) FROM customers) AS customers,
+  (SELECT COUNT(*) FROM assistance) AS assistance,
+  (SELECT COUNT(*) FROM customer_membership) AS memberships,
+  (SELECT COUNT(*) FROM membership_payments) AS payments,
+  (SELECT COUNT(*) FROM expenses) AS expenses,
+  (SELECT COUNT(*) FROM auth.users) AS auth_users,
+  (SELECT COUNT(*) FROM supabase_migrations.schema_migrations) AS migrations;"
+```
+
+Si el `psql` de alguno de los 3 restores falla a la mitad, la DB queda inconsistente. Volver a correr desde el paso 1 (wipe) con el mismo dump antes de intentar otra cosa.
+
+**Gotchas descubiertos en el smoke test (2026-07-09):**
+
+- **`RESTART IDENTITY` NO se usa** porque el user `postgres` del pooler no es owner de los sequences de `auth.*` (owner es `supabase_auth_admin`). No es problema real: los sequences de `public.*` se resetean con `setval` que trae el propio dump.
+- **Tablas skippeadas esperadas:** `auth.schema_migrations`, `storage.migrations`, `storage.buckets_vectors`, `storage.vector_indexes`. Todas son internas de Supabase o vacías. El NOTICE en el output es esperable, **no** es error.
+- **`psql` 14 restaura sin problemas un dump generado con `pg_dump` 17.** El `-- \restrict TOKEN` en el header no rompe nada.
+- **El proceso difiere del que usa `db:restore-dev`**, que trunca `auth.users CASCADE` explícito. Ese script trabaja con un dump partido con `--schema` específicos y no incluye storage; el dump del cron de PROD es un único `data.sql` monolítico que sí incluye auth y storage, por eso el wipe dinámico.
+
+### 4. Verificar la app
+
+1. Curl al health check: `curl https://actitud-bo.vercel.app/api/health` → debe responder `{"ok": true, ...}` con status 200.
+2. Login como un usuario real, probar el golden path (crear cliente, registrar asistencia, ver contabilidad).
+3. Chequear que el deployment activo en Vercel es el "sano" (no el que rompió PROD).
+
+### 5. Después de restaurar
+
+- Anotar qué ventana de datos se perdió (dump del backup vs momento del incidente).
+- Avisar a los clientes afectados con el detalle.
+- Documentar en un ADR: qué migration causó el desastre, por qué no se detectó, y cómo evitar el próximo caso.
+
+### Practicar antes del primer incidente
+
+Antes del primer cliente pago **es aceptable practicar el restore contra DEV** apuntando `SUPABASE_DB_URL_PROD` a la URL de DEV en el bloque de comandos. Cuando pase el primer incidente real, no es momento de aprender la herramienta.
+
+El proceso ya se validó una vez (2026-07-09) con un dump del cron restaurando contra DEV — de ahí salieron los gotchas documentados arriba. Cuando cambie significativamente el schema o el volumen de datos, vale la pena repetir el smoke test.
 
 ---
 
 ## 📊 **URLs de Monitoreo**
 
 - **Production:** https://actitud-bo.vercel.app
-- **Preview:** https://actitud-bo-git-develop-*.vercel.app  
+- **Health check PROD:** https://actitud-bo.vercel.app/api/health — retorna `{ok: true, checks: {db: "ok"}}` con status 200 si todo anda, 503 si hay problema. Sin auth. Útil para pinguear después de un deploy o rollback.
+- **Preview:** https://actitud-bo-git-develop-*.vercel.app
 - **Vercel Dashboard:** https://vercel.com/dashboard
 - **Upstash Dashboard:** https://upstash.com/console
+- **GitHub Actions:** https://github.com/EmaCrzz/actitud-bo/actions — donde vive el cron de [DB Backup PROD (daily)](https://github.com/EmaCrzz/actitud-bo/actions/workflows/db-backup-prod.yml).

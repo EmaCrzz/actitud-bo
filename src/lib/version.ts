@@ -1,4 +1,5 @@
 import packageJson from '../../package.json'
+import { getTodayIsoDateInAppTz } from './timezone'
 
 // Versión de la aplicación desde package.json
 export const APP_VERSION = packageJson.version
@@ -18,7 +19,7 @@ export function getVersionInfo() {
     isProduction,
     isDevelopment,
     environment: isProduction ? 'production' : 'development',
-    buildDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+    buildDate: getTodayIsoDateInAppTz(), // YYYY-MM-DD en AR
   }
 }
 

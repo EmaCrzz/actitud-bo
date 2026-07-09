@@ -6,6 +6,7 @@ import { type Language } from '@/lib/i18n/types'
 import { type TenantsType } from '@/lib/tenants'
 import api from '@/lib/i18n/api'
 import LogoBlanco from '@/assets/logos/blanco/logo'
+import { APP_TIMEZONE } from '@/lib/timezone'
 
 const Icons = [
   <MedalOne key='MedalOne' className='size-12 text-yellow-400' />,
@@ -36,7 +37,11 @@ export default async function ShareableTopImage({
   className = '',
 }: ShareableTopImageProps) {
   const { t } = await api.fetch(lang, tenant)
-  const currentMonth = new Date().toLocaleDateString(lang, { month: 'long', year: 'numeric' })
+  const currentMonth = new Date().toLocaleDateString(lang, {
+    month: 'long',
+    year: 'numeric',
+    timeZone: APP_TIMEZONE,
+  })
 
   return (
     <div

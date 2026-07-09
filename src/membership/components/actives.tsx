@@ -12,6 +12,7 @@ import {
 import api from '@/lib/i18n/api'
 import { type Language } from '@/lib/i18n/types'
 import { type TenantsType } from '@/lib/tenants'
+import { daysUntilInAppTz } from '@/lib/timezone'
 export default async function ActivesMembership({
   lang,
   tenant,
@@ -51,13 +52,11 @@ export default async function ActivesMembership({
           <AccordionContent>
             <CardContent className='space-y-3 px-2 sm:px-6 pt-6'>
               {data.map(({ customers, expiration_date }, index) => {
-                const today = new Date()
-                const expirationDate = expiration_date ? new Date(expiration_date) : null
-                const fiveDaysFromNow = new Date(today)
-
-                fiveDaysFromNow.setDate(today.getDate() + 5)
-                const aboutToExpire =
-                  expirationDate && expirationDate > today && expirationDate <= fiveDaysFromNow
+                // "Próxima a vencer" = expira en los próximos 5 días calendario AR
+                // (inclusive hoy). Usa daysUntilInAppTz para evitar comparar
+                // timestamps UTC contra "hoy" en la TZ del server.
+                const daysLeft = expiration_date ? daysUntilInAppTz(expiration_date) : null
+                const aboutToExpire = daysLeft !== null && daysLeft >= 0 && daysLeft <= 5
 
                 return (
                   <div

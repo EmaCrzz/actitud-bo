@@ -217,6 +217,7 @@
     "noActiveClients": "No active clients.",
     "noMembership": "No membership",
     "noPendingsClients": "No pending payments.",
+    "dailyAlwaysPaidTooltip": "A daily pass always requires payment; this can't be disabled.",
     "payMembership": "Pay for membership?",
     "paymentMethod": "Membership payment method",
     "paymentRequiredTooltip": "If you don't pay for the membership, you won't be able to register assistances.",
