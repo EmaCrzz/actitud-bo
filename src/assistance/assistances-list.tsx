@@ -1,6 +1,6 @@
 import { CalendarCheck } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { getTodayAssistances } from '@/assistance/api/server'
+import { getAssistancesByDate, getTodayAssistances } from '@/assistance/api/server'
 import { DateDisplay } from '@/components/date-display'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -12,18 +12,35 @@ import {
 import api from '@/lib/i18n/api'
 import { type Language } from '@/lib/i18n/types'
 import { type TenantsType } from '@/lib/tenants'
+import { formatLongDayInAppTz } from '@/lib/format-date'
+import { getTodayIsoDateInAppTz, parseAppTzDateString, shiftIsoDateInAppTz } from '@/lib/timezone'
 
 export default async function AssistancesList({
   collapsible = true,
+  date,
   lang,
   tenant,
 }: {
   collapsible?: boolean
+  date?: string
   lang: Language
   tenant: TenantsType
 }) {
-  const assistances = await getTodayAssistances()
+  const assistances = date
+    ? await getAssistancesByDate(parseAppTzDateString(date))
+    : await getTodayAssistances()
   const { t } = await api.fetch(lang, tenant)
+
+  // Header dinámico: hoy AR / ayer AR / "lunes 7 de julio".
+  const todayIso = getTodayIsoDateInAppTz()
+  const yesterdayIso = shiftIsoDateInAppTz(todayIso, -1)
+  const headerLabel = (() => {
+    if (!date || date === todayIso) return t('assistance.todayAssistances')
+    if (date === yesterdayIso) return t('assistance.yesterdayAssistances')
+    const locale = lang === 'en' ? 'en-US' : 'es-AR'
+
+    return t('assistance.assistancesOfDay', { day: formatLongDayInAppTz(date, locale) })
+  })()
 
   return (
     <Card className='py-3 sm:py-6'>
@@ -37,9 +54,13 @@ export default async function AssistancesList({
             className='py-0 px-2 sm:px-6 hover:cursor-pointer border-none hover:no-underline'
             hiddeSvg={!collapsible}
           >
-            <div className='flex gap-2 items-center text-white/70 text-sm'>
-              <CalendarCheck className='h-5 w-5 text-yellow-600' />
-              {t('assistance.todayAssistances')}
+            <div className='flex flex-1 items-center justify-between gap-2 text-white/70 text-sm'>
+              <div className='flex gap-2 items-center'>
+                <CalendarCheck className='h-5 w-5 text-yellow-600' />
+                {headerLabel}
+                {': '}
+                {assistances.length}
+              </div>
             </div>
           </AccordionTrigger>
           <AccordionContent>
@@ -99,9 +120,12 @@ export const AssistancesListSkeleton = ({
             className='py-0 px-2 sm:px-6 hover:cursor-pointer'
             hiddeSvg={!collapsible}
           >
-            <div className='flex gap-2 items-center text-white/70 text-sm'>
-              <CalendarCheck className='h-5 w-5 text-yellow-600' />
-              {todayAssistancesText}
+            <div className='flex flex-1 items-center justify-between gap-2 text-white/70 text-sm'>
+              <div className='flex gap-2 items-center'>
+                <CalendarCheck className='h-5 w-5 text-yellow-600' />
+                {todayAssistancesText}
+              </div>
+              <Skeleton className='bg-card h-4 w-6' />
             </div>
           </AccordionTrigger>
           <AccordionContent>

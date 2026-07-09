@@ -164,6 +164,16 @@ export function parseAppTzDateString(iso: string): Date {
   return utcInstantAtAppTzWallClock(y, m, d, 0, 0, 0)
 }
 
+// Suma (o resta) `days` a un "YYYY-MM-DD" preservando el calendario AR.
+// Usar aritmética con getAppTzDateParts para evitar drift si el server corre en UTC.
+export function shiftIsoDateInAppTz(iso: string, days: number): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  const shifted = utcInstantAtAppTzWallClock(y, m, d + days, 0, 0, 0)
+  const parts = getAppTzDateParts(shifted)
+
+  return `${parts.year}-${String(parts.month).padStart(2, '0')}-${String(parts.day).padStart(2, '0')}`
+}
+
 // Instante que representa el final del día calendario (23:59:59.999) en APP_TIMEZONE
 // para el "YYYY-MM-DD" dado. Útil para setear `expiration_date` de una membresía
 // que vence "hoy" y que debe seguir siendo `> now()` durante toda la jornada AR.
