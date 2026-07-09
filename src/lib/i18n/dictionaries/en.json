@@ -159,6 +159,15 @@
     "searchPlaceholder": "Who would you like to register today?",
     "findCustomer": "Find customer",
     "todayAssistances": "Today's Assistances",
+    "yesterdayAssistances": "Yesterday's Assistances",
+    "assistancesOfDay": "Assistances for {day}",
+    "dayNavigator": {
+      "ariaLabel": "Select assistances day",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "previousDay": "Previous day",
+      "nextDay": "Next day"
+    },
     "weeklyStats": "Weekly Stats",
     "monthlyStats": "Monthly Stats",
     "noAssistances": "No assistances registered",

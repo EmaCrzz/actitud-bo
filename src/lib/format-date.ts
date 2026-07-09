@@ -1,4 +1,4 @@
-import { APP_TIMEZONE, getAppTzDateParts } from './timezone'
+import { APP_TIMEZONE, getAppTzDateParts, parseAppTzDateString } from './timezone'
 
 export interface FormatDateOptions {
   format?: 'dd/mm/yyyy' | 'mm/dd/yyyy' | 'yyyy-mm-dd' | 'dd-mm-yyyy' | 'dd/MM/yyyy'
@@ -57,4 +57,17 @@ export function getCurrentMonth(): string {
   const { year, month } = getAppTzDateParts()
 
   return `${year}-${String(month).padStart(2, '0')}`
+}
+
+// Formatea un "YYYY-MM-DD" como "lunes 7 de julio" en la TZ del negocio.
+// Usado por el selector de día de /assistances.
+export function formatLongDayInAppTz(isoDate: string, locale = 'es-AR'): string {
+  const date = parseAppTzDateString(isoDate)
+
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: APP_TIMEZONE,
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).format(date)
 }
