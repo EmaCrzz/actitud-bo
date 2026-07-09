@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react'
 import { getMembershipStats } from '../api/client'
+import { getAppTzDateParts } from '@/lib/timezone'
 import {
   MembershipTranslation,
   PENDING_PAYMENT,
@@ -39,9 +40,9 @@ export type MembershipData = {
 }
 
 export function MonthProvider({ children }: { children: ReactNode }) {
-  const currentDate = new Date()
-  const currentYear = currentDate.getFullYear()
-  const currentMonth = currentDate.getMonth() + 1 // getMonth() returns 0-11, we want 1-12
+  // Mes/año en AR — usar TZ local del server/browser corría el "mes actual"
+  // al mes siguiente cada vez que en AR era > 21hs de un fin de mes.
+  const { year: currentYear, month: currentMonth } = getAppTzDateParts()
 
   const [year, setYear] = useState(currentYear)
   const [month, setMonth] = useState(currentMonth)

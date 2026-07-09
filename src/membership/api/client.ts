@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/client'
 import { CustomerMembership } from '@/customer/types'
 import { ActiveMembership, MembershipType } from '@/membership/types'
-import { getMonthRangeInAppTz } from '@/lib/timezone'
+import { getMonthRangeInAppTz, getTodayRangeInAppTz } from '@/lib/timezone'
 
 type MembershipStatsRPCResult = {
   segment_type: string
@@ -90,6 +90,11 @@ export async function getPendingPaymentCustomers() {
 export async function getActiveMemberships() {
   const supabase = createClient()
 
+  // Activas = expiran en el rango del día AR de hoy o posterior. Comparar
+  // contra el inicio del día AR (no contra `now()`) evita perder registros
+  // guardados como medianoche UTC del día actual (típico de dailys).
+  const { start: todayStartInAppTz } = getTodayRangeInAppTz()
+
   // Primero obtenemos las membresías activas
   const { data: memberships, error } = await supabase
     .from('customer_membership')
@@ -113,7 +118,7 @@ export async function getActiveMemberships() {
       )
     `
     )
-    .gt('expiration_date', new Date().toISOString())
+    .gte('expiration_date', todayStartInAppTz.toISOString())
     .order('expiration_date', { ascending: true })
 
   if (error) {

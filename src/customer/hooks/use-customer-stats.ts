@@ -95,18 +95,21 @@ export function usePendingCustomers() {
   })
 }
 
-// Hook para invalidar el caché después de mutaciones
-export function useInvalidateCustomerStats() {
+// Hook para invalidar el caché después de una mutación de membresía.
+// Una mutación de membresía (crear cliente + pago, renovar, cambiar tipo)
+// impacta dos familias de queries: la lista de activos/pendientes
+// (customer-stats) y los totales de ingresos del mes (monthly-stats en
+// /stats/accounting).
+export function useInvalidateStatsAfterMembership() {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async () => {
-      // Esta función no hace nada, solo sirve para tener una mutation
       return Promise.resolve()
     },
     onSuccess: () => {
-      // Invalidar todas las queries relacionadas con customer stats
       queryClient.invalidateQueries({ queryKey: CUSTOMER_STATS_KEY })
+      queryClient.invalidateQueries({ queryKey: ['monthly-stats'] })
     },
   })
 }

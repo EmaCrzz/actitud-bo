@@ -3,6 +3,7 @@
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { getCurrentMonth } from '@/lib/format-date'
+import { getAppTzDateParts } from '@/lib/timezone'
 
 export function useMonthNavigation() {
   const searchParams = useSearchParams()
@@ -26,8 +27,11 @@ export function useMonthNavigation() {
     setMonth(urlMonth)
   }, [monthParam])
 
-  const currentDate = new Date()
-  const isCurrentMonth = year === currentDate.getFullYear() && month === currentDate.getMonth() + 1
+  // Comparar contra mes/año en AR — usar TZ del server hacía que a partir de
+  // las 21hs AR de un fin de mes, `isCurrentMonth` fuera false y el home
+  // mostrara datos del mes siguiente.
+  const { year: nowYear, month: nowMonth } = getAppTzDateParts()
+  const isCurrentMonth = year === nowYear && month === nowMonth
 
   const updateUrlMonth = (newYear: number, newMonth: number) => {
     const monthStr = `${newYear}-${String(newMonth).padStart(2, '0')}`

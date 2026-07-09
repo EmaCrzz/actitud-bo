@@ -19,10 +19,10 @@ import { TooltipTrigger, Tooltip, TooltipContent } from '@/components/ui/tooltip
 import AssistanceToday from '@/assistance/assistance-alert-today'
 import { cn } from '@/lib/utils'
 import { useTranslations } from '@/lib/i18n/context'
-import { getAppTzDateParts, isSameDayInAppTz } from '@/lib/timezone'
+import { getAppTzDateParts, getTodayIsoDateInAppTz, isSameDayInAppTz } from '@/lib/timezone'
 import { useQuery } from '@tanstack/react-query'
 import { getMembershipTypes } from '@/membership/api/client'
-import { useInvalidateCustomerStats } from '@/customer/hooks/use-customer-stats'
+import { useInvalidateStatsAfterMembership } from '@/customer/hooks/use-customer-stats'
 import { HybridSelect } from '@/components/ui/select-hybrid'
 import {
   MEMBERSHIP_TYPE_DAILY,
@@ -61,7 +61,7 @@ export default function MembershipForm({
     queryFn: () => getMembershipTypes(),
     select: (response) => response.data,
   })
-  const invalidateStats = useInvalidateCustomerStats()
+  const invalidateStats = useInvalidateStatsAfterMembership()
   const isLargerThan430 = useMediaQuery('(min-width: 430px)', {
     defaultValue: false,
     initializeWithValue: false,
@@ -142,7 +142,7 @@ export default function MembershipForm({
         ? 'refund'
         : 'charge_diff'
 
-  const todayIsoDate = useMemo(() => new Date().toISOString().slice(0, 10), [])
+  const todayIsoDate = useMemo(() => getTodayIsoDateInAppTz(), [])
   const [registerAdjustment, setRegisterAdjustment] = useState<CheckedState>(false)
   const [adjustmentValue, setAdjustmentValue] = useState<string>(() =>
     Math.abs(suggestedAdjustment).toString()
@@ -278,10 +278,21 @@ export default function MembershipForm({
   }
 
   // Default del checkbox "Pagar cuota":
+  // - Daily → siempre tildado y bloqueado (un pase diario es por definición un cobro).
   // - Membresía vigente → destildado (el operador probablemente entra a
   //   consultar o corregir un dato, no a re-cobrar).
   // - Sin membresía o expirada → tildado (renovación por default).
   const [payment, setPayment] = useState<CheckedState>(!isCurrentActive)
+
+  // Al cambiar de tipo, resincronizar el checkbox: daily fuerza true; el resto
+  // vuelve al default según vigencia.
+  useEffect(() => {
+    if (isDailyMembership) {
+      setPayment(true)
+    } else {
+      setPayment(!isCurrentActive)
+    }
+  }, [isDailyMembership, isCurrentActive])
 
   // El select de método de pago también debe habilitarse cuando el operador
   // registra la diferencia de un upgrade (charge_diff), aunque no marque
@@ -354,14 +365,31 @@ export default function MembershipForm({
                   <Checkbox
                     checked={payment}
                     className='size-6'
-                    disabled={loading}
+                    disabled={loading || isDailyMembership}
                     id='payment'
-                    name='payment'
+                    // Un checkbox disabled no se serializa en el FormData; para
+                    // Daily suplimos el name con un hidden abajo, así que
+                    // acá quitamos el name para que no colisionen.
+                    name={isDailyMembership ? undefined : 'payment'}
                     onCheckedChange={handleChangeCheckBox}
                   />
-                  <Label className='text-xs text-white' htmlFor='payment'>
+                  {isDailyMembership && <input name='payment' type='hidden' value='on' />}
+                  <Label
+                    className={cn('text-xs text-white', isDailyMembership && 'text-white/70')}
+                    htmlFor='payment'
+                  >
                     {t('membership.payMembership')}
                   </Label>
+                  {isDailyMembership && (
+                    <Tooltip data-side='left'>
+                      <TooltipTrigger asChild>
+                        <InfoIcon className='size-4 text-white/60' />
+                      </TooltipTrigger>
+                      <TooltipContent side='top'>
+                        <p className='w-[200px]'>{t('membership.dailyAlwaysPaidTooltip')}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
                 </div>
               </div>
             )}

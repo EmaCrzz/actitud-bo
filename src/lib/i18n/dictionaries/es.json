@@ -217,6 +217,7 @@
     "noActiveClients": "No hay clientes activos.",
     "noMembership": "Sin membresía",
     "noPendingsClients": "No hay pagos pendientes.",
+    "dailyAlwaysPaidTooltip": "Un pase diario siempre requiere pago; no se puede desactivar.",
     "payMembership": "¿Abono la membresía?",
     "paymentMethod": "Forma de pago de la membresía",
     "paymentRequiredTooltip": "Si no abona la membresía, no podrá registrar asistencias.",

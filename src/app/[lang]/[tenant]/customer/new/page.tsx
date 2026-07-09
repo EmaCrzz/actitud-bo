@@ -14,12 +14,12 @@ import { basicMembershipValidation } from '@/customer/utils'
 import { toast } from 'sonner'
 import { CUSTOMER } from '@/consts/routes'
 import { useTranslations } from '@/lib/i18n/context'
-import { useInvalidateCustomerStats } from '@/customer/hooks/use-customer-stats'
+import { useInvalidateStatsAfterMembership } from '@/customer/hooks/use-customer-stats'
 
 export default function SimpleMultiStepForm() {
   const router = useRouter()
   const { t } = useTranslations()
-  const invalidateStats = useInvalidateCustomerStats()
+  const invalidateStats = useInvalidateStatsAfterMembership()
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<{ customer?: FormData; membership?: FormData }>({
     customer: undefined,

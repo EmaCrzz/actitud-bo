@@ -15,6 +15,7 @@ import { useTranslations } from '@/lib/i18n/context'
 import { Textarea } from '@/components/ui/textarea'
 import { getCategoryTranslationKey } from '@/expenses/utils'
 import { useQueryClient } from '@tanstack/react-query'
+import { getTodayIsoDateInAppTz } from '@/lib/timezone'
 
 export default function ExpenseForm() {
   const router = useRouter()
@@ -71,8 +72,8 @@ export default function ExpenseForm() {
 
     toast.success(t('accounting.expenses.success.created'))
 
-    // Invalidate expenses queries to refetch data
     queryClient.invalidateQueries({ queryKey: ['expenses'] })
+    queryClient.invalidateQueries({ queryKey: ['monthly-stats'] })
 
     router.push(EXPENSES)
   }
@@ -133,7 +134,7 @@ export default function ExpenseForm() {
               {t('accounting.expenses.form.date')}
             </Label>
             <Input
-              defaultValue={new Date().toISOString().split('T')[0]}
+              defaultValue={getTodayIsoDateInAppTz()}
               disabled={loading}
               id='expense_date'
               name='expense_date'

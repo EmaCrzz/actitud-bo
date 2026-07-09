@@ -1,8 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
 import { Customer, CustomerWithMembership } from '@/customer/types'
 import { CUSTOMERS_PAGE_SIZE, SEARCH_CUSTOMER } from '@/customer/consts'
-import { createAssistance } from '@/assistance/api/client'
-import { toast } from 'sonner'
 import { removeFormatPersonId } from '@/lib/format-person-id'
 import { DatabaseResult } from '@/types/database-errors'
 import { basicCustomerValidation, basicMembershipValidation, mapCustomerRow } from '../utils'
@@ -219,7 +217,17 @@ async function _upsertCustomer({
   const firstAssistance = formDataMembership.get('first_assistance') as 'on' | null
   const startDate = formDataMembership.get('start_date') as string
   const endDate = formDataMembership.get('end_date') as string
+  const payment = formDataMembership.get('payment') as 'on' | null
+  const paymentType = formDataMembership.get('payment_type') as string
+  const membershipAmount = formDataMembership.get('membership_amount') as string
+  const isPaid = payment === 'on'
+  const amount = isPaid ? parseCurrency(membershipAmount) : 0
+
   const supabase = createClient()
+
+  // Paso 1: crear/actualizar customer + inicializar customer_membership (sin pago).
+  // El RPC `upsert_customer_with_membership` no registra ingresos ni canonicaliza
+  // fechas — esa es tarea del paso 2 (`upsert_customer_membership_with_payment`).
   const { data, error } = await supabase.rpc('upsert_customer_with_membership', {
     p_customer_id: customerId || null,
     p_first_name: firstName || null,
@@ -247,13 +255,45 @@ async function _upsertCustomer({
     return result
   }
 
-  if (firstAssistance === 'on' && data?.customer?.id) {
-    const { error } = await createAssistance({ customer_id: data.customer.id })
+  const newCustomerId = data?.customer?.id as string | undefined
 
-    if (error?.code) {
-      toast.error('Error al registrar asistencia', {
-        description: error.message,
-      })
+  // Paso 2: si hay customer y datos de pago/asistencia, delegar al RPC bueno
+  // (`upsert_customer_membership_with_payment`) para que registre el ingreso,
+  // canonicalice expiration_date de daily como fin de día AR, y opcionalmente
+  // registre la primera asistencia. Es el mismo RPC que usa el form de
+  // "gestión de membresía" — así ambos flujos comparten la misma lógica.
+  const needsPaymentRpc = !!newCustomerId && (isPaid || firstAssistance === 'on')
+
+  if (needsPaymentRpc) {
+    const { data: paymentData, error: paymentError } = await supabase.rpc(
+      'upsert_customer_membership_with_payment',
+      {
+        p_customer_id: newCustomerId,
+        p_membership_type: membershipType,
+        p_start_date: isPaid ? startDate : null,
+        p_end_date: isPaid ? endDate : null,
+        p_is_paid: isPaid,
+        p_payment_type: paymentType || null,
+        p_amount: amount,
+        p_register_assistance: firstAssistance === 'on',
+        p_type_change_action: null,
+        p_adjustment_amount: null,
+      }
+    )
+
+    if (paymentError) {
+      return {
+        success: false,
+        message: `Cliente creado, pero falló el registro del pago/asistencia: ${paymentError.message}`,
+        error_code: 'RPC_ERROR',
+        operation: 'update',
+      }
+    }
+
+    const paymentResult = paymentData as DatabaseResult
+
+    if (paymentResult && !paymentResult.success) {
+      return paymentResult
     }
   }
 

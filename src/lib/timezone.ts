@@ -53,7 +53,7 @@ export function getAppTzDateParts(date: Date = new Date()): {
 
 // Convierte un wall-clock (año/mes/día/hora) en APP_TIMEZONE al instante UTC equivalente.
 // Robusto ante DST: mide el offset observado y lo aplica en un solo paso.
-function utcInstantAtAppTzWallClock(
+export function utcInstantAtAppTzWallClock(
   year: number,
   month: number,
   day: number,
@@ -143,6 +143,35 @@ export function isExpiredInAppTz(
   const nowKey = nowParts.year * 10000 + nowParts.month * 100 + nowParts.day
 
   return expKey < nowKey
+}
+
+// "YYYY-MM-DD" del día calendario actual en APP_TIMEZONE.
+// Reemplaza `new Date().toISOString().slice(0, 10)`, que retorna la fecha UTC:
+// a las 21hs AR, UTC ya es el día siguiente y el string queda "un día en el futuro".
+export function getTodayIsoDateInAppTz(now: Date = new Date()): string {
+  const { year, month, day } = getAppTzDateParts(now)
+
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+}
+
+// Parsea un string "YYYY-MM-DD" como medianoche 00:00 en APP_TIMEZONE.
+// Reemplaza `new Date("YYYY-MM-DD")`, que Node/browsers interpretan como
+// medianoche UTC → en AR eso es 21:00 del día anterior, corriendo las
+// comparaciones "por un día" hacia el pasado.
+export function parseAppTzDateString(iso: string): Date {
+  const [y, m, d] = iso.split('-').map(Number)
+
+  return utcInstantAtAppTzWallClock(y, m, d, 0, 0, 0)
+}
+
+// Instante que representa el final del día calendario (23:59:59.999) en APP_TIMEZONE
+// para el "YYYY-MM-DD" dado. Útil para setear `expiration_date` de una membresía
+// que vence "hoy" y que debe seguir siendo `> now()` durante toda la jornada AR.
+export function getEndOfDayInAppTz(iso: string): Date {
+  const [y, m, d] = iso.split('-').map(Number)
+  const nextDayStart = utcInstantAtAppTzWallClock(y, m, d + 1, 0, 0, 0)
+
+  return new Date(nextDayStart.getTime() - 1)
 }
 
 // Días calendario entre hoy y `expiration` en APP_TIMEZONE. Positivo = futuro, 0 = hoy, negativo = pasado.
