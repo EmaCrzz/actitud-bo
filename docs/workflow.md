@@ -537,28 +537,69 @@ Si por accidente `SUPABASE_DB_URL_PROD` está seteada al de DEV, el restore va a
 
 ### 3. Wipe controlado + restore
 
-Mismo patrón que `db:restore-dev`, pero apuntado a PROD:
+**Qué contiene cada archivo del dump** (útil para entender por qué el orden importa):
+
+- **`schema_*.sql`** — DDL del schema `public`: tablas, funciones, policies RLS. Los schemas `auth.*` y `storage.*` **no se dumpean** — Supabase los provee ya montados en cualquier proyecto nuevo.
+- **`data_*.sql`** — Datos de **todas** las tablas del dump: `public.*` (tus datos de negocio), `auth.*` (users, sessions, MFA, oauth, etc), `storage.*` (buckets, objects). Usa `INSERT INTO` con `SET session_replication_role = replica` para ignorar FKs durante los inserts.
+- **`migrations_*.sql`** — Estado de `supabase_migrations.schema_migrations` (qué migrations están aplicadas). Sin este archivo, el próximo `db:push-*` intentaría reaplicar todo y romper.
+
+**Por qué el wipe no es solo `DROP SCHEMA public`:** el `data.sql` incluye INSERTs a `auth.*` y `storage.*`, no solo a `public.*`. Si no vaciás esas tablas antes, chocás con **primary key duplicadas** al insertar (ej: `auth.audit_log_entries_pkey`). Y no podés hardcodear una lista de tablas a truncar porque Supabase agrega tablas nuevas de vez en cuando. Solución: wipe dinámico con exception handler para tablas que el user del pooler no puede tocar (tablas internas managed por Supabase Auth/Storage).
 
 ```bash
 cd path/al/dump/descargado
 
-# 1. Wipe del schema public y auth.users (Postgres resuelve FKs con CASCADE)
-psql "$SUPABASE_DB_URL_PROD" -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;"
-psql "$SUPABASE_DB_URL_PROD" -c "TRUNCATE auth.users CASCADE;"
+# 1. Wipe: schema public + tablas de auth/storage que el data.sql va a repoblar.
+#    El DO block trunca dinámicamente todas las tablas de auth y storage.
+#    Si alguna no tiene permisos para el user del pooler (ej: auth.schema_migrations,
+#    storage.migrations, storage.buckets_vectors), se skipea con NOTICE y sigue.
+psql "$SUPABASE_DB_URL_PROD" -v ON_ERROR_STOP=1 <<'SQL'
+DROP SCHEMA IF EXISTS public CASCADE;
+CREATE SCHEMA public;
 
-# 2. Restore en orden: schema → data → migrations
-#    (auth.users se restaura como parte del schema.sql)
-psql "$SUPABASE_DB_URL_PROD" -f schema_<timestamp>.sql
-psql "$SUPABASE_DB_URL_PROD" -f data_<timestamp>.sql
-psql "$SUPABASE_DB_URL_PROD" -f migrations_<timestamp>.sql
+DO $$
+DECLARE t text;
+BEGIN
+  FOR t IN
+    SELECT quote_ident(schemaname)||'.'||quote_ident(tablename)
+    FROM pg_tables
+    WHERE schemaname IN ('auth', 'storage')
+  LOOP
+    BEGIN
+      EXECUTE 'TRUNCATE TABLE ' || t || ' CASCADE';
+    EXCEPTION
+      WHEN OTHERS THEN
+        RAISE NOTICE 'Skipped %: %', t, SQLERRM;
+    END;
+  END LOOP;
+END $$;
 
-# 3. Verificar counts razonables
-psql "$SUPABASE_DB_URL_PROD" -c "SELECT COUNT(*) FROM customers;"
-psql "$SUPABASE_DB_URL_PROD" -c "SELECT COUNT(*) FROM assistance;"
-psql "$SUPABASE_DB_URL_PROD" -c "SELECT COUNT(*) FROM auth.users;"
+TRUNCATE TABLE supabase_migrations.schema_migrations;
+SQL
+
+# 2. Restore en orden: schema (DDL) → data (rows) → migrations
+psql "$SUPABASE_DB_URL_PROD" -v ON_ERROR_STOP=1 -f schema_<timestamp>.sql
+psql "$SUPABASE_DB_URL_PROD" -v ON_ERROR_STOP=1 -f data_<timestamp>.sql
+psql "$SUPABASE_DB_URL_PROD" -v ON_ERROR_STOP=1 -f migrations_<timestamp>.sql
+
+# 3. Verificar counts razonables (compará contra el snapshot de PROD que recordás)
+psql "$SUPABASE_DB_URL_PROD" -c "SELECT
+  (SELECT COUNT(*) FROM customers) AS customers,
+  (SELECT COUNT(*) FROM assistance) AS assistance,
+  (SELECT COUNT(*) FROM customer_membership) AS memberships,
+  (SELECT COUNT(*) FROM membership_payments) AS payments,
+  (SELECT COUNT(*) FROM expenses) AS expenses,
+  (SELECT COUNT(*) FROM auth.users) AS auth_users,
+  (SELECT COUNT(*) FROM supabase_migrations.schema_migrations) AS migrations;"
 ```
 
 Si el `psql` de alguno de los 3 restores falla a la mitad, la DB queda inconsistente. Volver a correr desde el paso 1 (wipe) con el mismo dump antes de intentar otra cosa.
+
+**Gotchas descubiertos en el smoke test (2026-07-09):**
+
+- **`RESTART IDENTITY` NO se usa** porque el user `postgres` del pooler no es owner de los sequences de `auth.*` (owner es `supabase_auth_admin`). No es problema real: los sequences de `public.*` se resetean con `setval` que trae el propio dump.
+- **Tablas skippeadas esperadas:** `auth.schema_migrations`, `storage.migrations`, `storage.buckets_vectors`, `storage.vector_indexes`. Todas son internas de Supabase o vacías. El NOTICE en el output es esperable, **no** es error.
+- **`psql` 14 restaura sin problemas un dump generado con `pg_dump` 17.** El `-- \restrict TOKEN` en el header no rompe nada.
+- **El proceso difiere del que usa `db:restore-dev`**, que trunca `auth.users CASCADE` explícito. Ese script trabaja con un dump partido con `--schema` específicos y no incluye storage; el dump del cron de PROD es un único `data.sql` monolítico que sí incluye auth y storage, por eso el wipe dinámico.
 
 ### 4. Verificar la app
 
@@ -574,7 +615,9 @@ Si el `psql` de alguno de los 3 restores falla a la mitad, la DB queda inconsist
 
 ### Practicar antes del primer incidente
 
-Antes del primer cliente pago **es aceptable practicar el restore en DEV** con `db:restore-dev` para tener el flow internalizado. Cuando pase el primer incidente real, no es momento de aprender la herramienta.
+Antes del primer cliente pago **es aceptable practicar el restore contra DEV** apuntando `SUPABASE_DB_URL_PROD` a la URL de DEV en el bloque de comandos. Cuando pase el primer incidente real, no es momento de aprender la herramienta.
+
+El proceso ya se validó una vez (2026-07-09) con un dump del cron restaurando contra DEV — de ahí salieron los gotchas documentados arriba. Cuando cambie significativamente el schema o el volumen de datos, vale la pena repetir el smoke test.
 
 ---
 
