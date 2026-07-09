@@ -54,9 +54,13 @@ export default async function AssistancesList({
             className='py-0 px-2 sm:px-6 hover:cursor-pointer border-none hover:no-underline'
             hiddeSvg={!collapsible}
           >
-            <div className='flex gap-2 items-center text-white/70 text-sm'>
-              <CalendarCheck className='h-5 w-5 text-yellow-600' />
-              {headerLabel}
+            <div className='flex flex-1 items-center justify-between gap-2 text-white/70 text-sm'>
+              <div className='flex gap-2 items-center'>
+                <CalendarCheck className='h-5 w-5 text-yellow-600' />
+                {headerLabel}
+                {': '}
+                {assistances.length}
+              </div>
             </div>
           </AccordionTrigger>
           <AccordionContent>
@@ -116,9 +120,12 @@ export const AssistancesListSkeleton = ({
             className='py-0 px-2 sm:px-6 hover:cursor-pointer'
             hiddeSvg={!collapsible}
           >
-            <div className='flex gap-2 items-center text-white/70 text-sm'>
-              <CalendarCheck className='h-5 w-5 text-yellow-600' />
-              {todayAssistancesText}
+            <div className='flex flex-1 items-center justify-between gap-2 text-white/70 text-sm'>
+              <div className='flex gap-2 items-center'>
+                <CalendarCheck className='h-5 w-5 text-yellow-600' />
+                {todayAssistancesText}
+              </div>
+              <Skeleton className='bg-card h-4 w-6' />
             </div>
           </AccordionTrigger>
           <AccordionContent>
