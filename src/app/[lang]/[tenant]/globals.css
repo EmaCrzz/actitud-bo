@@ -43,6 +43,13 @@
   --color-popover-text: var(--color-popover-text);
   --color-popover-border: var(--color-popover-border);
 
+  --color-toast-background: var(--color-toast-background);
+  --color-toast-text: var(--color-toast-text);
+  --color-toast-border: var(--color-toast-border);
+
+  --color-feedback-success: var(--color-feedback-success);
+  --color-feedback-error: var(--color-feedback-error);
+
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted: var(--muted);

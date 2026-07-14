@@ -17,6 +17,7 @@ export type ComponentThemeColors = {
 export type ThemeColors = {
   primary: Record<string, string>
   secondary: Record<string, string>
+  feedback?: Record<string, string>
   background: string
   text: string
   components?: Record<string, ComponentThemeColors>
@@ -51,6 +52,10 @@ export const tenantThemes: Record<string, TenantTheme> = {
         '900': '#322D2F',
         contrast: '#fff',
       },
+      feedback: {
+        success: '#20E36B',
+        error: '#E82531',
+      },
       components: {
         input: {
           background: '#322d2f',
@@ -67,6 +72,11 @@ export const tenantThemes: Record<string, TenantTheme> = {
           background: '#322d2f',
           border: 'rgba(255, 255, 255, 0.3)',
           text: 'rgba(255, 255, 255, 0.8)',
+        },
+        toast: {
+          background: '#0C0809',
+          border: 'rgba(255, 255, 255, 0.3)',
+          text: '#ffffff',
         },
       },
     },
