@@ -11,7 +11,7 @@ const alertVariants = cva(
         default: 'text-card-foreground',
         destructive:
           'bg-feedback-error text-white [&>svg]:text-current *:data-[slot=alert-description]:text-white/90',
-        info: 'bg-indigo-400 text-info-foreground [&>svg]:text-current',
+        info: 'bg-feedback-info text-white [&>svg]:text-current *:data-[slot=alert-description]:text-white/90',
         success: 'text-success-foreground [&>svg]:text-current',
         warning:
           'text-amber-300 [&>svg]:text-current *:data-[slot=alert-description]:text-amber-300/70',

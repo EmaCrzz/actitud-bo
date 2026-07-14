@@ -49,6 +49,7 @@
 
   --color-feedback-success: var(--color-feedback-success);
   --color-feedback-error: var(--color-feedback-error);
+  --color-feedback-info: var(--color-feedback-info);
 
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
