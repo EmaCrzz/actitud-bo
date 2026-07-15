@@ -3,7 +3,6 @@ import ArrowLeftIcon from '@/components/icons/arrow-left'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
 import { UncontrolledDatePicker } from '@/components/uncontrolled-date-picker'
 import { CustomerComplete } from '@/customer/types'
 import { CheckedState } from '@radix-ui/react-checkbox'
@@ -36,6 +35,10 @@ import { useMediaQuery } from 'usehooks-ts'
 import { InputCurrency } from '@/components/ui/input-currency'
 import MoneyIcon from '@/components/icons/money'
 import { usePermissions } from '@/auth/hooks/use-permissions'
+
+// Los tres precios de `types_memberships` son conceptos de cobro mutuamente
+// excluyentes: no existe "medio mes con recargo".
+type ChargeMode = 'full' | 'half' | 'surcharge'
 
 interface Props {
   pathBack?: string
@@ -168,78 +171,77 @@ export default function MembershipForm({
     })
   }, [customer?.id, customer?.assistance?.length])
 
-  // Determinar si se aplica el precio medio (después de la mitad del mes)
-  const shouldApplyMiddleAmount = useMemo(() => {
-    // Verificar si la renovación fue después del día 15
-    // Usar renewal_date si existe, caso contrario usar la fecha actual
-    const renewalDate = customer?.customer_membership?.renewal_date
-      ? new Date(customer.customer_membership.renewal_date)
-      : new Date()
-    const { day: dayOfMonth } = getAppTzDateParts(renewalDate)
+  // El concepto de cobro lo elige el operador; la fecha sugiere, no decide.
+  // Un cliente puede querer una quincena a principio de mes, o deber un mes
+  // completo con recargo pasado el día 15.
+  const [chargeMode, setChargeMode] = useState<ChargeMode>('full')
 
-    // Si renovó después del día 15, aplica precio medio independientemente de asistencias
-    return dayOfMonth >= 15
-  }, [customer?.customer_membership?.renewal_date])
+  // Cada tipo tiene su propio set de precios: el concepto elegido para el
+  // anterior no aplica al nuevo.
+  useEffect(() => {
+    setChargeMode('full')
+  }, [selectedType])
 
-  // Determinar si se sugiere aplicar recargo
-  const shouldSuggestSurcharge = useMemo(() => {
-    if (shouldApplyMiddleAmount) return false
-    if (membershipSelected?.type === MEMBERSHIP_TYPE_VIP) return false
-    if (membershipSelected?.type === MEMBERSHIP_TYPE_DAILY) return false
+  const chargeModeOptions = useMemo(() => {
+    if (!membershipSelected || isVIPMembership || isDailyMembership) return []
+
+    const options: { mode: ChargeMode; label: string; amount: number }[] = []
+
+    if (membershipSelected.amount !== null) {
+      options.push({
+        mode: 'full',
+        label: t('membership.chargeModeFull'),
+        amount: membershipSelected.amount,
+      })
+    }
+
+    if (membershipSelected.middle_amount !== null) {
+      options.push({
+        mode: 'half',
+        label: t('membership.chargeModeHalf'),
+        amount: membershipSelected.middle_amount,
+      })
+    }
+
+    if (membershipSelected.amount_surcharge !== null) {
+      options.push({
+        mode: 'surcharge',
+        label: t('membership.chargeModeSurcharge'),
+        amount: membershipSelected.amount_surcharge,
+      })
+    }
+
+    return options
+  }, [membershipSelected, isVIPMembership, isDailyMembership, t])
+
+  // Fuente única del monto: el input visible y el hidden leen de acá, así no
+  // pueden divergir.
+  const chargeAmount = useMemo(() => {
+    if (!membershipSelected) return 0
+
+    const {
+      amount,
+      middle_amount: middleAmount,
+      amount_surcharge: amountSurcharge,
+    } = membershipSelected
+
+    if (chargeMode === 'half' && middleAmount !== null) return middleAmount
+    if (chargeMode === 'surcharge' && amountSurcharge !== null) return amountSurcharge
+
+    return amount ?? 0
+  }, [membershipSelected, chargeMode])
+
+  const displayAmount = chargeAmount ? chargeAmount.toString() : ''
+
+  // Señal para el operador, sin forzar la selección: el cliente ya vino este
+  // mes y venció el plazo de pago.
+  const suggestsSurcharge = useMemo(() => {
+    if (isVIPMembership || isDailyMembership) return false
+    if (!membershipSelected || membershipSelected.amount_surcharge === null) return false
     const { day: dayOfMonth } = getAppTzDateParts()
 
-    // Condiciones para recargo:
-    // 1. Tiene asistencias este mes
-    // 2. Fecha actual > 10 (pasó el período de pago)
     return hasAssistancesThisMonth && dayOfMonth > 10
-  }, [hasAssistancesThisMonth, membershipSelected?.type])
-
-  // Estado para controlar si se aplica el recargo (inicializado con la sugerencia)
-  const [applySurcharge, setApplySurcharge] = useState(shouldSuggestSurcharge)
-
-  // Calcular el monto a mostrar según la fecha
-  // Usar dependencias primitivas en vez de objetos completos
-  const displayAmount = useMemo(() => {
-    if (!membershipSelected?.amount) return ''
-
-    if (shouldApplyMiddleAmount && membershipSelected.middle_amount !== null) {
-      return membershipSelected.middle_amount.toString()
-    }
-
-    if (applySurcharge && membershipSelected.amount_surcharge !== null) {
-      return membershipSelected.amount_surcharge.toString()
-    }
-
-    return membershipSelected.amount.toString()
-  }, [
-    membershipSelected?.amount,
-    membershipSelected?.middle_amount,
-    membershipSelected?.amount_surcharge,
-    applySurcharge,
-    shouldApplyMiddleAmount,
-  ])
-
-  // Calcular el monto real a enviar (para el input hidden)
-  const actualAmount = useMemo(() => {
-    if (!membershipSelected?.amount) return 0
-
-    // Prioridad: Recargo > Precio Medio > Precio Normal
-    if (applySurcharge && membershipSelected.amount_surcharge !== null) {
-      return membershipSelected.amount_surcharge
-    }
-
-    if (shouldApplyMiddleAmount && membershipSelected.middle_amount !== null) {
-      return membershipSelected.middle_amount
-    }
-
-    return membershipSelected.amount
-  }, [
-    membershipSelected?.amount,
-    membershipSelected?.middle_amount,
-    membershipSelected?.amount_surcharge,
-    applySurcharge,
-    shouldApplyMiddleAmount,
-  ])
+  }, [hasAssistancesThisMonth, isVIPMembership, isDailyMembership, membershipSelected])
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -393,19 +395,44 @@ export default function MembershipForm({
                 </div>
               </div>
             )}
-            {shouldSuggestSurcharge && (
-              <div className='grid gap-y-2 col-span-2'>
-                <div className='flex items-center gap-3'>
-                  <Switch
-                    checked={applySurcharge}
-                    disabled={loading}
-                    id='apply_surcharge'
-                    onCheckedChange={setApplySurcharge}
-                  />
-                  <Label className='text-xs text-white cursor-pointer' htmlFor='apply_surcharge'>
-                    {t('membership.aplySurcharge')}
-                  </Label>
-                </div>
+            {chargeModeOptions.length > 1 && (
+              <div className='grid gap-y-2 col-span-2' role='radiogroup'>
+                <Label className='font-light'>{t('membership.chargeMode')}</Label>
+                {chargeModeOptions.map((option) => (
+                  <label
+                    key={option.mode}
+                    className={cn(
+                      'flex items-center justify-between gap-3 rounded-md border p-3 cursor-pointer',
+                      chargeMode === option.mode
+                        ? 'border-primary bg-primary/10'
+                        : 'border-input-border hover:bg-input-hover-background'
+                    )}
+                    htmlFor={`charge_mode_${option.mode}`}
+                  >
+                    <span className='flex items-center gap-3'>
+                      <input
+                        checked={chargeMode === option.mode}
+                        className='size-4 accent-primary'
+                        disabled={loading}
+                        id={`charge_mode_${option.mode}`}
+                        name='charge_mode'
+                        type='radio'
+                        value={option.mode}
+                        onChange={() => setChargeMode(option.mode)}
+                      />
+                      <span className='text-xs text-white'>{option.label}</span>
+                    </span>
+                    <span className='text-xs font-semibold text-white'>
+                      ${option.amount.toLocaleString('es-AR')}
+                    </span>
+                  </label>
+                ))}
+                {suggestsSurcharge && chargeMode !== 'surcharge' && (
+                  <small className='text-xs text-white/70 flex items-start gap-2'>
+                    <InfoIcon className='size-4 shrink-0 mt-0.5' />
+                    {t('membership.surchargeHint')}
+                  </small>
+                )}
               </div>
             )}
             {isTypeChangeIntraActive && adjustmentAction && (
@@ -476,19 +503,12 @@ export default function MembershipForm({
                   isDisabled
                   className='w-full font-light'
                   componentRight={<MoneyIcon className='text-[#8F878A]' height={24} width={24} />}
-                  helperText={
-                    applySurcharge && membershipSelected?.amount_surcharge !== null
-                      ? t('membership.surchargeApplied')
-                      : shouldApplyMiddleAmount && membershipSelected?.middle_amount !== null
-                        ? t('membership.middlePriceApplied')
-                        : undefined
-                  }
                   id={'membership_amount_display'}
                   minValue={0}
                   value={displayAmount}
                 />
                 {/* Hidden input to send the amount value in FormData */}
-                <input name='membership_amount' type='hidden' value={actualAmount} />
+                <input name='membership_amount' type='hidden' value={chargeAmount} />
               </div>
             )}
             {!isVIPMembership && (
