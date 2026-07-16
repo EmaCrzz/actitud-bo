@@ -61,14 +61,20 @@ sugerir, no decidir.
 - **Un solo estado `chargeMode: 'full' | 'half' | 'surcharge'`** reemplaza a
   `shouldApplyMiddleAmount` (regla forzada), `shouldSuggestSurcharge` (regla
   forzada) y `applySurcharge` (estado colgado).
-- **Fuente única del monto (`chargeAmount`).** Antes había dos cálculos
-  paralelos con prioridades **invertidas**: `displayAmount` priorizaba medio mes
-  ([:205](../../../src/customer/membership-form.tsx#L205)) y `actualAmount`
-  priorizaba recargo ([:227](../../../src/customer/membership-form.tsx#L227)).
-  Con los flags viejos no se disparaba porque eran excluyentes, pero era una
-  bomba de tiempo: la UI podía mostrar un precio y el hidden input mandar otro.
-  Ahora el input visible y el hidden leen la misma variable, así que no pueden
-  divergir por construcción.
+- **Fuente única del monto (`chargeAmount`).** El código original tenía dos
+  cálculos paralelos con prioridades **invertidas**: `displayAmount` priorizaba
+  medio mes y `actualAmount` priorizaba recargo. Con los flags viejos no se
+  disparaba porque eran excluyentes, pero era una bomba de tiempo: la UI podía
+  mostrar un precio y el hidden input mandar otro. Ahora existe una sola variable
+  `chargeAmount` de la que leen tanto el hidden input como la UI, así que no
+  pueden divergir por construcción.
+- **El monto no se repite en pantalla.** El selector de modalidad ya muestra el
+  precio de cada opción, así que se eliminó el `InputCurrency` disabled que
+  duplicaba el monto elegido (además de simular ser editable sin serlo). El monto
+  solo se muestra por separado —como una fila "Total a cobrar"— cuando **no** hay
+  selector: tipos con un único precio cargado y pases Daily
+  (`chargeModeOptions.length <= 1`). El hidden input `membership_amount` sigue
+  presente en todos los casos.
 - **`useEffect` que resetea `chargeMode` al cambiar de tipo.** Arregla el estado
   colgado: antes, si el operador prendía el recargo y después cambiaba a Diario,
   el switch se desmontaba pero `applySurcharge` quedaba en `true`.

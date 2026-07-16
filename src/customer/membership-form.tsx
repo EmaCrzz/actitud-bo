@@ -231,8 +231,6 @@ export default function MembershipForm({
     return amount ?? 0
   }, [membershipSelected, chargeMode])
 
-  const displayAmount = chargeAmount ? chargeAmount.toString() : ''
-
   // Señal para el operador, sin forzar la selección: el cliente ya vino este
   // mes y venció el plazo de pago.
   const suggestsSurcharge = useMemo(() => {
@@ -498,15 +496,17 @@ export default function MembershipForm({
             )}
             {!isVIPMembership && (
               <div className='grid gap-y-2 col-span-2'>
-                <InputCurrency
-                  key={membershipSelected?.type || 'no-membership'}
-                  isDisabled
-                  className='w-full font-light'
-                  componentRight={<MoneyIcon className='text-[#8F878A]' height={24} width={24} />}
-                  id={'membership_amount_display'}
-                  minValue={0}
-                  value={displayAmount}
-                />
+                {/* Cuando hay selector de modalidad, el monto ya vive en la
+                    opción elegida: no lo repetimos. Solo mostramos el total
+                    cuando no hay selección que hacer (precio único o Daily). */}
+                {chargeModeOptions.length <= 1 && chargeAmount > 0 && (
+                  <div className='flex items-center justify-between gap-3 rounded-md border border-input-border p-3'>
+                    <span className='text-xs text-white/70'>{t('membership.totalToCharge')}</span>
+                    <span className='text-sm font-semibold text-white'>
+                      ${chargeAmount.toLocaleString('es-AR')}
+                    </span>
+                  </div>
+                )}
                 {/* Hidden input to send the amount value in FormData */}
                 <input name='membership_amount' type='hidden' value={chargeAmount} />
               </div>
