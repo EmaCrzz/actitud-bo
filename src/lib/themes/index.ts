@@ -55,6 +55,7 @@ export const tenantThemes: Record<string, TenantTheme> = {
       feedback: {
         success: '#20E36B',
         error: '#E82531',
+        info: '#2196F3',
       },
       components: {
         input: {
