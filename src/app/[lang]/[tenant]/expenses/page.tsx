@@ -27,6 +27,9 @@ export default function ExpensesPage() {
         </div>
       </header>
       <section className='max-w-3xl mx-auto w-full px-4 overflow-auto pb-4'>
+        <p className='text-xs font-light tracking-wide text-muted-foreground pt-4'>
+          {t('accounting.expenses.subtitle')}
+        </p>
         <MonthSelectorRow
           isCurrentMonth={isCurrentMonth}
           month={month}

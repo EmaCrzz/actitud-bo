@@ -360,9 +360,13 @@
       "expensesByCategory": "Gastos por Categoría",
       "resume": "Resumen de gastos",
       "new": "Nuevo gasto",
+      "subtitle": "Total de gastos registrados este mes.",
+      "empty": "No hay egresos registrados",
       "form": {
         "title": "Registra un nuevo gasto, indica qué fue y cuánto costó.",
         "description": "Descripción",
+        "descriptionPlaceholder": "Describe el gasto",
+        "selectCategory": "Selecciona una categoría",
         "amount": "Monto",
         "category": "Categoría",
         "date": "Fecha",
@@ -374,7 +378,8 @@
         "categoryRequired": "La categoría es requerida"
       },
       "errors": {
-        "createError": "Error al crear el gasto"
+        "createError": "Error al crear el gasto",
+        "loadError": "Error al cargar los gastos"
       },
       "success": {
         "created": "Gasto creado exitosamente"
@@ -384,7 +389,6 @@
         "MAINTENANCE": "Mantenimiento",
         "EQUIPMENT": "Equipamiento",
         "SALARIES": "Salarios",
-        "SUPPLIES": "Suministros",
         "RENT": "Alquiler",
         "TAXES": "Impuestos",
         "REFUNDS": "Reintegros",
