@@ -426,8 +426,8 @@ export default function MembershipForm({
                   </label>
                 ))}
                 {suggestsSurcharge && chargeMode !== 'surcharge' && (
-                  <small className='text-xs text-white/70 flex items-start gap-2'>
-                    <InfoIcon className='size-4 shrink-0 mt-0.5' />
+                  <small className='text-xs text-white/70 flex items-center gap-2'>
+                    <InfoIcon className='size-4 shrink-0' />
                     {t('membership.surchargeHint')}
                   </small>
                 )}
