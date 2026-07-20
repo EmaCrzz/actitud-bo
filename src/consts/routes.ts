@@ -7,6 +7,7 @@ export const CUSTOMER_EDIT = '/customer/edit' as const
 export const CUSTOMER_NEW = '/customer/new' as const
 export const EXPENSES = '/expenses' as const
 export const EXPENSES_NEW = '/expenses/new' as const
+export const EXPENSES_EDIT = '/expenses/edit' as const
 export const HOME = '/' as const
 export const INCOMES = '/incomes' as const
 export const LOGIN = '/login' as const

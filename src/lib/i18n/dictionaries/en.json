@@ -360,9 +360,16 @@
       "expensesByCategory": "Expenses by Category",
       "resume": "Expenses summary",
       "new": "New expense",
+      "edit": "Edit expense",
+      "actions": "Actions",
+      "notFound": "Expense not found",
+      "subtitle": "Total expenses registered this month.",
+      "empty": "No expenses registered",
       "form": {
         "title": "Register a new expense, indicate what it was and how much it cost.",
         "description": "Description",
+        "descriptionPlaceholder": "Describe the expense",
+        "selectCategory": "Select a category",
         "amount": "Amount",
         "category": "Category",
         "date": "Date",
@@ -374,17 +381,26 @@
         "categoryRequired": "Category is required"
       },
       "errors": {
-        "createError": "Error creating expense"
+        "createError": "Error creating expense",
+        "updateError": "Error updating expense",
+        "deleteError": "Error deleting expense",
+        "loadError": "Error loading expenses"
       },
       "success": {
-        "created": "Expense created successfully"
+        "created": "Expense created successfully",
+        "updated": "Expense updated successfully",
+        "deleted": "Expense deleted successfully"
+      },
+      "deleteDialog": {
+        "title": "Delete this expense?",
+        "description": "This action cannot be undone. \"{description}\" will be removed from the record.",
+        "confirm": "Delete"
       },
       "categories": {
         "SERVICES": "Services",
         "MAINTENANCE": "Maintenance",
         "EQUIPMENT": "Equipment",
         "SALARIES": "Salaries",
-        "SUPPLIES": "Supplies",
         "RENT": "Rent",
         "TAXES": "Taxes",
         "REFUNDS": "Refunds",
