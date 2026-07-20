@@ -6,23 +6,29 @@ import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { createExpense } from '@/expenses/api'
+import { createExpense, updateExpense } from '@/expenses/api'
 import { EXPENSES } from '@/consts/routes'
 import { InputCurrency } from '@/components/ui/input-currency'
 import { HybridSelect } from '@/components/ui/select-hybrid'
 import { UncontrolledDatePicker } from '@/components/uncontrolled-date-picker'
 import { EXPENSE_CATEGORIES } from '@/expenses/consts'
 import { useTranslations } from '@/lib/i18n/context'
-import { getCategoryTranslationKey } from '@/expenses/utils'
+import { getCategoryTranslationKey, normalizeCategoryValue } from '@/expenses/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { getTodayIsoDateInAppTz } from '@/lib/timezone'
+import type { Expense } from '@/accounting/types'
 
-export default function ExpenseForm() {
+interface ExpenseFormProps {
+  expense?: Expense
+}
+
+export default function ExpenseForm({ expense }: ExpenseFormProps) {
   const router = useRouter()
   const queryClient = useQueryClient()
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const { t } = useTranslations()
+  const isEditing = !!expense
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -53,22 +59,39 @@ export default function ExpenseForm() {
       return
     }
 
-    const response = await createExpense({
-      description,
-      amount,
-      category,
-      expense_date: expense_date || undefined,
-    })
+    const response = isEditing
+      ? await updateExpense({
+          id: expense.id,
+          description,
+          amount,
+          category,
+          expense_date: expense_date || undefined,
+        })
+      : await createExpense({
+          description,
+          amount,
+          category,
+          expense_date: expense_date || undefined,
+        })
 
     setLoading(false)
 
     if (!response.success) {
-      toast.error(response.error || t('accounting.expenses.errors.createError'))
+      toast.error(
+        response.error ||
+          t(
+            isEditing
+              ? 'accounting.expenses.errors.updateError'
+              : 'accounting.expenses.errors.createError'
+          )
+      )
 
       return
     }
 
-    toast.success(t('accounting.expenses.success.created'))
+    toast.success(
+      t(isEditing ? 'accounting.expenses.success.updated' : 'accounting.expenses.success.created')
+    )
 
     queryClient.invalidateQueries({ queryKey: ['expenses'] })
     queryClient.invalidateQueries({ queryKey: ['monthly-stats'] })
@@ -94,6 +117,7 @@ export default function ExpenseForm() {
               {t('accounting.expenses.form.category')}
             </Label>
             <HybridSelect
+              defaultValue={expense ? normalizeCategoryValue(expense.category) : undefined}
               helperText={errors.category}
               isDisabled={loading}
               isInvalid={!!errors.category}
@@ -109,6 +133,7 @@ export default function ExpenseForm() {
                 {t('accounting.expenses.form.amount')}
               </Label>
               <InputCurrency
+                defaultValue={expense?.amount}
                 helperText={errors.amount}
                 id='amount'
                 isDisabled={loading}
@@ -125,7 +150,7 @@ export default function ExpenseForm() {
               </Label>
               <UncontrolledDatePicker
                 dateFormat='short'
-                defaultValue={getTodayIsoDateInAppTz()}
+                defaultValue={expense?.expense_date ?? getTodayIsoDateInAppTz()}
                 id='expense_date'
                 isDisabled={loading}
                 name='expense_date'
@@ -139,6 +164,7 @@ export default function ExpenseForm() {
             </Label>
             <Input
               autoFocus
+              defaultValue={expense?.description}
               disabled={loading}
               helperText={errors.description}
               id='description'

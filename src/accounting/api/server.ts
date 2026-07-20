@@ -154,6 +154,19 @@ export const getExpenses = async (filters?: AccountingFilters): Promise<Expense[
   return data || []
 }
 
+export const getExpenseById = async (id: string): Promise<Expense | null> => {
+  const supabase = await createClient()
+
+  // Verify admin role
+  const { requireAdmin } = await import('@/auth/api/server')
+
+  await requireAdmin()
+
+  const { data } = await supabase.from('expenses').select('*').eq('id', id).maybeSingle()
+
+  return data
+}
+
 export const createExpense = async (expenseData: CreateExpenseData): Promise<Expense | null> => {
   const supabase = await createClient()
 

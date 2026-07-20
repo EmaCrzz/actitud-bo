@@ -188,7 +188,15 @@ const InputCurrency = forwardRef<HTMLInputElement, InputCurrencyProps>(
     })
 
     const [internalError, setInternalError] = useState<string>('')
-    const [numericValue, setNumericValue] = useState<string>('')
+    const [numericValue, setNumericValue] = useState<string>(() => {
+      const initial = value !== undefined ? value : defaultValue
+
+      if (initial === undefined || initial === null || initial === '') return ''
+
+      const parsed = typeof initial === 'number' ? initial : parseFloat(String(initial))
+
+      return Number.isFinite(parsed) ? String(parsed) : ''
+    })
 
     useEffect(() => {
       if (value !== undefined) {

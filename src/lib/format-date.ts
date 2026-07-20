@@ -49,6 +49,17 @@ export function formatDate(
   }
 }
 
+// Formatea un valor de FECHA DE CALENDARIO ("YYYY-MM-DD", o un timestamp cuya
+// parte de fecha es la relevante) como "dd/mm/yyyy" SIN conversión de timezone.
+// Para columnas de fecha-solo (ej. expenses.expense_date): `new Date("YYYY-MM-DD")`
+// se interpreta como medianoche UTC y `formatDate` (que convierte a AR) mostraría
+// el día anterior. Acá tomamos el día calendario tal cual se guardó.
+export function formatCalendarDate(isoDate: string): string {
+  const [year, month, day] = isoDate.slice(0, 10).split('-')
+
+  return `${day}/${month}/${year}`
+}
+
 /**
  * Get current month in YYYY-MM format en la TZ del negocio (Argentina).
  * @returns Current month string (e.g., '2025-10')
