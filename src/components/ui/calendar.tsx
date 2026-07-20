@@ -144,6 +144,7 @@ function CalendarDayButton({
   className,
   day,
   modifiers,
+  children,
   ...props
 }: React.ComponentProps<typeof DayButton>) {
   const defaultClassNames = getDefaultClassNames()
@@ -157,20 +158,18 @@ function CalendarDayButton({
   const isSingleSelected =
     modifiers.selected && !modifiers.range_start && !modifiers.range_middle && !modifiers.range_end
   const isToday = !!modifiers.today
+  // "Hoy" se marca con un punto rosa debajo del número; la selección (relleno) tiene prioridad.
+  const showTodayDot = isToday && !isSingleSelected
 
   return (
     <Button
       className={cn(
-        'mx-auto flex size-9 aspect-square items-center justify-center rounded-full p-0 text-sm font-normal leading-none text-white transition-colors',
+        'relative mx-auto flex size-9 aspect-square items-center justify-center rounded-full p-0 text-sm font-normal leading-none text-white transition-colors',
         'hover:bg-white/10 hover:text-white',
         // Día de otro mes: número tenue.
         modifiers.outside && !isToday && !isSingleSelected && 'text-white/25',
-        // Día seleccionado (distinto de hoy): contorno/ring rosa.
-        isSingleSelected &&
-          !isToday &&
-          'text-primary400 font-semibold ring-1 ring-inset ring-primary',
-        // Día actual: círculo relleno rosa (prioritario, incluso si también está seleccionado).
-        isToday && 'bg-primary text-white font-semibold hover:bg-primary hover:text-white',
+        // Día seleccionado: círculo relleno rosa (el peso visual más fuerte lo tiene la selección).
+        isSingleSelected && 'bg-primary text-white font-semibold hover:bg-primary hover:text-white',
         // Rango.
         'data-[range-start=true]:bg-primary data-[range-start=true]:text-white data-[range-end=true]:bg-primary data-[range-end=true]:text-white data-[range-middle=true]:bg-primary/25 data-[range-middle=true]:rounded-none',
         defaultClassNames.day,
@@ -184,7 +183,12 @@ function CalendarDayButton({
       size='icon'
       variant='ghost'
       {...props}
-    />
+    >
+      {children}
+      {showTodayDot && (
+        <span className='absolute bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-primary' />
+      )}
+    </Button>
   )
 }
 
