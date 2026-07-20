@@ -2,14 +2,13 @@
 
 import { useExpenses } from '@/expenses/hooks/use-expenses'
 import { formatCurrency } from '@/lib/format-currency'
-import { formatDate } from '@/lib/format-date'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertTriangle } from 'lucide-react'
 import { useTranslations } from '@/lib/i18n/context'
 import Link from 'next/link'
 import { EXPENSES_NEW } from '@/consts/routes'
 import PlusIcon from '@/components/icons/plus'
-import { getCategoryTranslationKey, normalizeCategoryValue } from '@/expenses/utils'
+import { ExpenseRow } from './expense-row'
 import { ExpenseListSkeleton } from './skeletons'
 
 interface ExpensesListProps {
@@ -66,27 +65,9 @@ export default function ExpensesList({ month, category }: ExpensesListProps) {
           <p className='text-center py-6 text-muted-foreground'>{t('accounting.expenses.empty')}</p>
         ) : (
           <ul>
-            {items.map((expense) => {
-              const normalizedCategory = normalizeCategoryValue(expense.category)
-
-              return (
-                <li
-                  key={expense.id}
-                  className='flex items-center justify-between gap-4 border-b border-white/10 py-3 first:pt-0 last:border-0 last:pb-0'
-                >
-                  <div className='min-w-0'>
-                    <p className='font-medium truncate'>{expense.description}</p>
-                    <p className='text-xs text-muted-foreground mt-0.5'>
-                      {t(getCategoryTranslationKey(normalizedCategory))} ·{' '}
-                      {formatDate(expense.expense_date)}
-                    </p>
-                  </div>
-                  <span className='font-semibold whitespace-nowrap'>
-                    {formatCurrency(expense.amount)}
-                  </span>
-                </li>
-              )
-            })}
+            {items.map((expense) => (
+              <ExpenseRow key={expense.id} expense={expense} />
+            ))}
           </ul>
         )}
       </div>

@@ -360,6 +360,9 @@
       "expensesByCategory": "Expenses by Category",
       "resume": "Expenses summary",
       "new": "New expense",
+      "edit": "Edit expense",
+      "actions": "Actions",
+      "notFound": "Expense not found",
       "subtitle": "Total expenses registered this month.",
       "empty": "No expenses registered",
       "form": {
@@ -379,10 +382,19 @@
       },
       "errors": {
         "createError": "Error creating expense",
+        "updateError": "Error updating expense",
+        "deleteError": "Error deleting expense",
         "loadError": "Error loading expenses"
       },
       "success": {
-        "created": "Expense created successfully"
+        "created": "Expense created successfully",
+        "updated": "Expense updated successfully",
+        "deleted": "Expense deleted successfully"
+      },
+      "deleteDialog": {
+        "title": "Delete this expense?",
+        "description": "This action cannot be undone. \"{description}\" will be removed from the record.",
+        "confirm": "Delete"
       },
       "categories": {
         "SERVICES": "Services",
