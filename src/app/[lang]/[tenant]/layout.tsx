@@ -1,7 +1,7 @@
 import './globals.css'
 
 import type { Metadata, Viewport } from 'next'
-import { Toaster } from 'sonner'
+import { Toaster } from '@/components/ui/sonner'
 import EnvBanner from '@/components/env-banner'
 import PWAInstaller from '@/components/pwa-installer'
 import SWUpdateManager from '@/components/sw-update-manager'
@@ -268,7 +268,7 @@ export default async function RootLayout({
             <PWAInstaller />
             <SWUpdateManager />
           </I18nServerProvider>
-          <Toaster richColors expand={true} />
+          <Toaster expand={true} />
         </QueryProvider>
       </body>
     </html>

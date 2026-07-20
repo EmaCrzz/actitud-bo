@@ -10,7 +10,7 @@ import { CustomerComplete } from '@/customer/types'
 import { HOME } from '@/consts/routes'
 import { useRouter } from 'next/navigation'
 import { Alert, AlertTitle } from '@/components/ui/alert'
-import { InfoIcon } from 'lucide-react'
+import AlertContainedIcon from '@/components/icons/alert-contained'
 import CustomerMembership from '@/customer/membership'
 import BtnEditMembership from '@/customer/btn-edit-membership'
 import AssistanceToday from './assistance-alert-today'
@@ -89,11 +89,11 @@ export default function CustomerAssistance({ customer }: { customer: CustomerCom
         <AssistanceToday assistance={customer.assistance} />
         {fullMembership && (
           <Alert
-            className='mt-6 items-center has-[>svg]:grid-cols-[calc(var(--spacing)*6)_1fr] [&>svg]:size-6'
+            className='mt-3 items-center has-[>svg]:grid-cols-[calc(var(--spacing)*6)_1fr] has-[>svg]:gap-x-1 [&>svg]:size-6'
             variant='info'
           >
-            <InfoIcon />
-            <AlertTitle className='font-secondary font-bold tracking-[0.48px]'>
+            <AlertContainedIcon />
+            <AlertTitle className='font-semibold tracking-[0.48px]'>
               {t('assistance.weekCompleteMessage')}
             </AlertTitle>
           </Alert>
