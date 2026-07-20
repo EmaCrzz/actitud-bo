@@ -360,9 +360,13 @@
       "expensesByCategory": "Expenses by Category",
       "resume": "Expenses summary",
       "new": "New expense",
+      "subtitle": "Total expenses registered this month.",
+      "empty": "No expenses registered",
       "form": {
         "title": "Register a new expense, indicate what it was and how much it cost.",
         "description": "Description",
+        "descriptionPlaceholder": "Describe the expense",
+        "selectCategory": "Select a category",
         "amount": "Amount",
         "category": "Category",
         "date": "Date",
@@ -374,7 +378,8 @@
         "categoryRequired": "Category is required"
       },
       "errors": {
-        "createError": "Error creating expense"
+        "createError": "Error creating expense",
+        "loadError": "Error loading expenses"
       },
       "success": {
         "created": "Expense created successfully"
@@ -384,7 +389,6 @@
         "MAINTENANCE": "Maintenance",
         "EQUIPMENT": "Equipment",
         "SALARIES": "Salaries",
-        "SUPPLIES": "Supplies",
         "RENT": "Rent",
         "TAXES": "Taxes",
         "REFUNDS": "Refunds",

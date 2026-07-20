@@ -10,9 +10,9 @@ import { createExpense } from '@/expenses/api'
 import { EXPENSES } from '@/consts/routes'
 import { InputCurrency } from '@/components/ui/input-currency'
 import { HybridSelect } from '@/components/ui/select-hybrid'
+import { UncontrolledDatePicker } from '@/components/uncontrolled-date-picker'
 import { EXPENSE_CATEGORIES } from '@/expenses/consts'
 import { useTranslations } from '@/lib/i18n/context'
-import { Textarea } from '@/components/ui/textarea'
 import { getCategoryTranslationKey } from '@/expenses/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { getTodayIsoDateInAppTz } from '@/lib/timezone'
@@ -34,18 +34,17 @@ export default function ExpenseForm() {
     const amount = parseFloat(formData.get('amount') as string)
     const category = formData.get('category') as string
     const expense_date = formData.get('expense_date') as string
-    const notes = formData.get('notes') as string
 
     // Validación básica
     const newErrors: Record<string, string> = {}
 
-    if (!description)
-      newErrors.description = t('accounting.expenses.validation.descriptionRequired')
+    if (!category) newErrors.category = t('accounting.expenses.validation.categoryRequired')
 
     if (!amount || amount <= 0)
       newErrors.amount = t('accounting.expenses.validation.amountRequired')
 
-    if (!category) newErrors.category = t('accounting.expenses.validation.categoryRequired')
+    if (!description)
+      newErrors.description = t('accounting.expenses.validation.descriptionRequired')
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
@@ -59,7 +58,6 @@ export default function ExpenseForm() {
       amount,
       category,
       expense_date: expense_date || undefined,
-      notes: notes || undefined,
     })
 
     setLoading(false)
@@ -86,35 +84,10 @@ export default function ExpenseForm() {
   return (
     <>
       <form className='space-y-6' id='form-expense' onSubmit={handleSubmit}>
-        <section className='max-w-3xl mx-auto w-full px-4 overflow-auto pb-4 pt-12'>
-          <h3 className='text-sm sm:text-md mb-4'>{t('accounting.expenses.form.title')}</h3>
-          <div className='space-y-2'>
-            <Label className='font-light' htmlFor='description'>
-              {t('accounting.expenses.form.description')}
-            </Label>
-            <Input
-              autoFocus
-              disabled={loading}
-              helperText={errors.description}
-              id='description'
-              isInvalid={!!errors.description}
-              name='description'
-            />
-          </div>
-
-          <div className='space-y-2'>
-            <Label className='font-light' htmlFor='amount'>
-              {t('accounting.expenses.form.amount')}
-            </Label>
-            <InputCurrency
-              helperText={errors.amount}
-              id='amount'
-              isDisabled={loading}
-              isInvalid={!!errors.amount}
-              minValue={0}
-              name='amount'
-            />
-          </div>
+        <section className='max-w-3xl mx-auto w-full px-4 overflow-auto pb-4 pt-6'>
+          <p className='text-xs font-light tracking-wide text-muted-foreground mb-8'>
+            {t('accounting.expenses.form.title')}
+          </p>
 
           <div className='space-y-2'>
             <Label className='font-light' htmlFor='category'>
@@ -126,38 +99,68 @@ export default function ExpenseForm() {
               isInvalid={!!errors.category}
               name='category'
               options={categoryOptions}
+              placeholder={t('accounting.expenses.form.selectCategory')}
             />
           </div>
 
+          <div className='grid grid-cols-2 gap-4'>
+            <div className='space-y-2'>
+              <Label className='font-light' htmlFor='amount'>
+                {t('accounting.expenses.form.amount')}
+              </Label>
+              <InputCurrency
+                helperText={errors.amount}
+                id='amount'
+                isDisabled={loading}
+                isInvalid={!!errors.amount}
+                minValue={0}
+                name='amount'
+                placeholder='$0,00'
+              />
+            </div>
+
+            <div className='space-y-2'>
+              <Label className='font-light' htmlFor='expense_date'>
+                {t('accounting.expenses.form.date')}
+              </Label>
+              <UncontrolledDatePicker
+                dateFormat='short'
+                defaultValue={getTodayIsoDateInAppTz()}
+                id='expense_date'
+                isDisabled={loading}
+                name='expense_date'
+              />
+            </div>
+          </div>
+
           <div className='space-y-2'>
-            <Label className='font-light' htmlFor='expense_date'>
-              {t('accounting.expenses.form.date')}
+            <Label className='font-light' htmlFor='description'>
+              {t('accounting.expenses.form.description')}
             </Label>
             <Input
-              defaultValue={getTodayIsoDateInAppTz()}
+              autoFocus
               disabled={loading}
-              id='expense_date'
-              name='expense_date'
-              type='date'
+              helperText={errors.description}
+              id='description'
+              isInvalid={!!errors.description}
+              name='description'
+              placeholder={t('accounting.expenses.form.descriptionPlaceholder')}
             />
-          </div>
-
-          <div className='space-y-2'>
-            <Label className='font-light' htmlFor='notes'>
-              {t('accounting.expenses.form.notes')}
-            </Label>
-            <Textarea disabled={loading} id='notes' name='notes' />
           </div>
         </section>
       </form>
-      <footer className='flex justify-between max-w-3xl gap-2 mx-auto w-full px-4 pb-9'>
-        <Button
-          className='w-full h-12 sm:w-44 sm:h-14'
-          form='form-expense'
-          loading={loading}
-          type='submit'
-        >
+      <footer className='flex flex-col max-w-3xl gap-3 mx-auto w-full px-4 pb-9'>
+        <Button className='w-full h-12' form='form-expense' loading={loading} type='submit'>
           {t('common.confirm')}
+        </Button>
+        <Button
+          className='w-full h-12'
+          disabled={loading}
+          type='button'
+          variant='outline'
+          onClick={() => router.push(EXPENSES)}
+        >
+          {t('common.cancel')}
         </Button>
       </footer>
     </>
