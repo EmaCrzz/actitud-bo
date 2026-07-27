@@ -14,7 +14,7 @@ async function _searchCustomer(query?: string) {
   const { data } = await supabase
     .from('customers')
     .select(SEARCH_CUSTOMER)
-    .ilike('first_name', `%${query}%`)
+    .ilike('full_name', `%${query}%`)
     .order('first_name', {
       ascending: true,
     })
@@ -57,7 +57,7 @@ async function _fetchCustomersPage({
     .range(from, to)
 
   if (query) {
-    request = request.ilike('first_name', `%${query}%`)
+    request = request.ilike('full_name', `%${query}%`)
   }
 
   const { data } = await request
