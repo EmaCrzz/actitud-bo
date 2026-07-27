@@ -100,6 +100,15 @@ export function basicMembershipValidation(formData: FormData) {
     errors.end_date = 'La fecha de finalización es requerida'
   }
 
+  // Si falta alguna fecha, cortar acá: parsear un string vacío produce Invalid Date
+  // y los checks siguientes explotan en Intl.DateTimeFormat.formatToParts.
+  if (!startDate?.trim() || !endDate?.trim()) {
+    return {
+      valid: false,
+      errors,
+    }
+  }
+
   const isDaily = membershipType === MEMBERSHIP_TYPE_DAILY
 
   // Las fechas del form llegan como "YYYY-MM-DD" (día calendario AR). Parsear
@@ -130,6 +139,19 @@ export function basicMembershipValidation(formData: FormData) {
       errors.first_assistance =
         'No se puede registrar una asistencia si la membresía no está pagada o está vencida'
     }
+  }
+
+  // Descuento: si el operador tildeó "aplicar descuento" y el monto es > 0
+  // sin regla asociada, la nota es obligatoria (invariante clave para
+  // trazabilidad). La misma regla vive en el CHECK de la DB y en el RPC,
+  // pero validar acá evita mandar el pedido y devuelve error amigable.
+  const discountAmountRaw = formData.get('discount_amount') as string | null
+  const discountRuleId = formData.get('discount_rule_id') as string | null
+  const discountNoteRaw = formData.get('discount_note') as string | null
+  const discountAmount = discountAmountRaw ? Number(discountAmountRaw.replace(/[^\d]/g, '')) : 0
+
+  if (discountAmount > 0 && !discountRuleId && !discountNoteRaw?.trim()) {
+    errors.discount_note = 'El descuento manual requiere un motivo'
   }
 
   return {

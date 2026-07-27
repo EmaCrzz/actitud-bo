@@ -3,6 +3,7 @@ import ArrowLeftIcon from '@/components/icons/arrow-left'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { UncontrolledDatePicker } from '@/components/uncontrolled-date-picker'
 import { CustomerComplete } from '@/customer/types'
 import { CheckedState } from '@radix-ui/react-checkbox'
@@ -35,6 +36,7 @@ import { useMediaQuery } from 'usehooks-ts'
 import { InputCurrency } from '@/components/ui/input-currency'
 import MoneyIcon from '@/components/icons/money'
 import { usePermissions } from '@/auth/hooks/use-permissions'
+import { ApplicableDiscount } from '@/group/types'
 
 // Los tres precios de `types_memberships` son conceptos de cobro mutuamente
 // excluyentes: no existe "medio mes con recargo".
@@ -96,8 +98,31 @@ export default function MembershipForm({
     label: t(PaymentsTranslation[paymentType]),
   }))
 
+  // Limpia el error de un campo cuando el operador lo corrige, sin esperar
+  // al próximo submit. Se dispara por dos canales: `onChange` del <form>
+  // (para inputs/textareas nativos y el hidden dispatch del UncontrolledDatePicker)
+  // y `onValueChange` explícito en los HybridSelect (los inputs hidden
+  // controlados por React no emiten `change` cuando cambia su `value` prop).
+  const clearFieldError = (name: string) => {
+    setInnerErrors((prev: DatabaseResult['data']) => {
+      if (!prev || !(name in prev)) return prev
+      const next = { ...prev }
+
+      delete next[name]
+
+      return next
+    })
+  }
+
+  const handleFormChange = (event: React.FormEvent<HTMLFormElement>) => {
+    const target = event.target as HTMLInputElement | HTMLTextAreaElement | null
+
+    if (target?.name) clearFieldError(target.name)
+  }
+
   const handleMembershipChange = (value: string) => {
     setSelectedType(value)
+    clearFieldError('membership_type')
   }
 
   const isVIPMembership = membershipSelected?.type === MEMBERSHIP_TYPE_VIP
@@ -182,6 +207,43 @@ export default function MembershipForm({
     setChargeMode('full')
   }, [selectedType])
 
+  // --- Descuento ---
+  // El customer trae precomputada la regla aplicable (o null). En Fase 1
+  // no reevaluamos en cliente: si vino, aplica; si no, sólo permitimos
+  // ad-hoc. El operador puede editar monto y agregar nota siempre.
+  const applicableDiscount: ApplicableDiscount | null = customer?.applicable_discount ?? null
+
+  const [discountEnabled, setDiscountEnabled] = useState<CheckedState>(!!applicableDiscount)
+  const [discountAmountValue, setDiscountAmountValue] = useState<string>(
+    applicableDiscount ? String(applicableDiscount.suggested_amount) : ''
+  )
+  const [discountNoteValue, setDiscountNoteValue] = useState<string>('')
+
+  // Resetear el descuento cuando cambia el tipo de membresía: el bruto y el
+  // contexto cambiaron, no tiene sentido arrastrar valores del tipo anterior.
+  useEffect(() => {
+    setDiscountEnabled(!!applicableDiscount)
+    setDiscountAmountValue(applicableDiscount ? String(applicableDiscount.suggested_amount) : '')
+    setDiscountNoteValue('')
+  }, [selectedType, applicableDiscount])
+
+  const discountAmountNumeric = useMemo(() => {
+    if (discountEnabled !== true) return 0
+    const raw = Number((discountAmountValue || '0').replace(/[^\d]/g, ''))
+
+    return Number.isFinite(raw) ? raw : 0
+  }, [discountEnabled, discountAmountValue])
+
+  // ID de regla que se envía al RPC: sólo si hay descuento activo Y venía
+  // una regla del server. Si el operador edita el monto pero mantiene la
+  // regla, sigue apuntando a la misma (queda como override registrado).
+  const discountRuleIdForSubmit =
+    discountEnabled === true && applicableDiscount ? applicableDiscount.rule.id : ''
+
+  // Nota obligatoria si hay monto > 0 sin regla (ad-hoc).
+  const noteRequired =
+    discountEnabled === true && discountAmountNumeric > 0 && !discountRuleIdForSubmit
+
   const chargeModeOptions = useMemo(() => {
     if (!membershipSelected || isVIPMembership || isDailyMembership) return []
 
@@ -229,6 +291,25 @@ export default function MembershipForm({
     if (chargeMode === 'surcharge' && amountSurcharge !== null) return amountSurcharge
 
     return amount ?? 0
+  }, [membershipSelected, chargeMode])
+
+  // Precio base para el resumen: en 'half' es el medio, en 'full'/'surcharge'
+  // es el completo. En 'surcharge' el recargo se separa como línea aparte.
+  const basePrice = useMemo(() => {
+    if (!membershipSelected) return 0
+    if (chargeMode === 'half' && membershipSelected.middle_amount !== null)
+      return membershipSelected.middle_amount
+
+    return membershipSelected.amount ?? 0
+  }, [membershipSelected, chargeMode])
+
+  const surchargeAmount = useMemo(() => {
+    if (chargeMode !== 'surcharge' || !membershipSelected) return 0
+    const { amount, amount_surcharge: amountSurcharge } = membershipSelected
+
+    if (amount === null || amountSurcharge === null) return 0
+
+    return Math.max(0, amountSurcharge - amount)
   }, [membershipSelected, chargeMode])
 
   // Señal para el operador, sin forzar la selección: el cliente ya vino este
@@ -330,7 +411,7 @@ export default function MembershipForm({
           </div>
         </header>
       )}
-      <form id='form-membership' onSubmit={handleSubmit}>
+      <form id='form-membership' onChange={handleFormChange} onSubmit={handleSubmit}>
         <section className='max-w-3xl mx-auto w-full px-4 overflow-auto pb-4 pt-12'>
           <h3 className='text-sm sm:text-md mb-4'>{t('membership.selectType')}</h3>
           <div className='grid grid-cols-2 gap-x-4 gap-y-4'>
@@ -394,37 +475,23 @@ export default function MembershipForm({
               </div>
             )}
             {chargeModeOptions.length > 1 && (
-              <div className='grid gap-y-2 col-span-2' role='radiogroup'>
-                <Label className='font-light'>{t('membership.chargeMode')}</Label>
-                {chargeModeOptions.map((option) => (
-                  <label
-                    key={option.mode}
-                    className={cn(
-                      'flex items-center justify-between gap-3 rounded-md border p-3 cursor-pointer',
-                      chargeMode === option.mode
-                        ? 'border-primary bg-primary/10'
-                        : 'border-input-border hover:bg-input-hover-background'
-                    )}
-                    htmlFor={`charge_mode_${option.mode}`}
-                  >
-                    <span className='flex items-center gap-3'>
-                      <input
-                        checked={chargeMode === option.mode}
-                        className='size-4 accent-primary'
-                        disabled={loading}
-                        id={`charge_mode_${option.mode}`}
-                        name='charge_mode'
-                        type='radio'
-                        value={option.mode}
-                        onChange={() => setChargeMode(option.mode)}
-                      />
-                      <span className='text-xs text-white'>{option.label}</span>
-                    </span>
-                    <span className='text-xs font-semibold text-white'>
-                      ${option.amount.toLocaleString('es-AR')}
-                    </span>
-                  </label>
-                ))}
+              <div className='grid gap-y-2 col-span-2'>
+                <Label className='font-light' htmlFor='charge_mode'>
+                  {t('membership.chargeMode')}
+                </Label>
+                <HybridSelect
+                  key={selectedType}
+                  className='font-light'
+                  defaultValue={chargeMode}
+                  isDisabled={loading}
+                  name='charge_mode'
+                  options={chargeModeOptions.map((option) => ({
+                    value: option.mode,
+                    label: `${option.label} — $${option.amount.toLocaleString('es-AR')}`,
+                  }))}
+                  placeholder={t('membership.chargeMode')}
+                  onValueChange={(value) => setChargeMode(value as ChargeMode)}
+                />
                 {suggestsSurcharge && chargeMode !== 'surcharge' && (
                   <small className='text-xs text-white/70 flex items-center gap-2'>
                     <InfoIcon className='size-4 shrink-0' />
@@ -496,23 +563,6 @@ export default function MembershipForm({
             )}
             {!isVIPMembership && (
               <div className='grid gap-y-2 col-span-2'>
-                {/* Cuando hay selector de modalidad, el monto ya vive en la
-                    opción elegida: no lo repetimos. Solo mostramos el total
-                    cuando no hay selección que hacer (precio único o Daily). */}
-                {chargeModeOptions.length <= 1 && chargeAmount > 0 && (
-                  <div className='flex items-center justify-between gap-3 rounded-md border border-input-border p-3'>
-                    <span className='text-xs text-white/70'>{t('membership.totalToCharge')}</span>
-                    <span className='text-sm font-semibold text-white'>
-                      ${chargeAmount.toLocaleString('es-AR')}
-                    </span>
-                  </div>
-                )}
-                {/* Hidden input to send the amount value in FormData */}
-                <input name='membership_amount' type='hidden' value={chargeAmount} />
-              </div>
-            )}
-            {!isVIPMembership && (
-              <div className='grid gap-y-2 col-span-2'>
                 <Label className='font-light' htmlFor='payment_type'>
                   {t('payments.title')}
                 </Label>
@@ -529,6 +579,7 @@ export default function MembershipForm({
                       ? t('payments.selectPaymentType')
                       : t('payments.paymentTypeShort')
                   }
+                  onValueChange={() => clearFieldError('payment_type')}
                 />
               </div>
             )}
@@ -555,6 +606,102 @@ export default function MembershipForm({
                   name='end_date'
                 />
               </>
+            )}
+            {!isVIPMembership && payment === true && (
+              <div className='grid col-span-2'>
+                {applicableDiscount ? (
+                  <div className='flex items-start gap-3'>
+                    <Checkbox
+                      checked={discountEnabled}
+                      className='size-6 mt-0.5'
+                      disabled={loading}
+                      id='apply_discount'
+                      onCheckedChange={setDiscountEnabled}
+                    />
+                    <div className='grid gap-y-0.5 flex-1'>
+                      <Label
+                        className='text-sm font-semibold text-white'
+                        htmlFor='apply_discount'
+                      >
+                        {applicableDiscount.rule.name}
+                      </Label>
+                      <span className='text-xs text-white/70'>
+                        {t('discount.byRuleSubtitle', {
+                          group: applicableDiscount.group.name,
+                          members: applicableDiscount.group.active_members_count,
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className='flex items-center gap-3'>
+                    <Checkbox
+                      checked={discountEnabled}
+                      className='size-6'
+                      disabled={loading}
+                      id='apply_discount'
+                      onCheckedChange={setDiscountEnabled}
+                    />
+                    <Label className='text-xs text-white' htmlFor='apply_discount'>
+                      {t('discount.applyLabel')}
+                    </Label>
+                  </div>
+                )}
+                <div
+                  aria-hidden={discountEnabled !== true}
+                  className={cn(
+                    'grid transition-[grid-template-rows,opacity] duration-300 ease-out',
+                    discountEnabled === true
+                      ? 'grid-rows-[1fr] opacity-100'
+                      : 'grid-rows-[0fr] opacity-0'
+                  )}
+                >
+                  <div className='min-h-0 overflow-hidden'>
+                    <div className='grid gap-y-3 pt-3'>
+                      <InputCurrency
+                        className='w-full font-light'
+                        componentRight={
+                          <MoneyIcon className='text-[#8F878A]' height={24} width={24} />
+                        }
+                        helperText={t('discount.amount')}
+                        id='discount_amount_display'
+                        isDisabled={loading || discountEnabled !== true}
+                        minValue={0}
+                        tabIndex={discountEnabled === true ? undefined : -1}
+                        value={discountAmountValue}
+                        onValueChange={(val) => setDiscountAmountValue(val ?? '')}
+                      />
+                      <Textarea
+                        className='w-full font-light'
+                        disabled={loading || discountEnabled !== true}
+                        helperText={
+                          !applicableDiscount
+                            ? errors?.discount_note ||
+                              (noteRequired ? t('discount.noteRequired') : undefined)
+                            : undefined
+                        }
+                        id='discount_note_display'
+                        isInvalid={!applicableDiscount && !!errors?.discount_note}
+                        placeholder={t('discount.notePlaceholder')}
+                        tabIndex={discountEnabled === true ? undefined : -1}
+                        value={discountNoteValue}
+                        onChange={(e) => setDiscountNoteValue(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <input
+                  name='discount_amount'
+                  type='hidden'
+                  value={discountEnabled === true ? discountAmountNumeric : 0}
+                />
+                <input name='discount_rule_id' type='hidden' value={discountRuleIdForSubmit} />
+                <input
+                  name='discount_note'
+                  type='hidden'
+                  value={discountEnabled === true ? discountNoteValue : ''}
+                />
+              </div>
             )}
             {isDailyMembership && (
               <>
@@ -606,6 +753,56 @@ export default function MembershipForm({
             })()}
           </div>
           <AssistanceToday assistance={customer?.assistance} />
+          {!isVIPMembership && (
+            <div className='grid gap-y-2 col-span-2 pt-4'>
+              {payment === true && chargeAmount > 0 && (
+                <div className='grid gap-y-1'>
+                  <span className='text-xs text-white/70 px-1'>
+                    {t('discount.summaryTitle')}
+                  </span>
+                  <div className='grid rounded-md border border-input-border overflow-hidden'>
+                    <div className='flex items-center justify-between px-4 py-3 border-b border-input-border bg-[#272325]'>
+                      <span className='text-xs text-white'>{t('discount.summaryBase')}</span>
+                      <span className='text-xs text-white'>
+                        ${basePrice.toLocaleString('es-AR')}
+                      </span>
+                    </div>
+                    {surchargeAmount > 0 && (
+                      <div className='flex items-center justify-between px-4 py-3 border-b border-input-border bg-[#272325]'>
+                        <span className='text-xs text-white'>
+                          {t('discount.summarySurcharge')}
+                        </span>
+                        <span className='text-xs font-semibold text-destructive'>
+                          ${surchargeAmount.toLocaleString('es-AR')}
+                        </span>
+                      </div>
+                    )}
+                    {discountAmountNumeric > 0 && (
+                      <div className='flex items-center justify-between px-4 py-3 border-b border-input-border bg-[#272325]'>
+                        <span className='text-xs text-white'>
+                          {t('discount.summaryDiscount')}
+                        </span>
+                        <span className='text-xs font-semibold text-[#20E36B]'>
+                          -${discountAmountNumeric.toLocaleString('es-AR')}
+                        </span>
+                      </div>
+                    )}
+                    <div className='flex items-center justify-between px-4 py-3 bg-[#322D2F]'>
+                      <span className='text-lg font-semibold text-white'>
+                        {t('discount.summaryTotal')}
+                      </span>
+                      <span className='text-lg font-semibold text-white'>
+                        ${Math.max(0, chargeAmount - discountAmountNumeric).toLocaleString('es-AR')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {/* Hidden input: el bruto de la modalidad elegida. El neto
+                    se calcula en el client wrapper (bruto - descuento). */}
+              <input name='membership_amount' type='hidden' value={chargeAmount} />
+            </div>
+          )}
         </section>
       </form>
       {!multiStepForm && (

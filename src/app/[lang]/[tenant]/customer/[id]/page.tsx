@@ -5,6 +5,7 @@ import { searchCustomersById } from '@/customer/api/server'
 import BtnEditMembership from '@/customer/btn-edit-membership'
 import InfoResume from '@/customer/info-resume'
 import CustomerMembership from '@/customer/membership'
+import GroupBadge from '@/group/components/badge'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import api from '@/lib/i18n/api'
@@ -48,6 +49,12 @@ export default async function CustomerDetailPage({
         </h2>
         {hasMembership && <CustomerMembership customer={customer} />}
         <BtnEditMembership customer={customer} />
+        <GroupBadge
+          fromPath={`${CUSTOMER}/${id}`}
+          groups={customer.groups}
+          membersLabel={(count) => t('groups.membersCount', { count })}
+          title={t('groups.badgeTitle')}
+        />
         <InfoResume customer={customer} lang={lang} tenant={tenant} />
       </section>
     </>

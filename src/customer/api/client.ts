@@ -341,8 +341,17 @@ export async function upsertCustomerMembership({
   const firstAssistance = formData.get('first_assistance') as 'on' | null
   const typeChangeAction = formData.get('type_change_action') as 'refund' | 'charge_diff' | null
   const adjustmentAmountRaw = formData.get('adjustment_amount') as string | null
+  // Campos de descuento: opcionales. Si no vienen, el RPC asume bruto = neto
+  // y sin descuento (compatibilidad hacia atrás).
+  const discountAmountRaw = formData.get('discount_amount') as string | null
+  const discountRuleId = (formData.get('discount_rule_id') as string) || null
+  const discountNoteRaw = formData.get('discount_note') as string | null
+
   const isPaid = payment === 'on'
-  const amount = isPaid ? parseCurrency(membershipAmount) : 0
+  const grossAmount = isPaid ? parseCurrency(membershipAmount) : 0
+  const discountAmount = discountAmountRaw ? parseCurrency(discountAmountRaw) : 0
+  const netAmount = Math.max(0, grossAmount - discountAmount)
+  const discountNote = discountNoteRaw?.trim() || null
   const adjustmentAmount =
     typeChangeAction && adjustmentAmountRaw ? parseCurrency(adjustmentAmountRaw) : null
 
@@ -354,10 +363,14 @@ export async function upsertCustomerMembership({
     p_end_date: isPaid ? endDate : null,
     p_is_paid: isPaid,
     p_payment_type: paymentType || null,
-    p_amount: amount,
+    p_amount: netAmount,
     p_register_assistance: firstAssistance === 'on',
     p_type_change_action: typeChangeAction,
     p_adjustment_amount: adjustmentAmount,
+    p_gross_amount: grossAmount,
+    p_discount_amount: discountAmount,
+    p_discount_rule_id: discountRuleId,
+    p_discount_note: discountNote,
   })
 
   // Handle Supabase/PostgreSQL errors
