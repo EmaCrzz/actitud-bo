@@ -90,7 +90,6 @@ export default function CustomerAssistance({ customer }: { customer: CustomerCom
         {fullMembership && (
           <Alert
             className='mt-3 items-center has-[>svg]:grid-cols-[calc(var(--spacing)*6)_1fr] has-[>svg]:gap-x-1 [&>svg]:size-6'
-            variant='info'
           >
             <AlertContainedIcon />
             <AlertTitle className='font-semibold tracking-[0.48px]'>
