@@ -30,6 +30,6 @@ export async function GET() {
       ts: new Date().toISOString(),
       latencyMs: Date.now() - startedAt,
     },
-    { status: ok ? 200 : 503 },
+    { status: ok ? 200 : 503 }
   )
 }

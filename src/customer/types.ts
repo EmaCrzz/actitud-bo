@@ -1,6 +1,7 @@
 import { MembershipTypes } from '@/membership/consts'
 import { MembershipData } from '@/membership/types'
 import type { DatabaseSuccess, DatabaseError } from '@/types/database-errors'
+import type { ApplicableDiscount, CustomerGroupWithCount } from '@/group/types'
 
 export interface Customer {
   id: string
@@ -34,6 +35,12 @@ export interface CustomerComplete extends Customer {
   // Forma de pago del último pago registrado (viene de membership_payments,
   // no de customer_membership). Null si el cliente nunca registró un pago (ej. VIP).
   last_payment_method: string | null
+  // Grupos activos a los que pertenece, con conteo de integrantes activos.
+  // Vacío si no pertenece a ningún grupo.
+  groups: CustomerGroupWithCount[]
+  // Descuento sugerido para la próxima renovación si la regla aplica.
+  // Null si no hay regla aplicable (cliente sin grupo, o grupo con < 2 miembros).
+  applicable_discount: ApplicableDiscount | null
 }
 
 // Tipos específicos para el formulario de cliente

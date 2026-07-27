@@ -6,6 +6,9 @@
   --accent: oklch(0.37 0.04 355.12);
   --accent-foreground: oklch(0.205 0 0);
   --muted: #272325;
+  --destructive: #e82531;
+  --destructive-foreground: #ffffff;
+  --color-feedback-info: #2196f3;
 }
 
 @theme inline {
@@ -55,6 +58,8 @@
   --color-accent: var(--accent);
   --color-muted: var(--muted);
   --color-card: var(--muted);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
 
   --color-ring: var(--ring);
   --color-border: var(--border);

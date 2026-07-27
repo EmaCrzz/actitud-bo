@@ -4,6 +4,10 @@ export interface MembershipPayment {
   customer_id: string
   membership_type: string
   amount: number
+  gross_amount: number
+  discount_amount: number
+  discount_rule_id: string | null
+  discount_note: string | null
   payment_date: string
   payment_method: string
   notes?: string

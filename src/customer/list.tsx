@@ -55,10 +55,10 @@ export default function ListCustomers({ initialCustomers }: Props) {
 
   return (
     <>
-      <div className='bg-background sticky top-0 z-10 pb-1 pt-2 sm:pt-6'>
+      <div className='bg-background sticky top-0 z-10 pt-1'>
         <Input
           autoComplete={'off'}
-          className='py-2 pl-0 mb-0'
+          className={'py-0 pl-0 mb-0'}
           componentLeft={<SearchIcon className='size-6 text-primary200' />}
           componentRight={
             inputValue && (
@@ -75,7 +75,6 @@ export default function ListCustomers({ initialCustomers }: Props) {
           }
           placeholder={t('customer.searchPlaceholder')}
           value={inputValue}
-          variant={'line'}
           onChange={(e) => setInputValue(e.target.value)}
         />
       </div>

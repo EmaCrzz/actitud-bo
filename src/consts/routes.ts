@@ -5,6 +5,11 @@ export const ASSISTANCES = '/assistances' as const
 export const CUSTOMER = '/customer' as const
 export const CUSTOMER_EDIT = '/customer/edit' as const
 export const CUSTOMER_NEW = '/customer/new' as const
+export const CUSTOMER_GROUPS = '/customer/groups' as const
+export const CUSTOMER_GROUPS_NEW = '/customer/groups/new' as const
+export const CUSTOMER_TAB_INDIVIDUALS = 'individuals' as const
+export const CUSTOMER_TAB_GROUPS = 'groups' as const
+export const CUSTOMER_LIST_GROUPS = `${CUSTOMER}?tab=${CUSTOMER_TAB_GROUPS}` as const
 export const EXPENSES = '/expenses' as const
 export const EXPENSES_NEW = '/expenses/new' as const
 export const EXPENSES_EDIT = '/expenses/edit' as const
