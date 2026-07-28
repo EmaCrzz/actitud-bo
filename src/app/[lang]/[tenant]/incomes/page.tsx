@@ -33,12 +33,6 @@ const MONTH_NAME_KEYS: TranslationKey[] = [
   'months.december',
 ]
 
-function previousMonth(year: number, month: number): { year: number; month: number } {
-  if (month === 1) return { year: year - 1, month: 12 }
-
-  return { year, month: month - 1 }
-}
-
 export default function IncomesPage() {
   const { t } = useTranslations()
   const { year, month, isCurrentMonth, currentMonthFormatted, goToPreviousMonth, goToNextMonth } =
@@ -46,8 +40,8 @@ export default function IncomesPage() {
   const { data, isLoading, error } = useIncomesSummary(currentMonthFormatted)
 
   const monthLabel = t(MONTH_NAME_KEYS[month - 1])
-  const prev = previousMonth(year, month)
-  const previousMonthLabel = t(MONTH_NAME_KEYS[prev.month - 1])
+  const previousMonthNumber = month === 1 ? 12 : month - 1
+  const previousMonthLabel = t(MONTH_NAME_KEYS[previousMonthNumber - 1])
 
   return (
     <>
