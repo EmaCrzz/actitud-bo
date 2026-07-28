@@ -5,6 +5,9 @@ import type {
   CreateMembershipPaymentData,
   UpdateMembershipPaymentData,
   AccountingFilters,
+  GetIncomesSummaryResponse,
+  GetPendingCustomersResponse,
+  GetPaymentsByTypeResponse,
 } from '@/accounting/types'
 
 const API_BASE = '/api/accounting'
@@ -106,6 +109,77 @@ export const deleteMembershipPayment = async (
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to delete membership payment',
+    }
+  }
+}
+
+// Incomes dashboard bundled summary
+export const getIncomesSummary = async (
+  month?: string
+): Promise<GetIncomesSummaryResponse> => {
+  try {
+    const params = new URLSearchParams()
+
+    if (month) params.append('month', month)
+
+    const url = `${API_BASE}/incomes-summary${params.toString() ? `?${params.toString()}` : ''}`
+    const response = await fetch(url)
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    return await response.json()
+  } catch (error) {
+    return {
+      data: null,
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch incomes summary',
+    }
+  }
+}
+
+// Incomes drill-down: pendientes del mes
+export const getIncomesPending = async (
+  month: string
+): Promise<GetPendingCustomersResponse> => {
+  try {
+    const params = new URLSearchParams({ month })
+    const response = await fetch(`${API_BASE}/incomes-pending?${params.toString()}`)
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    return await response.json()
+  } catch (error) {
+    return {
+      data: null,
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch pending customers',
+    }
+  }
+}
+
+// Incomes drill-down: pagos por tipo del mes, agrupados por cliente
+export const getIncomesByType = async (
+  month: string,
+  type: string
+): Promise<GetPaymentsByTypeResponse> => {
+  try {
+    const params = new URLSearchParams({ month, type })
+    const response = await fetch(`${API_BASE}/incomes-by-type?${params.toString()}`)
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    return await response.json()
+  } catch (error) {
+    return {
+      data: null,
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch payments by type',
     }
   }
 }
