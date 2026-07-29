@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getMonthRangeFromKey } from '@/lib/timezone'
+import { getMonthRangeFromKey, parseAppTzDateString } from '@/lib/timezone'
 import type {
   MembershipPayment,
   Expense,
@@ -10,6 +10,18 @@ import type {
   MonthlyStats,
   AccountingFilters,
 } from '@/accounting/types'
+
+// Canonicaliza `expense_date` a midnight AR. El form envía la fecha del
+// datepicker como string "YYYY-MM-DD"; sin canonicalización Postgres la
+// interpreta como midnight UTC (= día anterior 21hs AR) y el gasto queda
+// asignado al mes calendario AR anterior al esperado. Ver ADR
+// `20260709153000_representacion-canonica-de-fechas-ar.md` (sec. Reincidencia).
+function withCanonicalExpenseDate<T extends { expense_date?: string }>(input: T): T {
+  if (!input.expense_date) return input
+  const datePart = input.expense_date.slice(0, 10)
+
+  return { ...input, expense_date: parseAppTzDateString(datePart).toISOString() }
+}
 
 // Membership Payments
 export const getMembershipPayments = async (
@@ -174,7 +186,12 @@ export const createExpense = async (expenseData: CreateExpenseData): Promise<Exp
 
   await requireAdmin()
 
-  const { data, error } = await supabase.from('expenses').insert([expenseData]).select('*').single()
+  const canonicalized = withCanonicalExpenseDate(expenseData)
+  const { data, error } = await supabase
+    .from('expenses')
+    .insert([canonicalized])
+    .select('*')
+    .single()
 
   if (error) {
     throw new Error(error.message)
@@ -191,7 +208,7 @@ export const updateExpense = async (expenseData: UpdateExpenseData): Promise<Exp
 
   await requireAdmin()
 
-  const { id, ...updateData } = expenseData
+  const { id, ...updateData } = withCanonicalExpenseDate(expenseData)
 
   const { data, error } = await supabase
     .from('expenses')
