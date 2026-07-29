@@ -256,6 +256,7 @@
       "title": "Tipos de Membresía",
       "5_days": "Membresía: 5 días",
       "3_days": "Membresía: 3 días",
+      "2_days": "Membresía: 2 días",
       "daily": "Pase diario",
       "vip": "VIP",
       "twoLines": {
@@ -265,6 +266,10 @@
         },
         "3_days": {
           "line1": "3",
+          "line2": "Días por semana"
+        },
+        "2_days": {
+          "line1": "2",
           "line2": "Días por semana"
         },
         "daily": {

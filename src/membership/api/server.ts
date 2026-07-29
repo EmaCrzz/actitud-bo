@@ -190,6 +190,7 @@ export async function getMembershipStats(year?: number, month?: number) {
   const colorMap: Record<string, string> = {
     MEMBERSHIP_TYPE_5_DAYS: '500',
     MEMBERSHIP_TYPE_3_DAYS: '700',
+    MEMBERSHIP_TYPE_2_DAYS: '800',
     MEMBERSHIP_TYPE_DAILY: '300',
     MEMBERSHIP_TYPE_VIP: '900',
     PENDING_PAYMENT: '200',

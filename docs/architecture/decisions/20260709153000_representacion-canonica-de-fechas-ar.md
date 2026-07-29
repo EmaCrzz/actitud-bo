@@ -51,6 +51,36 @@ No se identifican implicaciones de seguridad de esta implementación.
 - El primer bug (falsa "membresía vencida") se manifestaba en horario diurno AR; el segundo (ingreso invisible) se manifestaba todo el día; el bug del home post-21hs se manifestaba solo por la noche. **Tres síntomas distintos en tres momentos distintos, un solo root cause.** Vale la pena hacer el fix canónico en vez de parchar por síntoma.
 - El bug de contabilidad venía por dos caminos independientes: (1) el filtro AR que arreglamos con canonicalización de expiration_date, y (2) el RPC del multi-step que jamás insertaba en `membership_payments`. Solo se detectó el segundo camino cuando el usuario testeó y no encontró el registro esperado. **Lección: tests manuales E2E son irremplazables** — el diagnóstico "en papel" solo cubría el primer camino.
 
+## Reincidencia 2026-07-29
+
+A menos de tres semanas de este ADR, el mismo tipo de bug volvió por un call site no cubierto: la renovación de membresía enviaba los strings del datepicker (`start_date`, `end_date`) directo al RPC `upsert_customer_membership_with_payment` como `p_start_date`/`p_end_date`. Sin canonicalización previa, Postgres los interpreta como midnight UTC y los pagos quedaban con `payment_date = 00:00 UTC` = `21:00 AR del día anterior`. El dashboard de ingresos (que filtra por rango del mes en zona AR) los ubicaba en el mes calendario anterior al esperado.
+
+**Alcance descubierto**: **91 pagos** en la DB de development entre 2026-06-04 y 2026-07-29 tenían `payment_date::time = '00:00:00 UTC'`. Cada uno estaba contando en el mes calendario AR anterior al esperado. El síntoma disparador fue que 2 pagos hechos con el nuevo tipo `MEMBERSHIP_TYPE_2_DAYS` no aparecían en el dashboard de julio a pesar de haberse cargado con fecha "1 de julio".
+
+**Fix aplicado**:
+
+- Nuevo helper local `isoDateToAppTzTimestamp` en [src/customer/api/client.ts](../../../src/customer/api/client.ts) que canonicaliza los strings del datepicker antes de enviarlos al RPC. Aplicado en las 3 llamadas del archivo que pasaban `startDate`/`endDate` a `upsert_customer_with_membership` y `upsert_customer_membership_with_payment`.
+- Migración [supabase/migrations/20260729144614_realign_membership_payments_to_ar_midnight.sql](../../../supabase/migrations/20260729144614_realign_membership_payments_to_ar_midnight.sql) con `UPDATE ... SET payment_date = payment_date + interval '3 hours'` filtrando por `(payment_date AT TIME ZONE 'UTC')::time = '00:00:00'`. Realinea los 91 pagos históricos a su día calendario correcto.
+
+**Aprendizaje sistémico**:
+
+- El ADR original arregló los call sites conocidos pero **no estableció una regla de proyecto** que impidiera a nuevos call sites re-introducir el bug. Los helpers existen pero su uso queda dependiendo de la memoria del dev.
+- El bug es silencioso — no rompe funcionalidad, solo desplaza timestamps 3 horas — así que puede vivir en producción por meses sin detección visible. Los operadores no "ven" el timestamp, solo ven el número final en el dashboard.
+- La disciplina "usar helpers AR" no puede depender del recuerdo individual. **Debe estar documentada como regla de proyecto en `CLAUDE.md`** y auditable con query. Este PR agrega la sección "Fechas y timezone" a `CLAUDE.md`.
+
+**Ampliación de call sites bajo la regla**:
+
+Además de los ya migrados en 2026-07-09, todo lo que envíe fechas a supabase debe ser AR-canonical. Fuentes actuales conocidas:
+
+- Datepicker del form de membresía → `src/customer/api/client.ts` (fixed en este PR).
+- Datepicker del form de expenses → `src/expenses/components/form.tsx` (auditar: ¿usa helper?).
+- Cualquier `.gte`/`.lte` sobre columnas timestamptz en el frontend (dashboards, listados) → usar `getMonthRangeInAppTz` / `getTodayRangeInAppTz` en vez de `new Date().toISOString()`.
+
+**Pendiente (fuera de scope)**:
+
+- Auditar `src/expenses/components/form.tsx` para confirmar que los expenses no tienen el mismo bug de datepicker → RPC.
+- Considerar branded type `AppTzTimestamp` para forzar canonicalización en compile-time (requiere tipar los RPCs, hoy `any`). Ticket aparte.
+
 ## Plan
 
 Ver `/Users/emanuelvillanueva/.claude/plans/glowing-bouncing-bee.md` (plan de la sesión).

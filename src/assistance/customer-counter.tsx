@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils'
 import {
+  MEMBERSHIP_TYPE_2_DAYS,
   MEMBERSHIP_TYPE_3_DAYS,
   MEMBERSHIP_TYPE_5_DAYS,
   MEMBERSHIP_TYPE_DAILY,
@@ -28,6 +29,7 @@ export default function CustomerCounter({
     [MEMBERSHIP_TYPE_VIP]: 5,
     [MEMBERSHIP_TYPE_5_DAYS]: 5,
     [MEMBERSHIP_TYPE_3_DAYS]: 3,
+    [MEMBERSHIP_TYPE_2_DAYS]: 2,
     [MEMBERSHIP_TYPE_DAILY]: 1,
   }
   const items = membershipItems[membershipType]
