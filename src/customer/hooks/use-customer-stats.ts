@@ -97,9 +97,10 @@ export function usePendingCustomers() {
 
 // Hook para invalidar el caché después de una mutación de membresía.
 // Una mutación de membresía (crear cliente + pago, renovar, cambiar tipo)
-// impacta dos familias de queries: la lista de activos/pendientes
-// (customer-stats) y los totales de ingresos del mes (monthly-stats en
-// /stats/accounting).
+// impacta varias familias de queries: la lista de activos/pendientes
+// (customer-stats), los totales de ingresos del mes (monthly-stats en
+// /stats/accounting), y el dashboard de ingresos /incomes con sus
+// drill-downs (incomes-summary, incomes-pending, incomes-by-type).
 export function useInvalidateStatsAfterMembership() {
   const queryClient = useQueryClient()
 
@@ -110,6 +111,9 @@ export function useInvalidateStatsAfterMembership() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CUSTOMER_STATS_KEY })
       queryClient.invalidateQueries({ queryKey: ['monthly-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['incomes-summary'] })
+      queryClient.invalidateQueries({ queryKey: ['incomes-pending'] })
+      queryClient.invalidateQueries({ queryKey: ['incomes-by-type'] })
     },
   })
 }
