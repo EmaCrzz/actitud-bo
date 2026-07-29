@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getMonthRangeFromKey } from '@/lib/timezone'
 import type {
   MembershipPayment,
   Expense,
@@ -32,10 +33,9 @@ export const getMembershipPayments = async (
     .order('payment_date', { ascending: false })
 
   if (filters?.month) {
-    const startDate = `${filters.month}-01`
-    const endDate = `${filters.month}-31`
+    const { start, end } = getMonthRangeFromKey(filters.month)
 
-    query = query.gte('payment_date', startDate).lte('payment_date', endDate)
+    query = query.gte('payment_date', start.toISOString()).lt('payment_date', end.toISOString())
   }
 
   if (filters?.customer_id) {
@@ -139,10 +139,9 @@ export const getExpenses = async (filters?: AccountingFilters): Promise<Expense[
   let query = supabase.from('expenses').select('*').order('expense_date', { ascending: false })
 
   if (filters?.month) {
-    const startDate = `${filters.month}-01`
-    const endDate = `${filters.month}-31`
+    const { start, end } = getMonthRangeFromKey(filters.month)
 
-    query = query.gte('expense_date', startDate).lte('expense_date', endDate)
+    query = query.gte('expense_date', start.toISOString()).lt('expense_date', end.toISOString())
   }
 
   if (filters?.category) {
@@ -234,70 +233,40 @@ export const getMonthlyStats = async (month: string): Promise<MonthlyStats[]> =>
 
   await requireAdmin()
 
-  // Filter by specific month (format: YYYY-MM)
-  const startDate = `${month}-01`
-  const endDate = `${month}-31`
+  // Rango [start, end) del mes en AR — mismo criterio que /incomes para que
+  // ambos totales coincidan.
+  const { start, end } = getMonthRangeFromKey(month)
+  const startIso = start.toISOString()
+  const endIso = end.toISOString()
 
   // Ejecutar ambas consultas en paralelo para evitar waterfalls
   const [{ data: payments }, { data: expenses }] = await Promise.all([
     supabase
       .from('membership_payments')
       .select('amount, payment_date')
-      .gte('payment_date', startDate)
-      .lte('payment_date', endDate),
+      .gte('payment_date', startIso)
+      .lt('payment_date', endIso),
     supabase
       .from('expenses')
       .select('amount, expense_date')
-      .gte('expense_date', startDate)
-      .lte('expense_date', endDate),
+      .gte('expense_date', startIso)
+      .lt('expense_date', endIso),
   ])
 
-  // Group by month
-  const monthlyData: Record<string, MonthlyStats> = {}
+  // Consultamos un solo mes: agregamos todo bajo `month` (la key AR)
+  // en vez de derivar la key del ISO UTC de cada fila, que puede caer
+  // en el mes siguiente para pagos hechos después de las 21:00 AR.
+  const total_income = (payments ?? []).reduce((sum, p) => sum + (p.amount ?? 0), 0)
+  const total_expenses = (expenses ?? []).reduce((sum, e) => sum + (e.amount ?? 0), 0)
 
-  // Process payments
-  payments?.forEach((payment) => {
-    const monthKey = payment.payment_date.substring(0, 7) // YYYY-MM
-
-    if (!monthlyData[monthKey]) {
-      monthlyData[monthKey] = {
-        month: monthKey,
-        total_income: 0,
-        total_expenses: 0,
-        net_result: 0,
-        payments_count: 0,
-        expenses_count: 0,
-      }
-    }
-    monthlyData[monthKey].total_income += payment.amount
-    monthlyData[monthKey].payments_count += 1
-  })
-
-  // Process expenses
-  expenses?.forEach((expense) => {
-    const monthKey = expense.expense_date.substring(0, 7) // YYYY-MM
-
-    if (!monthlyData[monthKey]) {
-      monthlyData[monthKey] = {
-        month: monthKey,
-        total_income: 0,
-        total_expenses: 0,
-        net_result: 0,
-        payments_count: 0,
-        expenses_count: 0,
-      }
-    }
-    monthlyData[monthKey].total_expenses += expense.amount
-    monthlyData[monthKey].expenses_count += 1
-  })
-
-  // Calculate net results and sort
-  const result = Object.values(monthlyData)
-    .map((stats) => ({
-      ...stats,
-      net_result: stats.total_income - stats.total_expenses,
-    }))
-    .sort((a, b) => b.month.localeCompare(a.month))
-
-  return result
+  return [
+    {
+      month,
+      total_income,
+      total_expenses,
+      net_result: total_income - total_expenses,
+      payments_count: payments?.length ?? 0,
+      expenses_count: expenses?.length ?? 0,
+    },
+  ]
 }

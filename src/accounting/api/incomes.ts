@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/auth/api/server'
 import {
   getAppTzDateParts,
+  getMonthRangeFromKey,
   parseAppTzDateString,
   utcInstantAtAppTzWallClock,
 } from '@/lib/timezone'
@@ -25,15 +26,6 @@ import type {
 // Membresías excluidas del ciclo de cobro mensual: VIP no cobra periódicamente,
 // DAILY es un pase de un día que no genera deuda al no renovar.
 const CYCLE_EXCLUDED_MEMBERSHIP_TYPES = [MEMBERSHIP_TYPE_VIP, MEMBERSHIP_TYPE_DAILY]
-
-// Convierte "YYYY-MM" al rango [start, end) del mes en AR.
-function getMonthRangeFromKey(monthKey: string): { start: Date; end: Date } {
-  const [year, month] = monthKey.split('-').map(Number)
-  const start = utcInstantAtAppTzWallClock(year, month, 1, 0, 0, 0)
-  const end = utcInstantAtAppTzWallClock(year, month + 1, 1, 0, 0, 0)
-
-  return { start, end }
-}
 
 // Devuelve el "YYYY-MM" del mes anterior a `monthKey`.
 function getPreviousMonthKey(monthKey: string): string {
