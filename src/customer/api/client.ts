@@ -6,6 +6,19 @@ import { DatabaseResult } from '@/types/database-errors'
 import { basicCustomerValidation, basicMembershipValidation, mapCustomerRow } from '../utils'
 import { withRateLimit } from '@/lib/rate-limit'
 import { parseCurrency } from '@/lib/format-currency'
+import { parseAppTzDateString } from '@/lib/timezone'
+
+// Convierte la fecha del datepicker ("YYYY-MM-DD" o ISO con "T") al ISO
+// timestamp que representa medianoche en la zona del negocio (Argentina).
+// Sin esta canonicalización, Postgres interpreta el string como midnight UTC
+// y el pago queda registrado como "día anterior 21hs AR" — el mes contable
+// del pago se desalinea (bug histórico: 91 pagos afectados en 2 meses).
+function isoDateToAppTzTimestamp(input: string | null | undefined): string | null {
+  if (!input) return null
+  const datePart = input.slice(0, 10)
+
+  return parseAppTzDateString(datePart).toISOString()
+}
 
 // Función interna de búsqueda sin rate limiting
 async function _searchCustomer(query?: string) {
@@ -217,6 +230,8 @@ async function _upsertCustomer({
   const firstAssistance = formDataMembership.get('first_assistance') as 'on' | null
   const startDate = formDataMembership.get('start_date') as string
   const endDate = formDataMembership.get('end_date') as string
+  const startDateArTz = isoDateToAppTzTimestamp(startDate)
+  const endDateArTz = isoDateToAppTzTimestamp(endDate)
   const payment = formDataMembership.get('payment') as 'on' | null
   const paymentType = formDataMembership.get('payment_type') as string
   const membershipAmount = formDataMembership.get('membership_amount') as string
@@ -236,8 +251,8 @@ async function _upsertCustomer({
     p_phone: phone || null,
     p_email: email || null,
     p_membership_type: membershipType,
-    p_last_payment_date: startDate || null,
-    p_expiration_date: endDate || null,
+    p_last_payment_date: startDateArTz,
+    p_expiration_date: endDateArTz,
   })
 
   if (error) {
@@ -270,8 +285,8 @@ async function _upsertCustomer({
       {
         p_customer_id: newCustomerId,
         p_membership_type: membershipType,
-        p_start_date: isPaid ? startDate : null,
-        p_end_date: isPaid ? endDate : null,
+        p_start_date: isPaid ? startDateArTz : null,
+        p_end_date: isPaid ? endDateArTz : null,
         p_is_paid: isPaid,
         p_payment_type: paymentType || null,
         p_amount: amount,
@@ -334,6 +349,8 @@ export async function upsertCustomerMembership({
   const supabase = createClient()
   const startDate = formData.get('start_date') as string
   const endDate = formData.get('end_date') as string
+  const startDateArTz = isoDateToAppTzTimestamp(startDate)
+  const endDateArTz = isoDateToAppTzTimestamp(endDate)
   const membershipType = formData.get('membership_type') as string
   const payment = formData.get('payment') as 'on' | null
   const paymentType = formData.get('payment_type') as string
@@ -359,8 +376,8 @@ export async function upsertCustomerMembership({
   const { data, error } = await supabase.rpc('upsert_customer_membership_with_payment', {
     p_customer_id: customerId,
     p_membership_type: membershipType,
-    p_start_date: isPaid ? startDate : null,
-    p_end_date: isPaid ? endDate : null,
+    p_start_date: isPaid ? startDateArTz : null,
+    p_end_date: isPaid ? endDateArTz : null,
     p_is_paid: isPaid,
     p_payment_type: paymentType || null,
     p_amount: netAmount,
