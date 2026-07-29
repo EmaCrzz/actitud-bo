@@ -40,6 +40,25 @@ Aplica a cualquier request en este repo, con Claude o cualquier otro agente. Ada
     - Nunca usar `--force` ni `--force-with-lease` sin pedido explícito.
     - Siempre crear commits nuevos en vez de amendar los existentes.
 
+## Reglas críticas del proyecto
+
+### Fechas y timezone (obligatorio)
+
+El negocio opera en Argentina (`America/Argentina/Buenos_Aires`, UTC-3). El servidor Vercel corre en UTC. **Toda fecha que se envíe a un RPC o se guarde en la DB debe pasar por un helper AR-aware antes.** Nunca pasar strings crudos del datepicker (`"YYYY-MM-DD"`) directamente a supabase-js — Postgres los interpreta como midnight UTC y quedan 3 horas antes del intent, desalineando el mes contable.
+
+Helpers en [src/lib/timezone.ts](src/lib/timezone.ts):
+
+- **String del datepicker** (`"YYYY-MM-DD"`) → `parseAppTzDateString(iso).toISOString()` antes de enviar al RPC.
+- **"Hoy" como ISO date** → `getTodayIsoDateInAppTz()` (nunca `new Date().toISOString().slice(0, 10)`).
+- **Rango del mes actual** → `getMonthRangeInAppTz()`.
+- **Rango del día actual** → `getTodayRangeInAppTz()`.
+- **Comparar si venció** → `isExpiredInAppTz(date)`.
+- **Días entre hoy y una fecha** → `daysUntilInAppTz(date)`.
+
+Antes de aceptar cualquier PR que toque pagos, membresías, expenses, asistencias o dashboards con filtros temporales: **auditar que las fechas están canonicalizadas**. El bug es silencioso — no rompe funcionalidad, solo desplaza timestamps 3 horas — así que puede vivir en producción por meses sin detección visible.
+
+Contexto histórico: ADR [20260709153000_representacion-canonica-de-fechas-ar.md](docs/architecture/decisions/20260709153000_representacion-canonica-de-fechas-ar.md) y su sección "Reincidencia 2026-07-29" (91 pagos históricos desalineados por no aplicar esta regla en un call site nuevo).
+
 ## Common Development Commands
 
 ### Development
