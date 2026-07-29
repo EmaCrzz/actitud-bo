@@ -1,11 +1,10 @@
 import ArrowLeftIcon from '@/components/icons/arrow-left'
-import PlusRoundedIcon from '@/components/icons/plus-rounded'
 
 import FooterNavigation from '@/components/nav'
 import { Button } from '@/components/ui/button'
-import { CUSTOMER_NEW, HOME } from '@/consts/routes'
+import { HOME } from '@/consts/routes'
 import { searchAllCustomers } from '@/customer/api/server'
-import ListCustomers from '@/customer/list'
+import ListWithTabs from '@/customer/list-with-tabs'
 import Link from 'next/link'
 import api from '@/lib/i18n/api'
 import { type Language } from '@/lib/i18n/types'
@@ -33,13 +32,7 @@ export default async function CustomerListPage({
         </div>
       </header>
       <section className='max-w-3xl mx-auto w-full px-4 overflow-auto pb-4'>
-        <Button className='h-14 px-1!' variant={'link'}>
-          <Link className='flex justify-start gap-x-3 items-center' href={CUSTOMER_NEW}>
-            <PlusRoundedIcon className='size-6' />
-            <span>{t('customer.addNew')}</span>
-          </Link>
-        </Button>
-        <ListCustomers initialCustomers={initialCustomers} />
+        <ListWithTabs initialCustomers={initialCustomers} />
       </section>
       <FooterNavigation />
     </>

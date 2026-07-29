@@ -16,6 +16,11 @@ export type DatabaseErrorCode =
   | 'ASSISTANCE_ALREADY_EXISTS'
   | 'MISSING_CUSTOMER_ID'
   | 'MISSING_MEMBERSHIP_TYPE'
+  | 'MISSING_GROUP_NAME'
+  | 'GROUP_MIN_MEMBERS'
+  | 'MEMBER_ALREADY_IN_GROUP'
+  | 'DISCOUNT_NOTE_REQUIRED'
+  | 'DISCOUNT_MATH_MISMATCH'
 
 export interface DatabaseError {
   success: false

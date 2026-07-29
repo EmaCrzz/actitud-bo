@@ -106,6 +106,16 @@ export function getMonthRangeInAppTz(now: Date = new Date()): { start: Date; end
   }
 }
 
+// Rango [start, end) del mes "YYYY-MM" expresado en UTC, con corte a las 00:00 de APP_TIMEZONE.
+export function getMonthRangeFromKey(monthKey: string): { start: Date; end: Date } {
+  const [year, month] = monthKey.split('-').map(Number)
+
+  return {
+    start: utcInstantAtAppTzWallClock(year, month, 1, 0, 0, 0),
+    end: utcInstantAtAppTzWallClock(year, month + 1, 1, 0, 0, 0),
+  }
+}
+
 // Rango [start, end) de la semana lunes→lunes que contiene al instante dado, en APP_TIMEZONE.
 export function getWeekRangeInAppTz(now: Date = new Date()): { start: Date; end: Date } {
   const { year, month, day } = getAppTzDateParts(now)

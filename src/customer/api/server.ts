@@ -8,6 +8,7 @@ import {
 import { createClient } from '@/lib/supabase/server'
 import { getWeekRange } from '@/lib/week'
 import { mapCustomerRow } from '@/customer/utils'
+import { getApplicableDiscountForCustomer, getGroupsByCustomer } from '@/group/api/server'
 
 interface SearchAllCustomersOptions {
   query?: string
@@ -44,12 +45,16 @@ export const searchCustomersById = async (id: string): Promise<CustomerComplete 
   const supabase = await createClient()
   const week = getWeekRange()
 
-  // Ejecutar las consultas en paralelo con Promise.all para evitar waterfalls
+  // Ejecutar las consultas en paralelo con Promise.all para evitar waterfalls.
+  // Grupos y descuento aplicable van acá también — precomputados por el server
+  // para que el form individual no tenga que re-consultar en cliente.
   const [
     { data: customer, error: customerError },
     { data: membership },
     { data: assistances },
     { data: lastPayment },
+    groups,
+    applicableDiscount,
   ] = await Promise.all([
     supabase.from('customers').select('*').eq('id', id).single(),
     supabase.from('customer_membership').select().eq('customer_id', id).single(),
@@ -69,6 +74,11 @@ export const searchCustomersById = async (id: string): Promise<CustomerComplete 
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle(),
+    getGroupsByCustomer(id),
+    // Nota: paso null como bruto → hoy la única regla es fixed y no lo necesita.
+    // Cuando se agregue una regla percent, hay que pasar el bruto del tipo
+    // actual (query extra a types_memberships).
+    getApplicableDiscountForCustomer(id, null),
   ])
 
   if (customerError || !customer) {
@@ -80,6 +90,8 @@ export const searchCustomersById = async (id: string): Promise<CustomerComplete 
     customer_membership: membership || null,
     assistance: assistances || [],
     last_payment_method: lastPayment?.payment_method ?? null,
+    groups,
+    applicable_discount: applicableDiscount,
   }
 }
 
