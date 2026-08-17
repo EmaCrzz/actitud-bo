@@ -17,7 +17,7 @@ export default function Header({ user, onOpenMobileNav }: HeaderProps) {
   const greetingName = user.name.split(' ')[0] || user.email
 
   return (
-    <header className='flex items-center gap-4 rounded-lg border px-2.5 py-1.5 lg:py-2.5 lg:px-5'>
+    <header className='flex items-center gap-4 rounded-xl border px-2.5 py-1.5 lg:py-2.5 lg:px-5'>
       {onOpenMobileNav && (
         <button
           aria-label='Abrir menú'
