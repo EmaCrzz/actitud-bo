@@ -1,19 +1,32 @@
-import { getCurrentUser } from '@/auth/api/server'
+import MetricCard from '@/components/v2/MetricCard'
 
-export default async function V2HomePage() {
-  const user = await getCurrentUser()
-
+export default function V2HomePage() {
   return (
-    <main className='mx-auto max-w-3xl w-full p-8 space-y-4'>
-      <h1 className='text-2xl font-semibold'>V2 Home — placeholder</h1>
-      <p className='text-sm text-muted-foreground'>
-        Estás autenticado como <span className='font-mono'>{user.email}</span> y tenés el flag{' '}
-        <code>v2_access</code> habilitado.
-      </p>
-      <p className='text-sm text-muted-foreground'>
-        Esta pantalla es un placeholder para verificar el gate de la Fase 0. La UI real se
-        implementa en fases siguientes del plan.
-      </p>
-    </main>
+    <div className='flex flex-col gap-6'>
+      {/* Dummy MetricCards para verificar el shell v2. Se conectan a data
+          real en Fase 2. */}
+      <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+        <MetricCard
+          subtitle='Sin asistencias registradas'
+          subtitleTone='muted'
+          title='Asistencias de hoy'
+          value='—'
+        />
+        <MetricCard
+          subtitle='10 clientes con membresía vencida'
+          subtitleTone='warning'
+          title='Clientes activos del mes'
+          value='89'
+        />
+      </div>
+
+      <div className='rounded-md border border-border bg-card p-6'>
+        <h2 className='text-lg font-semibold'>V2 shell — placeholder</h2>
+        <p className='mt-2 text-sm text-muted-foreground'>
+          Este placeholder valida el AppShell responsive (sidebar desktop / hamburger mobile).
+          Data real y componentes finales llegan en Fase 2.
+        </p>
+      </div>
+    </div>
   )
 }

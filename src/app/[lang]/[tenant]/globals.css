@@ -35,6 +35,19 @@
   --font-sans: var(--font-family-primary), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
 
+  --color-muted-foreground: var(--color-muted-foreground);
+
+  --color-sidebar: var(--color-sidebar);
+  --color-sidebar-foreground: var(--color-sidebar-foreground);
+  --color-sidebar-border: var(--color-sidebar-border);
+  --color-sidebar-primary: var(--color-sidebar-primary);
+  --color-sidebar-primary-foreground: var(--color-sidebar-primary-foreground);
+  --color-sidebar-accent: var(--color-sidebar-accent);
+  --color-sidebar-accent-foreground: var(--color-sidebar-accent-foreground);
+  --color-sidebar-ring: var(--color-sidebar-ring);
+
+  --color-feedback-warning: var(--color-feedback-warning);
+
   --color-input-placeholder: var(--color-input-placeholder);
   --color-input-border: var(--color-input-border);
   --color-input-background: var(--color-input-background);
@@ -87,6 +100,112 @@
   .font-primary {
     font-family: var(--font-sans);
   }
+}
+
+/* -----------------------------------------------------------------------------
+ * Scope v2 — tokens del rediseño (ver ADR 20260817114952)
+ * ---------------------------------------------------------------------------
+ * Activado por el wrapper del layout /v2/*. Sobreescribe las mismas CSS vars
+ * que el tema del tenant emite en :root, por eso los primitives shadcn ya
+ * instalados renderizan automáticamente con la paleta nueva sin cambios.
+ */
+[data-v2='true'] {
+  /* Base */
+  --color-background: #ffffff;
+  --color-text: #0a0a0a;
+
+  /* Primary — neutrals shadcn-default (Figma usa #171717 como accent oscuro) */
+  --color-primary-300: #d4d4d4;
+  --color-primary-400: #a3a3a3;
+  --color-primary-500: #171717;
+  --color-primary-600: #262626;
+  --color-primary-700: #404040;
+  --color-primary-800: #525252;
+  --color-primary-900: #737373;
+  --color-primary-contrast: #fafafa;
+
+  /* Secondary — neutrals suaves */
+  --color-secondary-300: #f5f5f5;
+  --color-secondary-400: #e5e5e5;
+  --color-secondary-500: #d4d4d4;
+  --color-secondary-600: #a3a3a3;
+  --color-secondary-700: #737373;
+  --color-secondary-800: #525252;
+  --color-secondary-900: #404040;
+  --color-secondary-contrast: #171717;
+
+  /* Feedback */
+  --color-feedback-success: #218358; /* green/11 Figma */
+  --color-feedback-warning: #9e6c00; /* yellow/11 Figma */
+  --color-feedback-error: #dc2626;
+  --color-feedback-info: #2563eb;
+
+  /* Input */
+  --color-input-background: #ffffff;
+  --color-input-border: #e5e5e5;
+  --color-input-text: #0a0a0a;
+  --color-input-placeholder: #737373;
+  --color-input-label: #0a0a0a;
+  --color-input-hover-border: #a3a3a3;
+  --color-input-hover-background: #fafafa;
+
+  /* Popover */
+  --color-popover-background: #ffffff;
+  --color-popover-text: #0a0a0a;
+  --color-popover-border: #e5e5e5;
+
+  /* Toast */
+  --color-toast-background: #ffffff;
+  --color-toast-text: #0a0a0a;
+  --color-toast-border: #e5e5e5;
+
+  /* Sidebar — matches bg-background (misma superficie blanca que el main) */
+  --color-sidebar: #ffffff;
+  --color-sidebar-foreground: #0a0a0a;
+  --color-sidebar-border: #e5e5e5;
+  --color-sidebar-primary: #171717;
+  --color-sidebar-primary-foreground: #fafafa;
+  --color-sidebar-accent: #737373; /* gris medio del Figma — active + hover del menu */
+  --color-sidebar-accent-foreground: #fafafa;
+  --color-sidebar-ring: #b1b1b1;
+
+  /* Muted (foreground faltaba globalmente) */
+  --color-muted-foreground: #737373;
+
+  /* Overrides de vars sin --color prefix */
+  --muted: #f5f5f5;
+  --border: #e5e5e5;
+  --ring: #737373;
+  --radius: 0.5rem; /* Figma radius-md */
+  --accent: #f5f5f5;
+  --accent-foreground: #171717;
+  --destructive: #dc2626;
+  --destructive-foreground: #fafafa;
+
+  /* Fonts */
+  --font-family-primary: var(--font-nunito-sans);
+  --font-family-headline: var(--font-nunito-sans);
+
+  /* Background base + padding externo (viewport → sidebar/main) según Figma:
+   * < lg (1024px): 16px vertical, 24px horizontal
+   * ≥ lg:          32px vertical, 48px horizontal
+   */
+  background: var(--color-background);
+  color: var(--color-text);
+  padding: 1rem 1.5rem; /* 16px 24px */
+}
+
+@media (min-width: 1024px) {
+  [data-v2='true'] {
+    padding: 2rem 3rem; /* 32px 48px */
+  }
+}
+
+/* v2 tiene su propio badge de ambiente en el sidebar. El pt-7 que el root
+ * layout aplica para reservar espacio al EnvBanner deja un gap arriba, así
+ * que lo neutralizamos cuando el árbol contiene el wrapper v2. */
+body:has([data-v2='true']) {
+  padding-top: 0 !important;
 }
 
 /* Estilos personalizados para el scrollbar */
