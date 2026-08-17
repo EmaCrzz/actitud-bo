@@ -1,6 +1,14 @@
 import type { NextFont } from 'next/dist/compiled/@next/font'
 
-import { Noto_Sans, Montserrat, Inter, Playfair_Display, Poppins } from 'next/font/google'
+import {
+  Noto_Sans,
+  Montserrat,
+  Inter,
+  Playfair_Display,
+  Poppins,
+  Nunito_Sans,
+  Geist_Mono,
+} from 'next/font/google'
 import { TENANTS, TenantsType } from '@/lib/tenants'
 import localFont from 'next/font/local'
 
@@ -73,6 +81,23 @@ const playfairDisplay = Playfair_Display({
   weight: ['400', '500', '700'],
   variable: '--font-playfair-display',
 })
+
+// Fonts globales v2 (fuera del fontMap por tenant). Se cargan siempre pero solo
+// se aplican bajo el scope [data-v2='true'] (ver globals.css). Cuando armemos
+// los temas v2 de Core/Wellrise se puede refactorizar a fontMap-per-tenant.
+const nunitoSans = Nunito_Sans({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-nunito-sans',
+})
+
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-geist-mono',
+})
+
+export const v2FontVariables = `${nunitoSans.variable} ${geistMono.variable}`
 
 // System font fallback
 export const systemFont: FontWithVariable = {

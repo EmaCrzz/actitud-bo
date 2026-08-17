@@ -1,3 +1,6 @@
+'use client'
+
+import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
 // Vercel inyecta NEXT_PUBLIC_VERCEL_ENV automáticamente en build time.
@@ -6,9 +9,14 @@ import { cn } from '@/lib/utils'
 // - undefined     → npm run dev local
 // Solo suprimimos el banner cuando el build es de production.
 export default function EnvBanner() {
+  const pathname = usePathname()
   const env = process.env.NEXT_PUBLIC_VERCEL_ENV
 
   if (env === 'production') return null
+
+  // v2 tiene su propio indicador de ambiente en el sidebar (badge junto al brand).
+  // Ocultamos el banner global para no duplicar y no descolocar el AppShell.
+  if (pathname?.includes('/v2/') || pathname?.endsWith('/v2')) return null
 
   // fixed para no consumir una row del grid del <body> y así no descolocar
   // los loaders / páginas que dependen de h-dvh. El layout compensa con
