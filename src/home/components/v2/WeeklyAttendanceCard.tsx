@@ -1,5 +1,4 @@
 import { ChevronDown } from 'lucide-react'
-import { Card } from '@/components/ui/card'
 import api from '@/lib/i18n/api'
 import type { Language } from '@/lib/i18n/types'
 import type { TenantsType } from '@/lib/tenants'
@@ -22,7 +21,7 @@ export default async function WeeklyAttendanceCard({
   const max = Math.max(...weekly.map((d) => d.count))
 
   return (
-    <Card className='gap-0 p-5 bg-white rounded-lg flex flex-col'>
+    <div className='gap-0 p-4 bg-white rounded-lg flex flex-col border'>
       <div className='flex items-center justify-between mb-4'>
         <span className='text-sm font-medium text-muted-foreground'>
           {t('v2.home.weeklyAttendance.title')}
@@ -30,7 +29,7 @@ export default async function WeeklyAttendanceCard({
         <ChevronDown aria-hidden='true' className='size-4 text-muted-foreground' />
       </div>
 
-      <ul className='flex flex-col gap-3'>
+      <ul className='flex flex-col gap-3 border rounded-xl p-4'>
         {weekly.map((day, i) => {
           const dayKey = DAY_KEYS[i]
           const label = t(`v2.home.weeklyAttendance.days.${dayKey}`)
@@ -53,6 +52,6 @@ export default async function WeeklyAttendanceCard({
           )
         })}
       </ul>
-    </Card>
+    </div>
   )
 }

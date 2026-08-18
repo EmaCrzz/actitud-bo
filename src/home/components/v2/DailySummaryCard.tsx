@@ -1,5 +1,4 @@
 import { AlignJustify, Hourglass } from 'lucide-react'
-import { Card } from '@/components/ui/card'
 import i18n from '@/lib/i18n/api'
 import type { Language } from '@/lib/i18n/types'
 import type { TenantsType } from '@/lib/tenants'
@@ -40,7 +39,7 @@ export default async function DailySummaryCard({ summary, lang, tenant }: DailyS
   const isEmpty = items.length === 0
 
   return (
-    <Card className='gap-0 p-5 bg-white rounded-lg flex flex-col'>
+    <div className='gap-0 p-4 bg-white rounded-lg flex flex-col border'>
       <div className='flex items-center justify-between mb-4'>
         <span className='text-sm font-medium text-muted-foreground'>
           {t('v2.home.dailySummary.title')}
@@ -62,15 +61,17 @@ export default async function DailySummaryCard({ summary, lang, tenant }: DailyS
           ))}
         </ul>
       )}
-    </Card>
+    </div>
   )
 }
 
 function EmptyState({ label }: { label: string }) {
   return (
-    <div className='flex flex-col items-center justify-center gap-3 flex-1 py-8 rounded-lg border border-dashed'>
-      <Hourglass aria-hidden='true' className='size-8 text-muted-foreground opacity-40' />
-      <p className='text-sm text-muted-foreground text-center max-w-[200px]'>{label}</p>
+    <div className='flex flex-col items-center justify-center gap-3 flex-1 py-8 rounded-lg border'>
+      <div className='flex align-middle p-3 rounded-xl bg-[#E5E5E5]'>
+        <Hourglass aria-hidden='true' className='size-8 text-muted-foreground opacity-40' />
+      </div>
+      <p className='text-sm text-muted-foreground text-center max-w-[250px]'>{label}</p>
     </div>
   )
 }
