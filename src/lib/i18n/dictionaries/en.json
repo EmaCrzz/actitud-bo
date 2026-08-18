@@ -598,5 +598,58 @@
     "summarySurcharge": "Late fee",
     "summaryDiscount": "Discount applied",
     "summaryTotal": "Total"
+  },
+  "v2": {
+    "roles": {
+      "admin": "Administrator",
+      "userFallback": "User"
+    },
+    "header": {
+      "greeting": "Hi, {name}!",
+      "todayIs": "Today is {date}",
+      "openMenu": "Open menu"
+    },
+    "sidebar": {
+      "brandName": "Actitud Gym",
+      "brandTagline": "Management system",
+      "menuTitle": "Menu",
+      "closeMenu": "Close menu",
+      "expandSidebar": "Expand sidebar",
+      "collapseSidebar": "Collapse sidebar",
+      "logout": "Log out",
+      "envTooltip": "Environment: {env}",
+      "envBadge": {
+        "dev": "DEV",
+        "preview": "PREVIEW"
+      },
+      "menu": {
+        "home": "Home",
+        "customers": "Customers",
+        "memberships": "Memberships",
+        "sales": "Sales",
+        "attendance": "Attendance",
+        "cashRegister": "Cash register",
+        "reports": "Reports",
+        "settings": "Settings",
+        "settingsSubmenu": {
+          "business": "Business",
+          "memberships": "Memberships",
+          "promotions": "Promotions",
+          "users": "Users"
+        }
+      }
+    },
+    "home": {
+      "placeholder": {
+        "title": "V2 shell — placeholder",
+        "description": "This placeholder validates the responsive AppShell (desktop sidebar / mobile hamburger). Real data and final components arrive in Phase 2."
+      },
+      "metrics": {
+        "todayAttendances": "Today's attendance",
+        "noAttendancesRegistered": "No attendance recorded",
+        "activeClientsMonth": "Active clients this month",
+        "expiredMembershipsCount": "{count} clients with expired membership"
+      }
+    }
   }
 }
