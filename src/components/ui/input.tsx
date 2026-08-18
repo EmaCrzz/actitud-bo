@@ -174,7 +174,7 @@ function Input({
 
   // Renderizar con wrapper para componentes laterales
   return (
-    <div>
+    <>
       <div
         className={cn(inputVariants({ variant }), 'items-center gap-2')}
         data-slot='input-wrapper'
@@ -186,7 +186,7 @@ function Input({
         {componentRight && <InputComponent position='right'>{componentRight}</InputComponent>}
       </div>
       {helperTextElement}
-    </div>
+    </>
   )
 }
 
