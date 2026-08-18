@@ -667,6 +667,24 @@
         "registerPayment": "Log payment",
         "toastComingSoon": "Coming soon",
         "toastComingSoonDescription": "This action ships in the next release."
+      },
+      "dailySummary": {
+        "title": "Daily summary",
+        "empty": "No activity recorded yet.",
+        "attendancesWithExpiredMembership": "Attendances with expired membership",
+        "paymentsRegistered": "Payment records",
+        "newCustomers": "New clients created",
+        "groupsCreated": "Groups created"
+      },
+      "weeklyAttendance": {
+        "title": "Weekly attendance",
+        "days": {
+          "mon": "Mon",
+          "tue": "Tue",
+          "wed": "Wed",
+          "thu": "Thu",
+          "fri": "Fri"
+        }
       }
     }
   }

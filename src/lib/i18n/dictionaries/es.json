@@ -666,6 +666,24 @@
         "registerPayment": "Registrar pago",
         "toastComingSoon": "Próximamente",
         "toastComingSoonDescription": "Esta acción llega en la próxima entrega."
+      },
+      "dailySummary": {
+        "title": "Resumen del día",
+        "empty": "Aún no hay actividad registrada por el momento.",
+        "attendancesWithExpiredMembership": "Asistencias con membresía vencida",
+        "paymentsRegistered": "Registros de pagos",
+        "newCustomers": "Clientes nuevos creados",
+        "groupsCreated": "Grupos creados"
+      },
+      "weeklyAttendance": {
+        "title": "Asistencia semanal",
+        "days": {
+          "mon": "Lun",
+          "tue": "Mar",
+          "wed": "Mié",
+          "thu": "Jue",
+          "fri": "Vie"
+        }
       }
     }
   }

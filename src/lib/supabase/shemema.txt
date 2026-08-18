@@ -8,6 +8,24 @@ CREATE TABLE public.assistance (
   CONSTRAINT assistance_pkey PRIMARY KEY (id),
   CONSTRAINT assistance_customer_id_fkey FOREIGN KEY (customer_id) REFERENCES public.customers(id)
 );
+CREATE TABLE public.customer_group_members (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  group_id uuid NOT NULL,
+  customer_id uuid NOT NULL,
+  joined_at timestamp with time zone NOT NULL DEFAULT now(),
+  left_at timestamp with time zone,
+  CONSTRAINT customer_group_members_pkey PRIMARY KEY (id),
+  CONSTRAINT customer_group_members_customer_id_fkey FOREIGN KEY (customer_id) REFERENCES public.customers(id),
+  CONSTRAINT customer_group_members_group_id_fkey FOREIGN KEY (group_id) REFERENCES public.customer_groups(id)
+);
+CREATE TABLE public.customer_groups (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  type character varying NOT NULL DEFAULT 'family'::character varying CHECK (type::text = 'family'::text),
+  name character varying NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT customer_groups_pkey PRIMARY KEY (id)
+);
 CREATE TABLE public.customer_membership (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   created_at timestamp with time zone NOT NULL DEFAULT now(),
@@ -15,7 +33,10 @@ CREATE TABLE public.customer_membership (
   membership_type character varying NOT NULL,
   last_payment_date timestamp with time zone,
   expiration_date timestamp with time zone,
+  renewal_date timestamp with time zone,
+  current_payment_id uuid,
   CONSTRAINT customer_membership_pkey PRIMARY KEY (id),
+  CONSTRAINT customer_membership_current_payment_id_fkey FOREIGN KEY (current_payment_id) REFERENCES public.membership_payments(id),
   CONSTRAINT customer_membership_customer_id_fkey FOREIGN KEY (customer_id) REFERENCES public.customers(id),
   CONSTRAINT customer_membership_membership_type_fkey FOREIGN KEY (membership_type) REFERENCES public.types_memberships(type)
 );
@@ -28,7 +49,47 @@ CREATE TABLE public.customers (
   phone character varying,
   email character varying,
   assistance_count integer DEFAULT 0,
+  full_name text DEFAULT TRIM(BOTH FROM (((COALESCE(first_name, ''::character varying))::text || ' '::text) || (COALESCE(last_name, ''::character varying))::text)),
   CONSTRAINT customers_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.discount_rules (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name character varying NOT NULL UNIQUE,
+  type character varying NOT NULL CHECK (type::text = ANY (ARRAY['fixed'::character varying::text, 'percent'::character varying::text])),
+  value real NOT NULL CHECK (value > 0::double precision),
+  applies_to character varying NOT NULL CHECK (applies_to::text = ANY (ARRAY['group_member'::character varying::text, 'manual'::character varying::text, 'promo'::character varying::text])),
+  active boolean NOT NULL DEFAULT true,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT discount_rules_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.expenses (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  description character varying NOT NULL,
+  amount real NOT NULL CHECK (amount > 0::double precision),
+  category character varying NOT NULL,
+  expense_date timestamp with time zone NOT NULL DEFAULT now(),
+  notes text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT expenses_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.membership_payments (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  customer_id uuid NOT NULL,
+  membership_type character varying NOT NULL,
+  amount real NOT NULL CHECK (amount > 0::double precision),
+  payment_date timestamp with time zone NOT NULL DEFAULT now(),
+  payment_method character varying DEFAULT 'efectivo'::character varying CHECK (payment_method::text = ANY (ARRAY['PAYMENT_CASH'::character varying::text, 'PAYMENT_TRANSFER'::character varying::text])),
+  notes text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  gross_amount real NOT NULL CHECK (gross_amount > 0::double precision),
+  discount_amount real NOT NULL DEFAULT 0 CHECK (discount_amount >= 0::double precision),
+  discount_rule_id uuid,
+  discount_note text,
+  CONSTRAINT membership_payments_pkey PRIMARY KEY (id),
+  CONSTRAINT membership_payments_customer_id_fkey FOREIGN KEY (customer_id) REFERENCES public.customers(id),
+  CONSTRAINT membership_payments_discount_rule_id_fkey FOREIGN KEY (discount_rule_id) REFERENCES public.discount_rules(id),
+  CONSTRAINT membership_payments_membership_type_fkey FOREIGN KEY (membership_type) REFERENCES public.types_memberships(type)
 );
 CREATE TABLE public.profile (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -42,5 +103,25 @@ CREATE TABLE public.profile (
 CREATE TABLE public.types_memberships (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   type character varying NOT NULL DEFAULT ''::character varying UNIQUE,
+  amount real CHECK (amount >= 0.0::double precision),
+  amount_surcharge real CHECK (amount_surcharge >= 0.0::double precision),
+  middle_amount real CHECK (middle_amount >= 0::double precision),
+  last_update timestamp with time zone DEFAULT now(),
   CONSTRAINT types_memberships_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.user_roles (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  role text NOT NULL CHECK (role = ANY (ARRAY['admin'::text, 'manager'::text, 'employee'::text, 'viewer'::text])),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT user_roles_pkey PRIMARY KEY (id),
+  CONSTRAINT user_roles_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profile(id)
+);
+CREATE TABLE public.user_feature_flags (
+  user_id uuid NOT NULL,
+  flag_name text NOT NULL,
+  enabled boolean NOT NULL DEFAULT true,
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT user_feature_flags_pkey PRIMARY KEY (user_id, flag_name),
+  CONSTRAINT user_feature_flags_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profile(id)
 );
