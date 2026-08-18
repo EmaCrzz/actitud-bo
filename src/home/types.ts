@@ -13,3 +13,22 @@ export interface HomeMetrics {
   // Membresías cuya expiration_date ya pasó.
   expiredCount: number
 }
+
+// Actividad del día para el card "Resumen del día". Solo incluye tablas que
+// existen en el schema actual; "Promoción activada" se difiere hasta que
+// exista la tabla promotions.
+export interface DailySummary {
+  attendancesWithExpiredMembership: number
+  paymentsRegistered: number
+  newCustomers: number
+  groupsCreated: number
+}
+
+// Un día de la semana con su count de asistencias. isoDate es "YYYY-MM-DD" en
+// timezone AR. Siempre 5 elementos: Lun→Vie de la semana actual.
+export interface WeeklyDay {
+  isoDate: string
+  count: number
+}
+
+export type WeeklyAttendance = WeeklyDay[]
