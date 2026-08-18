@@ -597,5 +597,58 @@
     "summarySurcharge": "Recargo por demora",
     "summaryDiscount": "Beneficio aplicado",
     "summaryTotal": "Total"
+  },
+  "v2": {
+    "roles": {
+      "admin": "Administrador",
+      "userFallback": "Usuario"
+    },
+    "header": {
+      "greeting": "¡Hola, {name}!",
+      "todayIs": "Hoy es {date}",
+      "openMenu": "Abrir menú"
+    },
+    "sidebar": {
+      "brandName": "Actitud Gym",
+      "brandTagline": "Sistema de gestión",
+      "menuTitle": "Menú",
+      "closeMenu": "Cerrar menú",
+      "expandSidebar": "Expandir sidebar",
+      "collapseSidebar": "Colapsar sidebar",
+      "logout": "Cerrar sesión",
+      "envTooltip": "Ambiente: {env}",
+      "envBadge": {
+        "dev": "DEV",
+        "preview": "PREVIEW"
+      },
+      "menu": {
+        "home": "Inicio",
+        "customers": "Clientes",
+        "memberships": "Membresías",
+        "sales": "Ventas",
+        "attendance": "Asistencias",
+        "cashRegister": "Caja",
+        "reports": "Reportes",
+        "settings": "Configuraciones",
+        "settingsSubmenu": {
+          "business": "Negocio",
+          "memberships": "Membresías",
+          "promotions": "Promociones",
+          "users": "Usuarios"
+        }
+      }
+    },
+    "home": {
+      "placeholder": {
+        "title": "V2 shell — placeholder",
+        "description": "Este placeholder valida el AppShell responsive (sidebar desktop / hamburger mobile). Data real y componentes finales llegan en Fase 2."
+      },
+      "metrics": {
+        "todayAttendances": "Asistencias de hoy",
+        "noAttendancesRegistered": "Sin asistencias registradas",
+        "activeClientsMonth": "Clientes activos del mes",
+        "expiredMembershipsCount": "{count} clientes con membresía vencida"
+      }
+    }
   }
 }

@@ -1,31 +1,38 @@
+import i18n from '@/lib/i18n/api'
+import type { Language } from '@/lib/i18n/types'
+import type { TenantsType } from '@/lib/tenants'
 import MetricCard from '@/components/v2/MetricCard'
 
-export default function V2HomePage() {
+interface PageProps {
+  params: Promise<{ lang: string; tenant: string }>
+}
+
+export default async function V2HomePage({ params }: PageProps) {
+  const { lang, tenant } = await params
+  const { t } = await i18n.fetch(lang as Language, tenant as TenantsType)
+
   return (
     <div className='flex flex-col gap-6'>
       {/* Dummy MetricCards para verificar el shell v2. Se conectan a data
           real en Fase 2. */}
       <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
         <MetricCard
-          subtitle='Sin asistencias registradas'
+          subtitle={t('v2.home.metrics.noAttendancesRegistered')}
           subtitleTone='muted'
-          title='Asistencias de hoy'
+          title={t('v2.home.metrics.todayAttendances')}
           value='—'
         />
         <MetricCard
-          subtitle='10 clientes con membresía vencida'
+          subtitle={t('v2.home.metrics.expiredMembershipsCount', { count: 10 })}
           subtitleTone='warning'
-          title='Clientes activos del mes'
+          title={t('v2.home.metrics.activeClientsMonth')}
           value='89'
         />
       </div>
 
       <div className='rounded-md border border-border bg-card p-6'>
-        <h2 className='text-lg font-semibold'>V2 shell — placeholder</h2>
-        <p className='mt-2 text-sm text-muted-foreground'>
-          Este placeholder valida el AppShell responsive (sidebar desktop / hamburger mobile).
-          Data real y componentes finales llegan en Fase 2.
-        </p>
+        <h2 className='text-lg font-semibold'>{t('v2.home.placeholder.title')}</h2>
+        <p className='mt-2 text-sm text-muted-foreground'>{t('v2.home.placeholder.description')}</p>
       </div>
     </div>
   )

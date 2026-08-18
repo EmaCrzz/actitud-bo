@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
+import { useTranslations } from '@/lib/i18n/context'
 import AppSidebar from './AppSidebar'
 import Header from './Header'
 
@@ -17,6 +18,7 @@ export interface AppShellUser {
 
 interface AppShellProps {
   user: AppShellUser
+  todayLabel: string
   children: React.ReactNode
 }
 
@@ -26,10 +28,12 @@ interface AppShellProps {
 //
 // Padding externo se aplica en globals.css sobre [data-v2='true'] (viewport
 // wrapper del layout v2). Ver ADR 20260817114952.
-export default function AppShell({ user, children }: AppShellProps) {
+export default function AppShell({ user, todayLabel, children }: AppShellProps) {
   return (
     <SidebarProvider className='flex h-full w-full'>
-      <AppShellInner user={user}>{children}</AppShellInner>
+      <AppShellInner todayLabel={todayLabel} user={user}>
+        {children}
+      </AppShellInner>
     </SidebarProvider>
   )
 }
@@ -37,7 +41,8 @@ export default function AppShell({ user, children }: AppShellProps) {
 // Switch desktop/mobile por CSS (hidden md:flex) — no JS. useIsMobile() sólo
 // se resuelve post-mount y causaba flash de layout desktop al recargar en
 // mobile antes de la hidratación.
-function AppShellInner({ user, children }: AppShellProps) {
+function AppShellInner({ user, todayLabel, children }: AppShellProps) {
+  const { t } = useTranslations()
   const { state } = useSidebar()
   const [mobileOpen, setMobileOpen] = useState(false)
   const collapsed = state === 'collapsed'
@@ -55,7 +60,7 @@ function AppShellInner({ user, children }: AppShellProps) {
 
       {/* Main */}
       <div className='flex flex-1 flex-col min-w-0 pl-0 md:pl-6 lg:pl-12'>
-        <Header user={user} onOpenMobileNav={() => setMobileOpen(true)} />
+        <Header todayLabel={todayLabel} user={user} onOpenMobileNav={() => setMobileOpen(true)} />
         <main className='flex-1 pt-4 lg:pt-6'>{children}</main>
       </div>
 
@@ -72,7 +77,7 @@ function AppShellInner({ user, children }: AppShellProps) {
           side='left'
         >
           <SheetHeader className='sr-only'>
-            <SheetTitle>Menú</SheetTitle>
+            <SheetTitle>{t('v2.sidebar.menuTitle')}</SheetTitle>
           </SheetHeader>
           <AppSidebar user={user} onCloseMobile={() => setMobileOpen(false)} />
         </SheetContent>
