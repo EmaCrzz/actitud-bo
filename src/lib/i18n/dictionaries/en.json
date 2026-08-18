@@ -640,15 +640,33 @@
       }
     },
     "home": {
-      "placeholder": {
-        "title": "V2 shell — placeholder",
-        "description": "This placeholder validates the responsive AppShell (desktop sidebar / mobile hamburger). Real data and final components arrive in Phase 2."
+      "attendanceSearch": {
+        "placeholder": "Who do you want to register?",
+        "cta": "Log attendance",
+        "searching": "Searching...",
+        "noResults": "No clients found for \"{query}\"",
+        "toastComingSoon": "Coming soon",
+        "toastComingSoonDescription": "Logging attendance from the home screen ships in the next release."
       },
       "metrics": {
         "todayAttendances": "Today's attendance",
         "noAttendancesRegistered": "No attendance recorded",
         "activeClientsMonth": "Active clients this month",
-        "expiredMembershipsCount": "{count} clients with expired membership"
+        "expiredMembershipsCount": "{count} clients with expired membership",
+        "upcomingExpirations": "{count} upcoming expirations",
+        "allUpToDate": "All up to date",
+        "attendanceDelta": {
+          "positive": "+{count} vs. last week",
+          "negative": "{count} vs. last week",
+          "equal": "Same as last week"
+        }
+      },
+      "quickActions": {
+        "title": "Quick actions",
+        "newCustomer": "New client",
+        "registerPayment": "Log payment",
+        "toastComingSoon": "Coming soon",
+        "toastComingSoonDescription": "This action ships in the next release."
       }
     }
   }

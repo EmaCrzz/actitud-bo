@@ -639,15 +639,33 @@
       }
     },
     "home": {
-      "placeholder": {
-        "title": "V2 shell — placeholder",
-        "description": "Este placeholder valida el AppShell responsive (sidebar desktop / hamburger mobile). Data real y componentes finales llegan en Fase 2."
+      "attendanceSearch": {
+        "placeholder": "¿A quien quieres registrar?",
+        "cta": "Registrar asistencia",
+        "searching": "Buscando...",
+        "noResults": "No se encontraron clientes con \"{query}\"",
+        "toastComingSoon": "Próximamente",
+        "toastComingSoonDescription": "El registro de asistencia desde el home llega en la próxima entrega."
       },
       "metrics": {
         "todayAttendances": "Asistencias de hoy",
         "noAttendancesRegistered": "Sin asistencias registradas",
         "activeClientsMonth": "Clientes activos del mes",
-        "expiredMembershipsCount": "{count} clientes con membresía vencida"
+        "expiredMembershipsCount": "{count} clientes con membresía vencida",
+        "upcomingExpirations": "{count} vencimientos próximos",
+        "allUpToDate": "Todos al día",
+        "attendanceDelta": {
+          "positive": "+{count} que la semana pasada",
+          "negative": "{count} que la semana pasada",
+          "equal": "Igual que la semana pasada"
+        }
+      },
+      "quickActions": {
+        "title": "Acciones rápidas",
+        "newCustomer": "Nuevo cliente",
+        "registerPayment": "Registrar pago",
+        "toastComingSoon": "Próximamente",
+        "toastComingSoonDescription": "Esta acción llega en la próxima entrega."
       }
     }
   }

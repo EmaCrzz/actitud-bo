@@ -1,39 +1,25 @@
-import i18n from '@/lib/i18n/api'
 import type { Language } from '@/lib/i18n/types'
 import type { TenantsType } from '@/lib/tenants'
-import MetricCard from '@/components/v2/MetricCard'
+import AttendanceSearchCard from '@/home/components/v2/AttendanceSearchCard'
+import MetricsRow from '@/home/components/v2/MetricsRow'
+import QuickActionsSection from '@/home/components/v2/QuickActionsSection'
+import { getHomeMetrics } from '@/home/api/server'
 
 interface PageProps {
   params: Promise<{ lang: string; tenant: string }>
 }
 
+// Server Component. Trae las métricas en paralelo (Promise.all interno en
+// getHomeMetrics) y compone la home. Las secciones DailySummary y
+// WeeklyAttendance del diseño se agregan en el PR siguiente de Fase 2.
 export default async function V2HomePage({ params }: PageProps) {
-  const { lang, tenant } = await params
-  const { t } = await i18n.fetch(lang as Language, tenant as TenantsType)
+  const [{ lang, tenant }, metrics] = await Promise.all([params, getHomeMetrics()])
 
   return (
-    <div className='flex flex-col gap-6'>
-      {/* Dummy MetricCards para verificar el shell v2. Se conectan a data
-          real en Fase 2. */}
-      <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-        <MetricCard
-          subtitle={t('v2.home.metrics.noAttendancesRegistered')}
-          subtitleTone='muted'
-          title={t('v2.home.metrics.todayAttendances')}
-          value='—'
-        />
-        <MetricCard
-          subtitle={t('v2.home.metrics.expiredMembershipsCount', { count: 10 })}
-          subtitleTone='warning'
-          title={t('v2.home.metrics.activeClientsMonth')}
-          value='89'
-        />
-      </div>
-
-      <div className='rounded-md border border-border bg-card p-6'>
-        <h2 className='text-lg font-semibold'>{t('v2.home.placeholder.title')}</h2>
-        <p className='mt-2 text-sm text-muted-foreground'>{t('v2.home.placeholder.description')}</p>
-      </div>
+    <div className='h-full p-2.5 lg:p-5 rounded-xl border flex flex-col gap-3 lg:gap-6'>
+      <AttendanceSearchCard />
+      <MetricsRow lang={lang as Language} metrics={metrics} tenant={tenant as TenantsType} />
+      <QuickActionsSection />
     </div>
   )
 }
