@@ -82,3 +82,26 @@ export function formatLongDayInAppTz(isoDate: string, locale = 'es-AR'): string 
     month: 'long',
   }).format(date)
 }
+
+// Formatea un Date como "Lunes 19" (weekday capitalizado + día) en la TZ del negocio.
+export function formatDayLabelInAppTz(date: Date): string {
+  const parts = new Intl.DateTimeFormat('es-AR', {
+    weekday: 'long',
+    day: '2-digit',
+    timeZone: APP_TIMEZONE,
+  }).formatToParts(date)
+  const weekday = parts.find((p) => p.type === 'weekday')?.value ?? ''
+  const day = parts.find((p) => p.type === 'day')?.value ?? ''
+
+  return `${weekday.charAt(0).toUpperCase() + weekday.slice(1)} ${day}`
+}
+
+// Formatea un timestamp UTC como "HH:MM" en la TZ del negocio.
+export function formatTimeInAppTz(utcIso: string): string {
+  return new Intl.DateTimeFormat('es-AR', {
+    timeZone: APP_TIMEZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(utcIso))
+}

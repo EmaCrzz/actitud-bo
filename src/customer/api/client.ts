@@ -7,6 +7,7 @@ import { basicCustomerValidation, basicMembershipValidation, mapCustomerRow } fr
 import { withRateLimit } from '@/lib/rate-limit'
 import { parseCurrency } from '@/lib/format-currency'
 import { parseAppTzDateString } from '@/lib/timezone'
+import { normalizeSearchQuery } from '@/lib/utils/text'
 
 // Convierte la fecha del datepicker ("YYYY-MM-DD" o ISO con "T") al ISO
 // timestamp que representa medianoche en la zona del negocio (Argentina).
@@ -27,7 +28,7 @@ async function _searchCustomer(query?: string) {
   const { data } = await supabase
     .from('customers')
     .select(SEARCH_CUSTOMER)
-    .ilike('full_name', `%${query}%`)
+    .ilike('full_name_search', `%${normalizeSearchQuery(query)}%`)
     .order('first_name', {
       ascending: true,
     })
@@ -70,7 +71,7 @@ async function _fetchCustomersPage({
     .range(from, to)
 
   if (query) {
-    request = request.ilike('full_name', `%${query}%`)
+    request = request.ilike('full_name_search', `%${normalizeSearchQuery(query)}%`)
   }
 
   const { data } = await request
