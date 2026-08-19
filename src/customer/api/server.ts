@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getWeekRange } from '@/lib/week'
 import { mapCustomerRow } from '@/customer/utils'
 import { getApplicableDiscountForCustomer, getGroupsByCustomer } from '@/group/api/server'
+import { normalizeSearchQuery } from '@/lib/utils/text'
 
 interface SearchAllCustomersOptions {
   query?: string
@@ -33,7 +34,7 @@ export const searchAllCustomers = async ({
     .range(from, to)
 
   if (query) {
-    request = request.ilike('first_name', `%${query}%`)
+    request = request.ilike('full_name_search', `%${normalizeSearchQuery(query)}%`)
   }
 
   const { data } = await request
