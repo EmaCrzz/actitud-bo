@@ -8,16 +8,8 @@ import i18n from '@/lib/i18n/api'
 import type { Language } from '@/lib/i18n/types'
 import type { TenantsType } from '@/lib/tenants'
 import { APP_TIMEZONE } from '@/lib/timezone'
+import { getInitials } from '@/lib/format-person'
 import AppShell, { type AppShellUser } from '@/components/v2/AppShell'
-
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join('')
-}
 
 // Fecha "hoy" formateada en el server con timezone AR + locale de la ruta.
 // Se pasa al Header como string para evitar hydration mismatch (server vs. client

@@ -188,7 +188,7 @@
     },
     "registerDailyPass": "Registrar pase diario",
     "registerAttendance": "Registrar asistencia",
-    "alreadyRegisteredToday": "Ya se registro una asistencia el dia de hoy",
+    "alreadyRegisteredToday": "Ya se registró una asistencia el día de hoy",
     "topMonthlyAssistants": "Top Asistentes del Mes",
     "topOfTheMonth": "Top del mes de",
     "joinUs": "¡Únete a nosotros!",
@@ -644,8 +644,26 @@
         "cta": "Registrar asistencia",
         "searching": "Buscando...",
         "noResults": "No se encontraron clientes con \"{query}\"",
+        "createNewCustomer": "Crear nuevo cliente",
         "toastComingSoon": "Próximamente",
         "toastComingSoonDescription": "El registro de asistencia desde el home llega en la próxima entrega."
+      },
+      "attendanceModal": {
+        "membershipSection": "Membresía activa",
+        "attendanceSection": "Asistencia",
+        "dayLabel": "DIA {n}",
+        "registeredAtTime": "Registrada a las {time}",
+        "expiredNotice": {
+          "title": "Membresía vencida",
+          "description": "Igual podés registrar la asistencia. Para renovarla, entrá al perfil del cliente."
+        },
+        "confirmCta": "Confirmar asistencia",
+        "viewProfile": "Ver perfil",
+        "badge": {
+          "active": "Activa",
+          "expired": "Vencida",
+          "none": "Sin membresía"
+        }
       },
       "metrics": {
         "todayAttendances": "Asistencias de hoy",

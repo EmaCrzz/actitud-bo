@@ -65,3 +65,13 @@ export const PaymentsTranslation: Record<PaymentType, TranslationKey> = {
   [PAYMENT_CASH]: 'payments.cash',
   [PAYMENT_TRANSFER]: 'payments.transfer',
 }
+
+// Cuántos días semanales habilita cada tipo de membresía.
+// VIP se trata igual que 5 días: acceso ilimitado dentro de la semana.
+export const SLOTS_BY_TYPE: Record<MembershipTypes, number> = {
+  [MEMBERSHIP_TYPE_VIP]: 5,
+  [MEMBERSHIP_TYPE_5_DAYS]: 5,
+  [MEMBERSHIP_TYPE_3_DAYS]: 3,
+  [MEMBERSHIP_TYPE_2_DAYS]: 2,
+  [MEMBERSHIP_TYPE_DAILY]: 1,
+}

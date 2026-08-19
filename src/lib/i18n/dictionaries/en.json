@@ -645,8 +645,26 @@
         "cta": "Log attendance",
         "searching": "Searching...",
         "noResults": "No clients found for \"{query}\"",
+        "createNewCustomer": "Create new client",
         "toastComingSoon": "Coming soon",
         "toastComingSoonDescription": "Logging attendance from the home screen ships in the next release."
+      },
+      "attendanceModal": {
+        "membershipSection": "Active membership",
+        "attendanceSection": "Attendance",
+        "dayLabel": "DAY {n}",
+        "registeredAtTime": "Logged at {time}",
+        "expiredNotice": {
+          "title": "Membership expired",
+          "description": "You can still log the attendance. To renew it, go to the client's profile."
+        },
+        "confirmCta": "Confirm attendance",
+        "viewProfile": "View profile",
+        "badge": {
+          "active": "Active",
+          "expired": "Expired",
+          "none": "No membership"
+        }
       },
       "metrics": {
         "todayAttendances": "Today's attendance",
