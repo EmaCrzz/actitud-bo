@@ -280,7 +280,6 @@
           "line1": "VIP",
           "line2": "VIP"
         }
-
       }
     }
   },
@@ -624,11 +623,11 @@
       "menu": {
         "home": "Inicio",
         "customers": "Clientes",
+        "attendance": "Asistencias",
         "memberships": "Membresías",
         "sales": "Ventas",
-        "attendance": "Asistencias",
-        "cashRegister": "Caja",
-        "reports": "Reportes",
+        "expenses": "Gastos",
+        "balance": "Balance",
         "settings": "Configuraciones",
         "settingsSubmenu": {
           "business": "Negocio",
@@ -703,6 +702,10 @@
           "fri": "Vie"
         }
       }
+    },
+    "underConstruction": {
+      "title": "En construcción",
+      "description": "Esta sección todavía no está disponible. Está planificada en el rediseño y llega en una próxima entrega."
     }
   }
 }

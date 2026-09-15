@@ -10,7 +10,7 @@ import {
   Home,
   LogOut,
   PanelLeft,
-  ScrollText,
+  Receipt,
   Settings,
   ShoppingBag,
   SquareCheck,
@@ -36,6 +36,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils'
 import { useTranslations } from '@/lib/i18n/context'
 import type { TranslationKey } from '@/lib/i18n/types'
+import { ROUTES_V2 } from '@/consts/routes'
 import type { AppShellUser } from './AppShell'
 
 // Etiqueta del ambiente calculada una sola vez en build. `production` → null
@@ -51,7 +52,7 @@ const ENV_BADGE: 'DEV' | 'PREVIEW' | null = (() => {
 
 type MenuChild = {
   labelKey: TranslationKey
-  href?: string
+  href: string
 }
 
 type MenuItem = {
@@ -61,25 +62,48 @@ type MenuItem = {
   children?: MenuChild[]
 }
 
+// Orden y etiquetas tomados del sidebar del Figma (nodo 2060:11534).
 const menuItems: MenuItem[] = [
-  { labelKey: 'v2.sidebar.menu.home', icon: Home, href: '/v2/home' },
-  { labelKey: 'v2.sidebar.menu.customers', icon: Users },
-  { labelKey: 'v2.sidebar.menu.memberships', icon: CreditCard },
-  { labelKey: 'v2.sidebar.menu.sales', icon: ShoppingBag },
-  { labelKey: 'v2.sidebar.menu.attendance', icon: SquareCheck },
-  { labelKey: 'v2.sidebar.menu.cashRegister', icon: Wallet },
-  { labelKey: 'v2.sidebar.menu.reports', icon: ScrollText },
+  { labelKey: 'v2.sidebar.menu.home', icon: Home, href: ROUTES_V2.V2_HOME },
+  { labelKey: 'v2.sidebar.menu.customers', icon: Users, href: ROUTES_V2.V2_CUSTOMERS },
+  { labelKey: 'v2.sidebar.menu.attendance', icon: SquareCheck, href: ROUTES_V2.V2_ATTENDANCE },
+  { labelKey: 'v2.sidebar.menu.memberships', icon: CreditCard, href: ROUTES_V2.V2_MEMBERSHIPS },
+  { labelKey: 'v2.sidebar.menu.sales', icon: ShoppingBag, href: ROUTES_V2.V2_SALES },
+  { labelKey: 'v2.sidebar.menu.expenses', icon: Receipt, href: ROUTES_V2.V2_EXPENSES },
+  { labelKey: 'v2.sidebar.menu.balance', icon: Wallet, href: ROUTES_V2.V2_BALANCE },
   {
     labelKey: 'v2.sidebar.menu.settings',
     icon: Settings,
     children: [
-      { labelKey: 'v2.sidebar.menu.settingsSubmenu.business' },
-      { labelKey: 'v2.sidebar.menu.settingsSubmenu.memberships' },
-      { labelKey: 'v2.sidebar.menu.settingsSubmenu.promotions' },
-      { labelKey: 'v2.sidebar.menu.settingsSubmenu.users' },
+      {
+        labelKey: 'v2.sidebar.menu.settingsSubmenu.business',
+        href: ROUTES_V2.V2_SETTINGS_BUSINESS,
+      },
+      {
+        labelKey: 'v2.sidebar.menu.settingsSubmenu.memberships',
+        href: ROUTES_V2.V2_SETTINGS_MEMBERSHIPS,
+      },
+      {
+        labelKey: 'v2.sidebar.menu.settingsSubmenu.promotions',
+        href: ROUTES_V2.V2_SETTINGS_PROMOTIONS,
+      },
+      { labelKey: 'v2.sidebar.menu.settingsSubmenu.users', href: ROUTES_V2.V2_SETTINGS_USERS },
     ],
   },
 ]
+
+// Un item está activo si el pathname es su ruta, o una sub-ruta de ella
+// (`/v2/customers/123` mantiene "Clientes" marcado).
+//
+// Se compara por sufijo porque `usePathname()` puede devolver el path ya
+// prefijado con `/{lang}/{tenant}` según cómo resuelva el rewrite. Comparar
+// incluyendo las barras evita que `/v2/settings/memberships` marque también
+// a `/v2/memberships`.
+function isRouteActive(pathname: string | null | undefined, href: string): boolean {
+  if (!pathname) return false
+
+  return pathname === href || pathname.endsWith(href) || pathname.includes(`${href}/`)
+}
 
 interface AppSidebarProps {
   user: AppShellUser
@@ -183,9 +207,14 @@ function MenuList({ collapsed }: { collapsed: boolean }) {
     <SidebarMenu>
       {menuItems.map((item) => {
         if (item.children) {
+          const activeChildHref = item.children.find((child) =>
+            isRouteActive(pathname, child.href)
+          )?.href
+
           return collapsed ? (
             <MenuGroupItemCollapsed
               key={item.labelKey}
+              activeChildHref={activeChildHref}
               icon={item.icon}
               items={item.children}
               labelKey={item.labelKey}
@@ -193,6 +222,7 @@ function MenuList({ collapsed }: { collapsed: boolean }) {
           ) : (
             <MenuGroupItemExpanded
               key={item.labelKey}
+              activeChildHref={activeChildHref}
               icon={item.icon}
               items={item.children}
               labelKey={item.labelKey}
@@ -206,7 +236,7 @@ function MenuList({ collapsed }: { collapsed: boolean }) {
             collapsed={collapsed}
             href={item.href}
             icon={item.icon}
-            isActive={item.href ? (pathname?.endsWith(item.href) ?? false) : false}
+            isActive={item.href ? isRouteActive(pathname, item.href) : false}
             labelKey={item.labelKey}
           />
         )
@@ -245,16 +275,25 @@ interface MenuGroupItemProps {
   labelKey: TranslationKey
   icon: React.ElementType
   items: MenuChild[]
+  // href del hijo activo, si el pathname actual cae dentro del grupo.
+  activeChildHref?: string
 }
 
 // Modo expandido: acordeón inline con los sub-items.
-function MenuGroupItemExpanded({ labelKey, icon: Icon, items }: MenuGroupItemProps) {
+function MenuGroupItemExpanded({
+  labelKey,
+  icon: Icon,
+  items,
+  activeChildHref,
+}: MenuGroupItemProps) {
   const { t } = useTranslations()
-  const [isOpen, setIsOpen] = useState(false)
+  // Si estamos parados en una sub-ruta del grupo, el acordeón arranca abierto:
+  // sería raro entrar a Configuraciones → Negocio y ver el menú cerrado.
+  const [isOpen, setIsOpen] = useState(Boolean(activeChildHref))
 
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton onClick={() => setIsOpen((prev) => !prev)}>
+      <SidebarMenuButton isActive={Boolean(activeChildHref)} onClick={() => setIsOpen((p) => !p)}>
         <Icon />
         <span>{t(labelKey)}</span>
         <ChevronDown
@@ -265,7 +304,9 @@ function MenuGroupItemExpanded({ labelKey, icon: Icon, items }: MenuGroupItemPro
         <SidebarMenuSub>
           {items.map((child) => (
             <SidebarMenuSubItem key={child.labelKey}>
-              <SidebarMenuSubButton>{t(child.labelKey)}</SidebarMenuSubButton>
+              <SidebarMenuSubButton asChild isActive={child.href === activeChildHref}>
+                <Link href={child.href}>{t(child.labelKey)}</Link>
+              </SidebarMenuSubButton>
             </SidebarMenuSubItem>
           ))}
         </SidebarMenuSub>
@@ -277,7 +318,12 @@ function MenuGroupItemExpanded({ labelKey, icon: Icon, items }: MenuGroupItemPro
 // Modo colapsado: popover a la derecha en vez de acordeón. Al hover (desktop) o
 // click (touch/tablet) sobre un item con hijos, despliega las opciones.
 // Close delay de 120ms para mover el cursor del trigger al popover sin cerrar.
-function MenuGroupItemCollapsed({ labelKey, icon: Icon, items }: MenuGroupItemProps) {
+function MenuGroupItemCollapsed({
+  labelKey,
+  icon: Icon,
+  items,
+  activeChildHref,
+}: MenuGroupItemProps) {
   const { t } = useTranslations()
   const [open, setOpen] = useState(false)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -299,6 +345,7 @@ function MenuGroupItemCollapsed({ labelKey, icon: Icon, items }: MenuGroupItemPr
         <PopoverTrigger asChild>
           <SidebarMenuButton
             className='justify-center'
+            isActive={Boolean(activeChildHref)}
             onClick={() => setOpen((v) => !v)}
             onMouseEnter={() => {
               cancelClose()
@@ -321,13 +368,18 @@ function MenuGroupItemCollapsed({ labelKey, icon: Icon, items }: MenuGroupItemPr
           <div className='mb-1 px-2 pt-1 text-xs font-semibold'>{t(labelKey)}</div>
           <div className='flex flex-col gap-0.5'>
             {items.map((child) => (
-              <button
+              <Link
                 key={child.labelKey}
-                className='rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-sidebar-ring hover:text-sidebar-accent-foreground hover:cursor-pointer'
-                type='button'
+                className={cn(
+                  'rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-sidebar-ring hover:text-sidebar-accent-foreground',
+                  child.href === activeChildHref &&
+                    'bg-sidebar-accent text-sidebar-accent-foreground'
+                )}
+                href={child.href}
+                onClick={() => setOpen(false)}
               >
                 {t(child.labelKey)}
-              </button>
+              </Link>
             ))}
           </div>
         </PopoverContent>

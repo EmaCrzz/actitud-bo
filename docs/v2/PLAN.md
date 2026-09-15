@@ -21,7 +21,7 @@
 | 1.6 | Fixes de i18n, composition patterns e hidratación | ✅ completa | PR [#46](https://github.com/EmaCrzz/actitud-bo/pull/46). ADR [20260818111458](../architecture/decisions/20260818111458_v2-i18n-y-composition-fixes.md). |
 | 2 | Home v2 (primera pantalla real) | ✅ completa | PRs [#47](https://github.com/EmaCrzz/actitud-bo/pull/47) y [#48](https://github.com/EmaCrzz/actitud-bo/pull/48). Search + métricas + daily summary + weekly attendance con data real. |
 | 3 | Flow "Registrar asistencia" (modal + confirmación + toast) | ✅ completa *(con pendientes)* | PR [#49](https://github.com/EmaCrzz/actitud-bo/pull/49) mergeado en `develop` el 2026-08-19. ADRs [20260819130435](../architecture/decisions/20260819130435_v2-attendance-modal.md) + [20260819163000](../architecture/decisions/20260819163000_success-tick-animation.md) + [20260819170000](../architecture/decisions/20260819170000_busqueda-de-clientes-insensible-a-acentos.md). **Quedaron pendientes** (verificación contra Figma, duplicado de asistencia, loading de búsqueda) → ver [Fase 3](#fase-3--flow-registrar-asistencia); se resuelven como fase 3.1 o dentro de la fase que los toque. |
-| 4 | Navegación v2 real (sidebar alineado al Figma + rutas stub) | ⬜ pendiente | Bloquea todas las fases de sección. Sidebar actual no matchea el Figma. |
+| 4 | Navegación v2 real (sidebar alineado al Figma + rutas stub) | ✅ completa | Rama `feat/v2-navegacion-sidebar`. ADR [20260915132556](../architecture/decisions/20260915132556_v2-navegacion-real-y-rutas-stub.md). Campana de notificaciones diferida. Falta verificación visual del drawer mobile. |
 | 5 | Primitivas transversales v2 (DataTable, FormModal, ConfirmDialog, FilterBar, DetailModal) | ⬜ pendiente | Bloquea fases 6–14. |
 | 6 | Sección Clientes + Modal perfil de cliente | ⬜ pendiente | |
 | 7 | Alta de cliente (desde Home y desde Clientes) | ⬜ pendiente | |
@@ -397,12 +397,18 @@ Los 3 commits de `feat/v2-attendance-modal` están en `origin/develop`, no en `m
 
 ## Fase 4 — Navegación v2 real
 
-**Estado:** ⬜ pendiente · **bloquea las fases 6–14**
+**Estado:** ✅ completa — rama `feat/v2-navegacion-sidebar`. ADR [20260915132556](../architecture/decisions/20260915132556_v2-navegacion-real-y-rutas-stub.md).
 **Figma:** instancia `Sidebar` presente en todas las pantallas. Desktop verificado visualmente en `2060:11534`; **mobile es un drawer de 260×844 sobre overlay** — ver `2174:24784` y `2201:58513`.
 
-### Problema
+> **Pendiente de verificación visual** (la cuota del MCP se agotó antes de abrir los nodos mobile):
+> - **Ancho del drawer mobile.** El árbol de nodos dice 260px; el `SheetContent` actual no se ajustó. Sin tocar, a propósito.
+> - **Íconos de Gastos y Balance.** Se eligieron `Receipt` y `Wallet` por criterio propio. Labels y orden sí están verificados.
+>
+> Resolver ambos cuando se abra la próxima ventana de cuota, o al arrancar la Fase 5.
 
-El sidebar implementado **no coincide con el del Figma**. Comparación:
+### Problema (resuelto)
+
+El sidebar implementado **no coincidía con el del Figma**. Comparación:
 
 | Figma (`2060:11534`, verificado) | [AppSidebar.tsx](../../src/components/v2/AppSidebar.tsx) actual |
 |---|---|
@@ -422,19 +428,25 @@ Además, sólo "Inicio" tiene `href`. El resto son items muertos.
 1. **Alinear los items** al Figma: renombrar `cashRegister` → `expenses` (Gastos) y `reports` → `balance` (Balance), reordenar, actualizar keys en `es.json` / `en.json`.
 2. **Rutas stub** bajo `/v2/`: `home` (existe), `customers`, `attendance`, `memberships`, `sales`, `expenses`, `balance`, `settings/{business,memberships,promotions,users}`. Cada una un Server Component con `AppShell` + `EmptyState` "En construcción". Así el sidebar navega de verdad y cada fase siguiente sólo llena su página.
 3. **Constantes de ruta v2** en `src/consts/routes.ts` (o `routes-v2.ts` si se prefiere no mezclar) — nada de strings sueltos.
-4. **Active state por ruta** — `isActive` hoy usa `pathname?.endsWith(item.href)`, que va a dar falsos positivos con rutas anidadas (`/v2/settings/memberships` vs `/v2/memberships`). Cambiar a match por segmento.
+4. **Active state por ruta** — ~~`isActive` hoy usa `pathname?.endsWith(item.href)`, que va a dar falsos positivos con rutas anidadas (`/v2/settings/memberships` vs `/v2/memberships`)~~.
+
+   > **Corrección (2026-09-15, al implementar).** Ese claim era **falso**: `'/v2/settings/memberships'.endsWith('/v2/memberships')` da `false`, porque el sufijo real es `ings/memberships`. El defecto verdadero era el **opuesto** — un falso *negativo*: ninguna sub-ruta (`/v2/customers/123`) mantenía su ítem padre activo. Se implementó un helper `isRouteActive(pathname, href)` que cubre sub-rutas y sigue comparando por sufijo (el pathname puede venir prefijado con `/{lang}/{tenant}`).
 5. **Header: campana de notificaciones.** Está en el Figma con badge. Sin tabla de notificaciones (brecha B9), la opción barata es derivarlo de membresías por vencer + vencidas (ya hay `getUpcomingExpirationsCount` y `getExpiredMembershipsCount` en [src/home/api/server.ts](../../src/home/api/server.ts)). Si no se define el contenido, dejar el ícono sin badge antes que inventar datos.
 
 **Riesgo timezone:** bajo (salvo el badge de notificaciones, que si sale de expiraciones usa `isExpiredInAppTz` / `daysUntilInAppTz`).
 
 **Definición de hecho:**
-- [ ] Sidebar idéntico al Figma en items, orden y labels
-- [ ] Las 11 rutas stub responden y el active state es correcto en todas
-- [ ] Colapsado (64px) y mobile (Sheet) siguen funcionando con los items nuevos
-- [ ] Keys nuevas en `es.json` y `en.json`
-- [ ] Sin strings de ruta hardcodeados
+- [x] Sidebar alineado al Figma en items, orden y labels
+- [x] Las 10 rutas stub nuevas responden y el active state es correcto (incluye sub-rutas)
+- [x] Colapsado (64px) y mobile (Sheet) siguen funcionando con los items nuevos
+- [x] Keys nuevas en `es.json` y `en.json` (`expenses`, `balance`, `underConstruction.*`)
+- [x] Sin strings de ruta hardcodeados — todo sale de `ROUTES_V2`
+- [x] `type-check` limpio · `lint` en 22 warnings / 0 errores (baseline de `develop`)
+- [ ] Verificación visual del drawer mobile y de los íconos (ver nota arriba)
 
-**ADR:** sí — cambio de taxonomía de navegación (Caja/Reportes → Gastos/Balance) e introducción de rutas stub.
+**Punto 5 (campana de notificaciones): NO se hizo.** Se difiere. El Figma la muestra con badge pero no hay modelo de datos (brecha B9), y derivarla de membresías por vencer es una decisión de producto, no de navegación. Mezclarla con el renombre de la taxonomía habría ensuciado el alcance. Queda como decisión abierta #9.
+
+**ADR:** ✅ [20260915132556](../architecture/decisions/20260915132556_v2-navegacion-real-y-rutas-stub.md).
 
 ---
 
