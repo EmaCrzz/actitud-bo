@@ -5,19 +5,13 @@ import IsoBlanco from '@/assets/logos/blanco/iso'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import MenuAuth from '@/auth/components/menu'
-import api from '@/lib/i18n/api'
-import { type Language } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
+import { getServerT } from '@/lib/i18n/server'
+import { getIntlLocale } from '@/lib/i18n/locale'
+import { formatTodayLongInAppTz } from '@/lib/format-date'
 
-export default async function AuthHeader({
-  lang,
-  tenant,
-}: {
-  lang: Language
-  tenant: TenantsType
-}) {
+export default async function AuthHeader() {
   const supabase = await createClient()
-  const { t } = await api.fetch(lang, tenant)
+  const { t, lang } = await getServerT()
 
   const { data, error } = await supabase.auth.getUser()
 
@@ -32,11 +26,10 @@ export default async function AuthHeader({
     ? `${profile?.first_name} ${profile?.last_name}`
     : data.user.email?.charAt(0).toUpperCase()
 
-  const today = new Intl.DateTimeFormat(lang === 'es' ? 'es-ES' : 'en-US', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  }).format(new Date())
+  // Antes formateaba sin timeZone, así que en Vercel (UTC) mostraba el día
+  // siguiente entre las 21:00 y la medianoche AR. Y usaba 'es-ES' en vez de
+  // 'es-AR'. formatTodayLongInAppTz resuelve ambas.
+  const today = formatTodayLongInAppTz(getIntlLocale(lang))
 
   return (
     <header className='max-w-3xl mx-auto w-full px-4 flex gap-2 justify-between items-center pt-4'>

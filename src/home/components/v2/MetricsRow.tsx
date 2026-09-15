@@ -1,21 +1,17 @@
 import MetricCard from '@/components/v2/MetricCard'
-import i18n from '@/lib/i18n/api'
-import type { Language } from '@/lib/i18n/types'
-import type { TenantsType } from '@/lib/tenants'
+import { getServerT } from '@/lib/i18n/server'
 import type { HomeMetrics } from '@/home/types'
 
 type SubtitleTone = 'success' | 'warning' | 'danger' | 'muted'
 
 interface MetricsRowProps {
   metrics: HomeMetrics
-  lang: Language
-  tenant: TenantsType
 }
 
 // Server component. `i18n.fetch` está wrappeado en React.cache, así que llamarlo
 // múltiples veces dentro del mismo request (layout + acá) no re-hace el fetch.
-export default async function MetricsRow({ metrics, lang, tenant }: MetricsRowProps) {
-  const { t } = await i18n.fetch(lang, tenant)
+export default async function MetricsRow({ metrics }: MetricsRowProps) {
+  const { t } = await getServerT()
 
   const attendance = resolveAttendanceSubtitle(metrics, t)
   const activeClients = resolveActiveClientsSubtitle(metrics, t)
@@ -38,7 +34,7 @@ export default async function MetricsRow({ metrics, lang, tenant }: MetricsRowPr
   )
 }
 
-type Translator = Awaited<ReturnType<typeof i18n.fetch>>['t']
+type Translator = Awaited<ReturnType<typeof getServerT>>['t']
 
 interface SubtitleResult {
   subtitle: string
@@ -88,7 +84,9 @@ function resolveActiveClientsSubtitle(metrics: HomeMetrics, t: Translator): Subt
   }
   if (metrics.upcomingExpirationsCount > 0) {
     return {
-      subtitle: t('v2.home.metrics.upcomingExpirations', { count: metrics.upcomingExpirationsCount }),
+      subtitle: t('v2.home.metrics.upcomingExpirations', {
+        count: metrics.upcomingExpirationsCount,
+      }),
       tone: 'warning',
     }
   }

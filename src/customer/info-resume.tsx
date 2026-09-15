@@ -8,20 +8,10 @@ import { formatPhone } from '@/lib/format-phone'
 import { formatDate } from '@/lib/format-date'
 import { PaymentsTranslation, type PaymentType } from '@/membership/consts'
 import Link from 'next/link'
-import { type Language } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
-import api from '@/lib/i18n/api'
+import { getServerT } from '@/lib/i18n/server'
 
-export default async function InfoResume({
-  customer,
-  lang,
-  tenant,
-}: {
-  customer: CustomerComplete
-  lang: Language
-  tenant: TenantsType
-}) {
-  const { t } = await api.fetch(lang, tenant)
+export default async function InfoResume({ customer }: { customer: CustomerComplete }) {
+  const { t } = await getServerT()
 
   const lastPaymentDate = customer.customer_membership?.last_payment_date
   const paymentTranslationKey = customer.last_payment_method

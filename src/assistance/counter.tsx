@@ -4,19 +4,11 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ASSISTANCES } from '@/consts/routes'
 import Link from 'next/link'
-import api from '@/lib/i18n/api'
-import { type Language } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
+import { getServerT } from '@/lib/i18n/server'
 
-export default async function AssistanceCounter({
-  lang,
-  tenant,
-}: {
-  lang: Language
-  tenant: TenantsType
-}) {
+export default async function AssistanceCounter() {
   const count = await getTotalAssistancesToday()
-  const { t } = await api.fetch(lang, tenant)
+  const { t } = await getServerT()
 
   return (
     <section className='flex flex-col justify-center mt-10 gap-1 '>
