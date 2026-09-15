@@ -280,7 +280,6 @@
           "line1": "VIP",
           "line2": "VIP"
         }
-
       }
     }
   },
@@ -625,11 +624,11 @@
       "menu": {
         "home": "Home",
         "customers": "Customers",
+        "attendance": "Attendance",
         "memberships": "Memberships",
         "sales": "Sales",
-        "attendance": "Attendance",
-        "cashRegister": "Cash register",
-        "reports": "Reports",
+        "expenses": "Expenses",
+        "balance": "Balance",
         "settings": "Settings",
         "settingsSubmenu": {
           "business": "Business",
@@ -704,6 +703,10 @@
           "fri": "Fri"
         }
       }
+    },
+    "underConstruction": {
+      "title": "Under construction",
+      "description": "This section isn't available yet. It's planned in the redesign and ships in an upcoming release."
     }
   }
 }
