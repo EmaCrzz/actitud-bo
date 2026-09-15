@@ -3,9 +3,7 @@ import ArrowLeftIcon from '@/components/icons/arrow-left'
 import { Button } from '@/components/ui/button'
 import { CUSTOMER_LIST_GROUPS } from '@/consts/routes'
 import GroupDetail from '@/group/components/detail'
-import api from '@/lib/i18n/api'
-import { type Language } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
+import { getServerT } from '@/lib/i18n/server'
 
 // Whitelist estricta para el back: sólo paths internos bajo /customer.
 // Bloquea open redirects (?from=https://evil.com), protocol-relative
@@ -22,12 +20,12 @@ export default async function GroupDetailPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ lang: Language; tenant: TenantsType; id: string }>
+  params: Promise<{ id: string }>
   searchParams: Promise<{ from?: string }>
 }) {
-  const { lang, tenant, id } = await params
+  const { id } = await params
   const { from } = await searchParams
-  const { t } = await api.fetch(lang, tenant)
+  const { t } = await getServerT()
   const backHref = resolveBackHref(from)
 
   return (

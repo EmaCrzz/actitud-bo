@@ -51,6 +51,15 @@ También aprovecha para actualizar `docs/v2/PLAN.md` con el estado real de merge
 - **Autenticación / Autorización:** sin cambios. El guard de `/v2/*` sigue siendo `hasFeatureFlag('v2_access')` en el layout.
 - **Exposición de datos:** los strings traducidos no exponen datos nuevos. El `EnvBadge` mostraba y sigue mostrando `DEV` / `PREVIEW` según el env de Vercel, no hay filtrado nuevo.
 - **Validación de input:** los params `lang` y `tenant` se casteanan a `Language` y `TenantsType`. El middleware ya valida ambos antes de llegar al layout (rutas inválidas → redirect). `t()` con key inexistente devuelve la key (fallback documentado en `api.ts`).
+
+  > **Nota correctiva (2026-09-15).** La afirmación "el middleware ya valida ambos"
+  > **es falsa**: [src/lib/supabase/middleware.ts](../../../src/lib/supabase/middleware.ts)
+  > sólo ejecuta `updateSession` y no contiene lógica de `lang`/`tenant`. Lo que en
+  > la práctica impedía valores arbitrarios era el rewrite de `next.config.ts`, no una
+  > validación. El gap se cerró en el ADR
+  > [20260908111054](./20260908111054_centralizar-resolucion-de-lang-tenant-en-i18n.md),
+  > que eliminó los casts resolviendo ambos valores desde env. Se deja el texto
+  > original para no reescribir la historia del documento.
 - **Dependencias:** no se agregan. Se remueve el uso de `date-fns` del bundle client de v2 (sigue como transitive de `react-day-picker`).
 - **Infraestructura:** sin cambios.
 

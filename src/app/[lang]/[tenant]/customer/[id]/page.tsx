@@ -8,17 +8,11 @@ import CustomerMembership from '@/customer/membership'
 import GroupBadge from '@/group/components/badge'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
-import api from '@/lib/i18n/api'
-import { type Language } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
+import { getServerT } from '@/lib/i18n/server'
 
-export default async function CustomerDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string; lang: Language; tenant: TenantsType }>
-}) {
-  const { id, lang, tenant } = await params
-  const { t } = await api.fetch(lang, tenant)
+export default async function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const { t } = await getServerT()
   const customer = await searchCustomersById(id)
 
   if (!customer) {
@@ -55,7 +49,7 @@ export default async function CustomerDetailPage({
           membersLabel={(count) => t('groups.membersCount', { count })}
           title={t('groups.badgeTitle')}
         />
-        <InfoResume customer={customer} lang={lang} tenant={tenant} />
+        <InfoResume customer={customer} />
       </section>
     </>
   )

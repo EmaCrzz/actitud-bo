@@ -2,26 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Calendar } from 'lucide-react'
 import { getTotalAssistancesToday } from '@/assistance/api/server'
 import { Skeleton } from '@/components/ui/skeleton'
-import api from '@/lib/i18n/api'
-import { type Language } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
-import { APP_TIMEZONE } from '@/lib/timezone'
+import { getServerT } from '@/lib/i18n/server'
+import { getIntlLocale } from '@/lib/i18n/locale'
+import { formatTodayLongInAppTz } from '@/lib/format-date'
 
-export default async function AssistanceCardToday({
-  lang,
-  tenant,
-}: {
-  lang: Language
-  tenant: TenantsType
-}) {
+export default async function AssistanceCardToday() {
   const count = await getTotalAssistancesToday()
-  const { t } = await api.fetch(lang, tenant)
-  const today = new Intl.DateTimeFormat('es-ES', {
-    timeZone: APP_TIMEZONE,
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  }).format(new Date())
+  const { t, lang } = await getServerT()
+  const today = formatTodayLongInAppTz(getIntlLocale(lang))
 
   return (
     <Card className='py-3 sm:py-4 md:py-6 border-l-4 border-l-primary bg-gradient-to-r from-input-background to-input-hover-background'>
@@ -41,20 +29,9 @@ export default async function AssistanceCardToday({
   )
 }
 
-export const AssistanceCardTodaySkeleton = async ({
-  lang,
-  tenant,
-}: {
-  lang: Language
-  tenant: TenantsType
-}) => {
-  const { t } = await api.fetch(lang, tenant)
-  const today = new Intl.DateTimeFormat('es-ES', {
-    timeZone: APP_TIMEZONE,
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  }).format(new Date())
+export const AssistanceCardTodaySkeleton = async () => {
+  const { t, lang } = await getServerT()
+  const today = formatTodayLongInAppTz(getIntlLocale(lang))
 
   return (
     <Card className='py-3 sm:py-4 md:py-6 border-l-4 border-l-primary bg-gradient-to-r from-input-background to-input-hover-background'>

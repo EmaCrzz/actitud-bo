@@ -5,6 +5,7 @@ import { useTranslations } from '@/lib/i18n/context'
 import { formatLongDayInAppTz } from '@/lib/format-date'
 import { shiftIsoDateInAppTz } from '@/lib/timezone'
 import { type Language } from '@/lib/i18n/types'
+import { getIntlLocale } from '@/lib/i18n/locale'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -29,7 +30,10 @@ export default function DayNavigator({
   const isToday = currentDate === todayDate
   const isAtMin = currentDate === minDate
   const yesterdayIso = shiftIsoDateInAppTz(todayDate, -1)
-  const locale = lang === 'en' ? 'en-US' : 'es-AR'
+  // Único componente client que sigue recibiendo `lang` por prop: lo necesita
+  // para formatear con Intl, y getIntlLocale es isomorfo (vive en ./locale,
+  // no en el módulo server-only).
+  const locale = getIntlLocale(lang)
 
   const label = (() => {
     if (isToday) return t('assistance.dayNavigator.today')

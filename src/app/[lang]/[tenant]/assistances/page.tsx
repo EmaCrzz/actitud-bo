@@ -7,9 +7,7 @@ import { ArrowLeftIcon } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
-import api from '@/lib/i18n/api'
-import { type Language } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
+import { getServerT } from '@/lib/i18n/server'
 import { getTodayIsoDateInAppTz, shiftIsoDateInAppTz } from '@/lib/timezone'
 
 // Ventana máxima hacia atrás desde /assistances.
@@ -37,16 +35,10 @@ function resolveSelectedDate(raw: string | undefined, todayIso: string): string 
   return raw
 }
 
-export default async function page({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ lang: Language; tenant: TenantsType }>
-  searchParams: Promise<{ date?: string }>
-}) {
-  const { lang, tenant } = await params
+export default async function page({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
   const { date: rawDate } = await searchParams
-  const { t } = await api.fetch(lang, tenant)
+  // `lang` se sigue usando acá: DayNavigator es client y lo necesita para Intl.
+  const { t, lang } = await getServerT()
 
   const todayIso = getTodayIsoDateInAppTz()
   const selectedDate = resolveSelectedDate(rawDate, todayIso)
@@ -82,7 +74,7 @@ export default async function page({
             />
           }
         >
-          <AssistancesList collapsible={false} date={listDateProp} lang={lang} tenant={tenant} />
+          <AssistancesList collapsible={false} date={listDateProp} />
         </Suspense>
       </section>
       <FooterNavigation />

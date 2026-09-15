@@ -3,18 +3,12 @@ import { Button } from '@/components/ui/button'
 import { EXPENSES } from '@/consts/routes'
 import ExpenseForm from '@/expenses/components/form'
 import { getExpenseById } from '@/accounting/api/server'
-import api from '@/lib/i18n/api'
-import { type Language } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
+import { getServerT } from '@/lib/i18n/server'
 import Link from 'next/link'
 
-export default async function EditExpensePage({
-  params,
-}: {
-  params: Promise<{ id: string; lang: Language; tenant: TenantsType }>
-}) {
-  const { id, lang, tenant } = await params
-  const { t } = await api.fetch(lang, tenant)
+export default async function EditExpensePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const { t } = await getServerT()
   const expense = await getExpenseById(id)
 
   return (

@@ -9,27 +9,22 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-import api from '@/lib/i18n/api'
-import { type Language } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
+import { getServerT } from '@/lib/i18n/server'
+import { getIntlLocale } from '@/lib/i18n/locale'
 import { formatLongDayInAppTz } from '@/lib/format-date'
 import { getTodayIsoDateInAppTz, parseAppTzDateString, shiftIsoDateInAppTz } from '@/lib/timezone'
 
 export default async function AssistancesList({
   collapsible = true,
   date,
-  lang,
-  tenant,
 }: {
   collapsible?: boolean
   date?: string
-  lang: Language
-  tenant: TenantsType
 }) {
   const assistances = date
     ? await getAssistancesByDate(parseAppTzDateString(date))
     : await getTodayAssistances()
-  const { t } = await api.fetch(lang, tenant)
+  const { t, lang } = await getServerT()
 
   // Header dinámico: hoy AR / ayer AR / "lunes 7 de julio".
   const todayIso = getTodayIsoDateInAppTz()
@@ -37,9 +32,10 @@ export default async function AssistancesList({
   const headerLabel = (() => {
     if (!date || date === todayIso) return t('assistance.todayAssistances')
     if (date === yesterdayIso) return t('assistance.yesterdayAssistances')
-    const locale = lang === 'en' ? 'en-US' : 'es-AR'
 
-    return t('assistance.assistancesOfDay', { day: formatLongDayInAppTz(date, locale) })
+    return t('assistance.assistancesOfDay', {
+      day: formatLongDayInAppTz(date, getIntlLocale(lang)),
+    })
   })()
 
   return (

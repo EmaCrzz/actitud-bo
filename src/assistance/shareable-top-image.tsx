@@ -2,9 +2,8 @@ import { MedalOne, MedalFive, MedalFour, MedalThree, MedalTwo } from '@/componen
 import Cup from '@/components/icons/cup'
 import Instagram from '@/components/icons/instagram'
 import { cn } from '@/lib/utils'
-import { type Language } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
-import api from '@/lib/i18n/api'
+import { getServerT } from '@/lib/i18n/server'
+import { getIntlLocale } from '@/lib/i18n/locale'
 import LogoBlanco from '@/assets/logos/blanco/logo'
 import { APP_TIMEZONE } from '@/lib/timezone'
 
@@ -25,19 +24,14 @@ interface TopCustomer {
 
 interface ShareableTopImageProps {
   data: TopCustomer[]
-  lang: Language
-  tenant: TenantsType
   className?: string
 }
 
-export default async function ShareableTopImage({
-  data,
-  lang,
-  tenant,
-  className = '',
-}: ShareableTopImageProps) {
-  const { t } = await api.fetch(lang, tenant)
-  const currentMonth = new Date().toLocaleDateString(lang, {
+export default async function ShareableTopImage({ data, className = '' }: ShareableTopImageProps) {
+  const { t, lang } = await getServerT()
+  // Antes pasaba `lang` ('es') crudo como locale: daba formato genérico en
+  // vez del argentino. getIntlLocale lo resuelve a es-AR.
+  const currentMonth = new Date().toLocaleDateString(getIntlLocale(lang), {
     month: 'long',
     year: 'numeric',
     timeZone: APP_TIMEZONE,

@@ -1,17 +1,13 @@
 import { AlignJustify, Hourglass } from 'lucide-react'
-import i18n from '@/lib/i18n/api'
-import type { Language } from '@/lib/i18n/types'
-import type { TenantsType } from '@/lib/tenants'
+import { getServerT } from '@/lib/i18n/server'
 import type { DailySummary } from '@/home/types'
 
 interface DailySummaryCardProps {
   summary: DailySummary
-  lang: Language
-  tenant: TenantsType
 }
 
-export default async function DailySummaryCard({ summary, lang, tenant }: DailySummaryCardProps) {
-  const { t } = await i18n.fetch(lang, tenant)
+export default async function DailySummaryCard({ summary }: DailySummaryCardProps) {
+  const { t } = await getServerT()
 
   const items = [
     {

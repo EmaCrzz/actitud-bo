@@ -4,20 +4,13 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { STATS } from '@/consts/routes'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { type Language } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
-import api from '@/lib/i18n/api'
+import { getServerT } from '@/lib/i18n/server'
 import ArrowLeftIcon from '@/components/icons/arrow-left'
 import CustomerActives from '@/customer/stats/actives'
 import CustomerPendings from '@/customer/stats/pendings'
 
-export default async function CustomerStatsPage({
-  params,
-}: {
-  params: Promise<{ lang: Language; tenant: TenantsType }>
-}) {
-  const { lang, tenant } = await params
-  const { t } = await api.fetch(lang, tenant)
+export default async function CustomerStatsPage() {
+  const { t } = await getServerT()
 
   return (
     <>

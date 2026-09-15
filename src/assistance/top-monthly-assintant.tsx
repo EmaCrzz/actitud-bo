@@ -1,8 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { getTopCustomersThisMonthRPC } from '@/assistance/api/server'
-import api from '@/lib/i18n/api'
-import { type Language } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
+import { getServerT } from '@/lib/i18n/server'
 import { MedalOne, MedalFive, MedalFour, MedalThree, MedalTwo } from '@/components/icons/medal'
 import Cup from '@/components/icons/cup'
 import { cn } from '@/lib/utils'
@@ -18,15 +16,9 @@ const Icons = [
   <MedalFive key='MedalFive' className='size-10 text-yellow-400' />,
 ]
 
-export default async function TopMonthlyAssintant({
-  lang,
-  tenant,
-}: {
-  lang: Language
-  tenant: TenantsType
-}) {
+export default async function TopMonthlyAssintant() {
   const { data } = await getTopCustomersThisMonthRPC()
-  const { t } = await api.fetch(lang, tenant)
+  const { t } = await getServerT()
 
   const hasData = data && data.length > 0
 
@@ -63,7 +55,7 @@ export default async function TopMonthlyAssintant({
 
             {/* Hidden component for image generation */}
             <div className='fixed -top-[9999px] -left-[9999px] pointer-events-none'>
-              <ShareableTopImage data={data} lang={lang} tenant={tenant} />
+              <ShareableTopImage data={data} />
             </div>
           </>
         ) : (
@@ -76,14 +68,8 @@ export default async function TopMonthlyAssintant({
   )
 }
 
-export const TopMonthlyAssintantSkeleton = async ({
-  lang,
-  tenant,
-}: {
-  lang: Language
-  tenant: TenantsType
-}) => {
-  const { t } = await api.fetch(lang, tenant)
+export const TopMonthlyAssintantSkeleton = async () => {
+  const { t } = await getServerT()
 
   return (
     <Card className='p-4 gap-y-6'>

@@ -4,27 +4,19 @@ import AuthHeader, { AuthHeaderLoader } from '@/auth/components/header'
 import UnauthorizedToast from '@/auth/components/unauthorized-toast'
 import FooterNavigation from '@/components/nav'
 import { Suspense } from 'react'
-import { type Language } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
 
-export default async function Home({
-  params,
-}: {
-  params: Promise<{ lang: Language; tenant: TenantsType }>
-}) {
-  const { lang, tenant } = await params
-
+export default async function Home() {
   return (
     <>
       <Suspense fallback={null}>
         <UnauthorizedToast />
       </Suspense>
       <Suspense fallback={<AuthHeaderLoader />}>
-        <AuthHeader lang={lang} tenant={tenant} />
+        <AuthHeader />
       </Suspense>
       <section className='max-w-3xl mx-auto w-full'>
         <Suspense fallback={<AssistanceCounterLoader />}>
-          <AssistanceCounter lang={lang} tenant={tenant} />
+          <AssistanceCounter />
         </Suspense>
         <AutocompleteInput />
       </section>

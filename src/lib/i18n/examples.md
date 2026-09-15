@@ -18,54 +18,47 @@ src/lib/i18n/
 │       ├── actitud.json     # Override específico para Actitud
 │       ├── wellrise.json    # Override específico para WellRise
 │       └── core.json        # Override específico para Core
-├── api.ts                   # API para cargar traducciones
-├── hooks.ts                 # Hooks para componentes cliente
-├── server.ts                # Utilidades para server components
-├── types.ts                 # Tipos básicos
-└── index.ts                 # Exportaciones principales
+├── api.ts                   # Carga y mergea diccionarios (React.cache)
+├── server.ts                # getServerT() — SERVER ONLY
+├── locale.ts                # getIntlLocale() — isomorfo
+├── context.tsx              # I18nClientProvider + useTranslations()
+├── server-provider.tsx      # Puente server → client del diccionario
+├── types.ts                 # LANGUAGES, Language, TranslationKey
+└── index.ts                 # (comentado — multi-idioma en runtime no está activo)
 ```
+
+> `lang` y `tenant` **no se pasan por props**. Son constantes de build: el rewrite
+> de `next.config.ts` deriva los segmentos `[lang]/[tenant]` de las env vars
+> `APP_LANGUAGE` / `TENANT`. `getServerT()` las lee directamente.
 
 ## Uso en Client Components
 
 ```tsx
-import { useTranslation, useT } from '@/lib/i18n/hooks'
+import { useTranslations } from '@/lib/i18n/context'
 
-// Ejemplo completo con cambio de idioma
 function MyComponent() {
-  const { t, language, changeLanguage, isLoading } = useTranslation()
-  
-  if (isLoading) return <div>Loading...</div>
-  
+  const { t } = useTranslations()
+
   return (
     <div>
       <h1>{t('customer.title')}</h1>
       <p>{t('customer.welcome', { name: 'Emanuel' })}</p>
-      <button onClick={() => changeLanguage('en')}>
-        {t('buttons.changeLanguage')}
-      </button>
     </div>
   )
 }
-
-// Ejemplo simple solo con función t
-function SimpleComponent() {
-  const t = useT()
-  
-  return (
-    <button>{t('buttons.continue')}</button>
-  )
-}
 ```
+
+El diccionario lo inyecta `I18nServerProvider` desde el layout raíz; no hace
+falta pasarle nada al hook.
 
 ## Uso en Server Components
 
 ```tsx
 import { getServerT } from '@/lib/i18n/server'
 
-// En un Server Component
 export default async function ServerComponent() {
-  const t = await getServerT('es')
-  
+  const { t } = await getServerT()
+
   return (
     <div>
       <h1>{t('navigation.dashboard')}</h1>
@@ -73,18 +66,28 @@ export default async function ServerComponent() {
     </div>
   )
 }
-
-// En una API Route
-import { getServerTranslations } from '@/lib/i18n/server'
-
-export async function GET(request: Request) {
-  const { t } = await getServerTranslations('es')
-  
-  return Response.json({
-    message: t('messages.actionCompleted')
-  })
-}
 ```
+
+`getServerT()` devuelve `{ t, dictionary, lang, tenant }`. No lleva caché
+propia: `api.fetch` ya está envuelto en `React.cache()`, así que llamarla
+varias veces dentro del mismo request no duplica trabajo.
+
+**Nunca importar `server.ts` desde un `'use client'`**: lee env vars que no son
+`NEXT_PUBLIC_*` y el bundler las inlinearía como `''` sin error visible.
+
+## Formatear con Intl
+
+```tsx
+import { getIntlLocale } from '@/lib/i18n/locale'
+
+const { lang } = await getServerT()
+const locale = getIntlLocale(lang) // 'es' → 'es-AR', 'en' → 'en-US'
+```
+
+`locale.ts` es isomorfo a propósito: lo consumen server components y también
+los pocos client components que reciben `lang` por prop para formatear.
+Es la única fuente de verdad del mapeo idioma → locale — nada de
+`lang === 'en' ? 'en-US' : 'es-AR'` suelto.
 
 ## Ejemplos de Traducciones
 
@@ -132,7 +135,7 @@ t('auth.permissions.admin')       // → "Administrador"
 
 ### Autocompletado Inteligente
 ```tsx
-const t = useT()
+const { t } = useTranslations() // o await getServerT() en server
 
 // Al escribir t(' aparecerá intellisense con todas las keys disponibles:
 t('buttons.continue')           // ✅ Válido
