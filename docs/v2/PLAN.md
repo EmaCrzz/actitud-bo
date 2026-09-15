@@ -146,6 +146,46 @@ No son adaptaciones de layout: son **cambios de navegación y de funcionalidad**
 
 **Flows desktop sin equivalente mobile:** "Estado del home" (`2166:22899`) — cubierto de hecho por los Home de las otras secciones — y "Crear cliente desde Clientes" (`2167:22903`), cubierto por el botón icon-only del listado.
 
+### 2.3 Validaciones pendientes de Ema (lista viva)
+
+Lo que hace falta mirar en Figma para desbloquear la fase siguiente. **Se tacha cuando se responde.** Si algo se responde en una conversación, volcarlo acá — esta lista es el único lugar donde viven las preguntas abiertas de diseño.
+
+| # | Qué hay que saber | Bloquea | Estado |
+|---|---|---|---|
+| 1 | Degradación del `Data Table` en mobile (358px) | Fase 5 | ✅ **Resuelto 2026-09-15** — ver [2.4](#24-presentación-de-componentes-confirmada) |
+| 2 | Presentación del `Modal / Membership Form` en desktop | Fase 5 | ✅ **Resuelto** — panel lateral derecho 480×832 |
+| 3 | ¿El rosa/magenta es la marca o placeholder? | Fase 5 | ✅ **Resuelto** — **es la marca de Actitud**. Ema: "hoy no es necesario que pienses en ello, podés mantener todo en escala de grises". Se construye con los tokens neutrales y la paleta se aplica en una pasada aparte |
+| 4 | Ancho del drawer mobile (¿260px?) + íconos de **Gastos** y **Balance** | Nada — deuda de la Fase 4 | ⬜ |
+| 5 | **¿El recargo por mora es override manual o sólo se muestra el calculado?** El form de renovación tiene Descuento y Recargo como selects, pero `billing-policy.ts` los calcula por día del mes | Fase 8 | ⬜ |
+| 6 | **¿"Sin membresía" es un estado real de cliente?** Aparece como opción del select de tipo en el alta | Fase 7 | ⬜ |
+
+### 2.4 Presentación de componentes (confirmada)
+
+Geometría extraída del árbol de nodos desktop (frame 1280×832) + capturas que pasó Ema el 2026-09-15. **Esto es vinculante para la Fase 5.**
+
+| Componente | Desktop | Mobile |
+|---|---|---|
+| `Modal / Membership Form` | **Panel lateral derecho**, `x=800`, **480×832** (800+480=1280, anclado al borde, full-height) | **Full-screen 390×844** |
+| `Customer Detail Modal` | Idéntico: panel lateral derecho 480×832 | Full-screen 390×844 |
+| `Modal Dialog` | **Centrado**: `x=384`, 512×{229, 291, 322} — (1280−512)/2 = 384. Alto variable según contenido | Centrado, 358 de ancho |
+| `Payment Receipt` | **Centrado**: `x=445`, 390×574 — mismo ancho que mobile | (ver nota en Fase 8) |
+| `Data Table` | Tabla real, 839 de ancho, alto 175–566 según contenido | **Lista de filas apiladas, NO tabla.** Cada fila: avatar circular con iniciales + nombre + línea secundaria + badge de estado a la derecha. Sin headers de columna |
+
+**Anatomía de la fila mobile** (confirmada en la captura de "Renovar membresía"):
+
+```
+┌──────────────────────────────────────────────┐
+│ (AN)  Ana Beltrán              [ Vencida ]   │
+│       Membresía: 5 días                       │
+└──────────────────────────────────────────────┘
+```
+
+Avatar = iniciales sobre círculo gris. Badge: verde "Activo" / rojo "Vencida". El `getInitials` de [src/lib/format-person.ts](../../src/lib/format-person.ts) ya resuelve las iniciales — reusar, no reescribir.
+
+**Consecuencia para la Fase 5:** `DataTable` necesita dos renders, no uno responsive por CSS. En desktop filas `<tr>`; en mobile una lista de filas con avatar+badge. Conviene modelarlo como un componente que recibe, además de las columnas, un render de fila mobile.
+
+**Forma más barata de responder:** exportar esos frames a PNG en `docs/v2/figma/{node-id}.png` y commitearlos. Se leen desde el repo, quedan versionados y **elimina la dependencia de la cuota del MCP** (ver [Decisiones abiertas](#decisiones-abiertas--riesgos) #10). Un screenshot pegado en la sesión, o una descripción de dos líneas, también sirven.
+
 ### 3. Protocolo de trabajo con el Figma (obligatorio por fase)
 
 La cuota del MCP de Figma es el recurso escaso (seat View en plan Professional: ~5 llamadas antes de cortar). El índice de nodos de arriba existe para gastarla bien.
@@ -311,6 +351,10 @@ El logo además necesita un bucket de Supabase Storage con su política de acces
 | B7 | `discount_rules` | `valid_from`, `valid_to` | La sección Configuración → Promociones sugiere promos con vigencia. Hoy sólo hay `active` booleano. | 14 |
 | B8 | `profile` | `email` | Configuración → Usuarios necesita mostrar/invitar por email. Hoy el email vive sólo en `auth.users`. | 14 |
 | B9 | — | tabla de notificaciones | El header del Figma tiene campana con badge. No hay modelo. Puede resolverse como derivado (membresías por vencer) sin tabla. | 4 |
+| B10 | `customers` | `birth_date` | El form de alta pide **"Fecha de nacimiento"** (captura 2026-09-15). La tabla no tiene la columna. | 7 |
+| B11 | `customers` | `notes` | El paso 2 del alta tiene **"Observaciones / Notas internas"** (textarea). Sin columna donde guardarlo. | 7 |
+| B12 | `customer_membership` | `start_date` | El alta pide **"Fecha de inicio"** además de "Fecha de vencimiento". Hoy sólo existe `expiration_date`; el inicio se infiere de `last_payment_date`, que no es lo mismo. | 7 |
+| B13 | `customer_membership` | soportar **"Sin membresía"** | El select de tipo ofrece `Sin membresía`, pero `membership_type` es `NOT NULL` con FK a `types_memberships`. O se agrega un tipo `NONE`, o se permite alta sin fila en `customer_membership`. Ver decisión abierta #6 de [2.3](#23-validaciones-pendientes-de-ema-lista-viva). | 7 |
 
 ### C. Defecto latente detectado en el schema actual
 
@@ -562,6 +606,37 @@ También es el destino del card "Clientes activos del mes" del home (`80` / `4 c
 
 > El mobile diseñó **una sola** sección de alta con 2 pasos, y desde Clientes se entra por el `New Client Button` icon-only del listado. Eso **valida el enfoque de un formulario con dos entradas** que ya proponía este plan. Si desktop tiene 5 pasos y mobile 2, resolver la diferencia antes de implementar.
 
+### Contenido del formulario (confirmado en captura del 2026-09-15)
+
+Header: flecha atrás + **"Nuevo cliente"** + subtítulo *"Complete los datos para registrar un cliente."*
+Stepper de 2 pasos con check verde al completar el primero. Footer: `Cancelar` (outline) + `Siguiente` → en el paso 2, `Guardar cliente`.
+
+**Paso 1 — "Datos personales"**
+
+| Campo | Columna en DB | Estado |
+|---|---|---|
+| Nombre | `customers.first_name` | ✅ |
+| Apellido | `customers.last_name` | ✅ |
+| DNI | `customers.person_id` | ✅ (sin UNIQUE — brecha B5) |
+| **Fecha de nacimiento** | — | ❌ **brecha B10** |
+| Contacto (teléfono) | `customers.phone` | ✅ |
+
+> El form **no pide email**, aunque `customers.email` existe. Confirmar si se saca de la UI o falta en el diseño.
+
+**Paso 2 — "Membresía inicial"**
+
+| Campo | Columna en DB | Estado |
+|---|---|---|
+| Tipo de membresía (incluye **"Sin membresía"**) | `customer_membership.membership_type` | ⚠️ **brecha B13** |
+| **Fecha de inicio** | — | ❌ **brecha B12** |
+| Fecha de vencimiento | `customer_membership.expiration_date` | ✅ |
+| Forma de pago | `membership_payments.payment_method` | ✅ |
+| **Observaciones / Notas internas** | — | ❌ **brecha B11** |
+
+**Riesgo timezone — crítico en este form.** Hay **tres** datepickers (nacimiento, inicio, vencimiento). Los tres devuelven `"YYYY-MM-DD"` y los tres van a la DB. Cada uno debe pasar por `parseAppTzDateString` antes del RPC. Es exactamente el call site donde ya se rompió dos veces.
+
+> Nota: el Figma escribe **"Tipo de mebresia"** (sin la `s` y sin tilde). Es un typo del diseño — implementar "Tipo de membresía" y avisar.
+
 Mismo formulario, **dos puntos de entrada**: el botón "Nuevo cliente" de Acciones rápidas del home (hoy hace `toast('próximamente')` en [QuickActionsSection.tsx](../../src/home/components/v2/QuickActionsSection.tsx)) y el botón primario del listado de Clientes. El flow desde el home tiene 5 frames de `Modal / Membership Form` = probablemente 4–5 pasos; el flow desde Clientes tiene 2. **Verificar si son el mismo formulario con distinta entrada o si difieren en pasos.**
 
 ### Qué existe hoy
@@ -597,9 +672,39 @@ Mismo formulario, **dos puntos de entrada**: el botón "Nuevo cliente" de Accion
 **Estado:** ⬜ pendiente
 **Figma:** desktop `2166:22898` ("Desde el home", 10 pantallas — el flow más largo) + `2167:22902` ("Desde Cliente/Perfil", 7 pantallas) · **mobile `2222:43026` ("Renovar membresía desde acciones rápidas", 6 pantallas)**.
 
-> ⚠️ **Dos huecos de diseño en mobile, a resolver al arrancar la fase:**
-> 1. **El `Payment Receipt` no aparece en ningún flow mobile.** Desktop lo tiene en ambos flows (`2118:17883`, `2118:28076`); mobile termina en el `Modal Dialog` de confirmación (`2183:43825`). ¿No existe comprobante en mobile o falta diseñarlo? Siendo que la app en producción es mobile-first, asumir que no existe sería raro.
-> 2. **Mobile tiene 6 pantallas contra 10 de desktop.** Confirmar si es el mismo flow con menos pasos o dos flows distintos.
+> ✅ **Hueco resuelto (2026-09-15).** El `Payment Receipt` en mobile **sí existe**: es el `Modal Dialog` de éxito (`2183:43825`), no una pantalla aparte. Ver el detalle del flow abajo.
+>
+> ⚠️ Queda abierto: **mobile tiene 6 pantallas contra 10 de desktop.** Confirmar si es el mismo flow con menos pasos o dos flows distintos.
+
+### Flow de renovación, paso a paso (confirmado en captura del 2026-09-15)
+
+Header del panel: flecha atrás + **"Renovar membresía"**. Footer: `Cancelar` + `Siguiente` / `Confirmación`.
+
+1. **Buscar cliente** — search "Busca por nombre o apellido" + lista de filas (avatar + nombre + `Membresía: 5 días` + badge `Activo`/`Vencida`). Con query escrita, la lista filtra y el badge se mantiene.
+2. **Cliente fijado** — al elegirlo, la ficha queda anclada arriba del panel (avatar + nombre + badge) y debajo aparece el stepper de 2 pasos: **"Nueva membresía"** / **"Confirmar"**.
+3. **Paso 1 — Nueva membresía:**
+   - `Tipo de membresía` (select)
+   - Sección **"Condiciones y forma de pago"**: `Promociones` (select) · `Descuento` + `Recargo` (dos selects lado a lado) · `Forma de pago` (select)
+4. **Paso 2 — Confirmar:** tabla **"Resumen"** con las filas `Membresía de 5 días` · `Promoción activa` · `Descuento aplicado` · `Recargo por mora` · `Método de pago` · `Fecha`, y una fila **`Total`** destacada. Los valores vacíos se muestran como `-`.
+5. **Éxito** — dialog centrado sobre el panel: check verde, **"Membresía renovada"**, una línea de resumen (`Ana Beltrán - 5 días $20.000` / `Método: Transferencia`) y botones `Cancelar` + **`Compartir`**. Ese dialog **es** el comprobante en mobile.
+
+**Mapeo a la DB** — todo el resumen tiene respaldo salvo el número de comprobante:
+
+| Fila del resumen | Origen |
+|---|---|
+| Membresía de N días | `types_memberships.amount` vía `getMembershipTypes` |
+| Promoción activa | `discount_rules` con `applies_to = 'promo'` |
+| Descuento aplicado | `membership_payments.discount_amount` + `discount_rule_id` |
+| Recargo por mora | `types_memberships.amount_surcharge` vía `billing-policy.ts` |
+| Método de pago | `membership_payments.payment_method` |
+| Total | `membership_payments.amount` |
+| *(número de comprobante)* | ❌ **brecha B3** — no está en el diseño tampoco; decidir si se agrega |
+
+> ⚠️ **Decisión de negocio pendiente (#5 en [2.3](#23-validaciones-pendientes-de-ema-lista-viva)).** `Descuento` y `Recargo` son **selects manuales** en el diseño, pero [billing-policy.ts](../../src/accounting/billing-policy.ts) calcula el recargo automáticamente según el día del mes (1–15 normal, 16+ recargo). ¿El operador puede override, o el select sólo refleja lo calculado y está deshabilitado? Cambia el modelo del form y qué se guarda en `discount_note`.
+
+> Nota: el Figma muestra la fila `Fecha` con valor **`$10/08/2026`** — el `$` es un typo del diseño.
+
+**Compartir el comprobante:** ya hay precedente funcionando en v1 — [share-image-button.tsx](../../src/assistance/share-image-button.tsx) + [use-share-image.ts](../../src/lib/hooks/use-share-image.ts). Reusar.
 
 ### Estructura del flow
 
@@ -890,8 +995,7 @@ Ordenadas por impacto. Las que bloquean una fase están marcadas.
    - **`Payment Receipt` no aparece en ningún flow mobile.** ¿No existe en mobile o falta diseñarlo? → Fase 8.
    - **Divergencia de navegación en Asistencias** (desktop con `Tabs`, mobile sin ellos) y en **Configuración** (sub-items de sidebar vs tabs in-page). Decidir si son intencionales. → Fases 9 y 14.
 
-2. **⚠️ Paleta: el Figma es rosa/magenta, la implementación es neutral.** La pantalla verificada (`2060:11534`) usa un accent rosa fuerte (`#E91E63`-ish) en botón primario, ítem activo del sidebar y barras del chart semanal. La Fase 1 implementó tokens neutrales con accents green/yellow. **¿El rosa es la marca de Actitud, o es placeholder del wireframe?** Confirmar antes de la Fase 5, porque las primitivas van a fijar el look de todo lo demás.
-
+2. **~~Paleta~~ → RESUELTO (2026-09-15).** El rosa/magenta **es la marca de Actitud**, y los Figmas nuevos apuntan a más alta fidelidad. Ema: *"hoy no es necesario que pienses en ello de momento, podés mantener todo en escala de grises si querés"*. **Decisión: las primitivas de la Fase 5 se construyen con los tokens neutrales actuales**, y la paleta de marca se aplica después en una pasada dedicada sobre las CSS vars de `[data-v2]` — que es exactamente para lo que sirve el theming scoped de la Fase 1. Evita mezclar decisiones de color con decisiones de API de componentes.
 3. **Estados de tabla y lista — parcialmente resueltos por el mobile.** En desktop hay tres anotaciones del diseñador pidiendo definirlos (`2118:22319`, `2118:22606`, `2118:29353`), pero **el mobile sí diseñó dos empty states**: `Gastos/Vacio` (`2286:119862`) y Ventas en $0 (`2265:70904`). Usar esos dos como referencia canónica y derivar el resto (cargando, error, sin resultados de filtro) en la Fase 5, documentándolos acá. Ya no hace falta pedir nada.
 
 4. **Paginación de tablas sin definir.** Ningún wireframe muestra paginador. Con el volumen actual (~cientos de clientes) scroll + filtros alcanza, pero conviene decidirlo en Fase 5 y no después de 11 tablas construidas.
@@ -973,3 +1077,15 @@ Aplica a **toda** fase antes de pedir review. Está pensado para que el otro dev
   - Queda **una sola incógnita de diseño realmente bloqueante**: cómo degrada el `Data Table` en 358px. Verificar antes de la Fase 5.
   — Ema + Claude.
 - 2026-09-10 — Agregado el **protocolo de trabajo con el Figma** (abrir el nodo-sección del flow → volcar hallazgos acá → marcar verificado → recién ahí implementar) y la tabla vacía de **flows mobile**, pendiente de que Ema pase el `fileKey` y los nodos-sección del archivo mobile. Reformulada la decisión abierta #1: los flows mobile existen, el problema es que no están indexados, no que no estén diseñados — Ema + Claude.
+- 2026-09-15 — **Refactor de i18n previo a la Fase 4** (`refactor/i18n-server-t`, PR #50). Se eliminó el props threading de `lang`/`tenant` con `getServerT()`. Se hizo antes de la fase justamente porque ésta crea 10 pages nuevas, que con el patrón anterior habrían sumado 10 call sites más al refactor. ADR [20260908111054](../architecture/decisions/20260908111054_centralizar-resolucion-de-lang-tenant-en-i18n.md) — Ema + Claude.
+- 2026-09-15 — **Fase 4 completa** (`feat/v2-navegacion-sidebar`). Sidebar alineado al Figma: "Caja"→**Gastos** y "Reportes"→**Balance** (no existían en el diseño), reordenado, y los 8 ítems + 4 sub-ítems navegando a 10 rutas stub nuevas con placeholder `UnderConstruction`. Rutas centralizadas en `ROUTES_V2`. Notas:
+  - **Se corrigió un claim falso del propio plan**: el `endsWith` del active state no daba falsos positivos (`'/v2/settings/memberships'.endsWith('/v2/memberships')` es `false`); el defecto era un falso *negativo* con sub-rutas. Segunda vez que un documento del repo fija como hecho algo no verificado — conviene chequear los claims del plan al ejecutarlos.
+  - **Campana de notificaciones diferida**: sin modelo de datos, y definir qué muestra es producto, no navegación.
+  — Ema + Claude.
+- 2026-09-15 — **Ema pasó capturas y se destrabaron las 3 validaciones que frenaban la Fase 5.** Resultados en [2.4](#24-presentación-de-componentes-confirmada):
+  - **El `Data Table` en mobile no es una tabla**: es una lista de filas apiladas (avatar con iniciales + nombre + línea secundaria + badge de estado). Implica que el componente necesita **dos renders**, no uno responsive por CSS.
+  - **`Modal / Membership Form` y `Customer Detail Modal` son panel lateral derecho 480×832 en desktop** (geometría del árbol: `x=800` en frame de 1280) y full-screen 390×844 en mobile. `Modal Dialog` centrado 512×alto-variable; `Payment Receipt` centrado 390×574.
+  - **La paleta rosa es la marca**, pero se difiere: las primitivas se construyen en escala de grises y el color entra en una pasada aparte.
+  - **Bonus — 4 brechas de DB nuevas** del form de alta de cliente: `customers.birth_date` (B10), `customers.notes` (B11), `customer_membership.start_date` (B12) y soporte de "Sin membresía" (B13).
+  - **Bonus — se cerró un hueco de la Fase 8**: el `Payment Receipt` en mobile sí existe, es el dialog de éxito con botón Compartir. Y apareció una decisión de negocio nueva: el form deja elegir Descuento y Recargo a mano, mientras `billing-policy.ts` los calcula por día del mes.
+  — Ema + Claude.
