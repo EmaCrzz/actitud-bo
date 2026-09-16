@@ -10,7 +10,11 @@ export interface FilterOption {
 }
 
 interface FilterDropdownProps {
-  /** Etiqueta accesible. No se muestra: el Figma sólo muestra el valor. */
+  /**
+   * Nombre del filtro ("Estado", "Membresías"). Es la etiqueta accesible y
+   * además **lo que muestra el trigger mientras no hay nada seleccionado** —
+   * verificado en el Figma del listado de clientes el 2026-09-16.
+   */
   label: string
   value: string
   options: FilterOption[]
@@ -29,7 +33,15 @@ interface FilterDropdownProps {
  * propia debajo del search en mobile; cuando conviven con los otros controles la
  * altura compartida se ve mejor que respetar el valor aislado.
  *
- * Los anchos (2 filtros → 159px c/u, 3 → 108.67px) salen del Figma mobile.
+ * **Sin filtro aplicado el trigger muestra el nombre del filtro**, no el label
+ * de la opción "todos": en el Figma dicen "Estado" y "Membresías", no "Todos los
+ * estados". El label largo sí se usa dentro de la lista, donde hace falta que la
+ * opción diga qué hace. Radix muestra por default el texto del item
+ * seleccionado, así que el caso "todos" se renderiza a mano.
+ *
+ * En desktop cada dropdown ocupa su contenido (el Figma les da anchos distintos
+ * según el texto); en mobile se reparten la fila en partes iguales — los anchos
+ * del Figma mobile (2 filtros → 159px c/u, 3 → 108.67px) son exactamente eso.
  */
 export default function FilterDropdown({
   label,
@@ -46,9 +58,16 @@ export default function FilterDropdown({
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger
         aria-label={label}
-        className={cn('min-w-[108px] flex-1 sm:min-w-[159px] sm:flex-none', className)}
+        // `w-full` viene en la base del SelectTrigger (los selects de un
+        // formulario ocupan el ancho de su campo). Acá el dropdown comparte fila
+        // con otros elementos, así que en desktop necesita **ancho propio**: con
+        // `w-full` y el contenedor en `w-auto`, cada trigger tomaba el 100% del
+        // contenedor y dos de ellos se desbordaban pintando encima del botón de
+        // al lado. `twMerge` deja pasar `w-full` + `sm:w-44` porque son
+        // modifiers distintos, así que mobile sigue full-width.
+        className={cn('min-w-0 flex-1 sm:w-44 sm:flex-none', className)}
       >
-        <SelectValue placeholder={label} />
+        {value === allValue ? <span className='truncate'>{label}</span> : <SelectValue />}
       </SelectTrigger>
       <SelectContent>
         <SelectItem value={allValue}>{allLabel ?? t('common.all')}</SelectItem>

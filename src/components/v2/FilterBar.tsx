@@ -21,6 +21,18 @@ import { cn } from '@/lib/utils'
  *     <FilterDropdown ... />
  *     <FilterDropdown ... />
  *   </FilterBar>
+ *
+ * **Layout (verificado contra el Figma el 2026-09-16).** En desktop los cuatro
+ * elementos comparten **una sola fila**: `[search flexible] [dropdowns] [acción]`.
+ * En mobile se parte en dos, según la convención 2.1 del plan: primera fila el
+ * search con la acción comprimida a ícono al lado, segunda fila los dropdowns
+ * repartiéndose el ancho.
+ *
+ * Eso se resuelve con un único contenedor `flex-wrap` + utilidades `order`, no
+ * con dos contenedores: el `w-full` de los dropdowns fuerza el salto de línea en
+ * mobile y lo suelta en `sm`, y el `order` invierte acción y dropdowns entre
+ * breakpoints. Con dos contenedores separados no había forma de que en desktop
+ * quedaran en la misma fila sin duplicar el markup.
  */
 interface FilterBarProps {
   /** Input de búsqueda. Omitir en secciones que no lo tienen (ej. Balance). */
@@ -34,16 +46,21 @@ interface FilterBarProps {
 
 export default function FilterBar({ search, action, children, className }: FilterBarProps) {
   return (
-    <div className={cn('flex flex-col gap-3', className)}>
-      {/* Search y acción miden los dos 36px por construcción (`h-9` en el Input
-          y en el size `md` del Button), así que alinean sin depender del flex. */}
-      {(search || action) && (
-        <div className='flex items-center gap-3'>
-          {search && <div className='min-w-0 flex-1'>{search}</div>}
-          {action}
+    // Search, dropdowns y acción miden los tres 36px por construcción (`h-9` en
+    // el Input, en el SelectTrigger y en el size `md` del Button), así que
+    // alinean sin depender del flex.
+    <div className={cn('flex flex-wrap items-center gap-3', className)}>
+      {search && <div className='order-1 min-w-0 flex-1'>{search}</div>}
+      {children && (
+        // `w-full` fuerza el salto de línea en mobile (los dropdowns quedan en su
+        // propia fila) y `sm:w-auto` los mete en la fila del search en desktop.
+        // Los dropdowns traen su propio ancho de desktop: si dependieran del
+        // contenedor se desbordarían, porque el SelectTrigger es `w-full`.
+        <div className='order-3 flex w-full min-w-0 items-center gap-2 sm:order-2 sm:w-auto'>
+          {children}
         </div>
       )}
-      {children && <div className='flex flex-wrap items-center gap-2'>{children}</div>}
+      {action && <div className='order-2 shrink-0 sm:order-3'>{action}</div>}
     </div>
   )
 }

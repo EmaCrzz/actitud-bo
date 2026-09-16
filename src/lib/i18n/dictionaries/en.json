@@ -281,6 +281,13 @@
           "line2": "VIP"
         }
       }
+    },
+    "typesWeekly": {
+      "5_days": "5 days a week",
+      "3_days": "3 days a week",
+      "2_days": "2 days a week",
+      "daily": "Daily pass",
+      "vip": "VIP"
     }
   },
   "auth": {
@@ -681,9 +688,7 @@
       "quickActions": {
         "title": "Quick actions",
         "newCustomer": "New client",
-        "registerPayment": "Log payment",
-        "toastComingSoon": "Coming soon",
-        "toastComingSoonDescription": "This action ships in the next release."
+        "registerPayment": "Log payment"
       },
       "dailySummary": {
         "title": "Daily summary",
@@ -704,9 +709,56 @@
         }
       }
     },
+    "comingSoon": {
+      "title": "Coming soon",
+      "description": "This action ships in the next release."
+    },
     "underConstruction": {
       "title": "Under construction",
       "description": "This section isn't available yet. It's planned in the redesign and ships in an upcoming release."
+    },
+    "customers": {
+      "title": "Customers",
+      "subtitle": "Manage the gym's customers and the status of their memberships.",
+      "searchPlaceholder": "Search by first or last name",
+      "newCustomer": "New customer",
+      "filters": {
+        "statusLabel": "Status",
+        "statusAll": "All statuses",
+        "typeLabel": "Memberships",
+        "typeAll": "All memberships"
+      },
+      "status": {
+        "active": "Active",
+        "expired": "Expired",
+        "none": "No membership"
+      },
+      "columns": {
+        "name": "Name",
+        "membership": "Membership",
+        "status": "Status",
+        "expiration": "Expiration",
+        "attendances": "Attendances"
+      },
+      "row": {
+        "noMembership": "No membership"
+      },
+      "empty": {
+        "title": "No customers yet",
+        "description": "Once you register the first customer they'll show up in this list."
+      },
+      "noResults": {
+        "title": "No results",
+        "description": "No customer matches the current search or filters.",
+        "clearFilters": "Clear filters"
+      },
+      "error": {
+        "title": "We couldn't load the customers",
+        "description": "Check your connection and try again.",
+        "retry": "Retry"
+      },
+      "loadingMore": "Loading more customers...",
+      "countLabel": "{count} customers"
     }
   }
 }

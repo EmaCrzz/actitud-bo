@@ -1,6 +1,12 @@
 import MetricCard from '@/components/v2/MetricCard'
 import { getServerT } from '@/lib/i18n/server'
 import type { HomeMetrics } from '@/home/types'
+import { V2_CUSTOMERS } from '@/consts/routes'
+import {
+  MEMBERSHIP_STATUS_ACTIVE,
+  MEMBERSHIP_STATUS_EXPIRED,
+  customerFiltersToQueryString,
+} from '@/customer/filters'
 
 type SubtitleTone = 'success' | 'warning' | 'danger' | 'muted'
 
@@ -25,6 +31,7 @@ export default async function MetricsRow({ metrics }: MetricsRowProps) {
         value={metrics.todayCount > 0 ? metrics.todayCount : '—'}
       />
       <MetricCard
+        href={activeClientsHref(metrics)}
         subtitle={activeClients.subtitle}
         subtitleTone={activeClients.tone}
         title={t('v2.home.metrics.activeClientsMonth')}
@@ -32,6 +39,17 @@ export default async function MetricsRow({ metrics }: MetricsRowProps) {
       />
     </div>
   )
+}
+
+// El card lleva al listado de clientes con el filtro que corresponde a lo que
+// dice su subtítulo: si hay membresías vencidas el subtítulo habla de ellas, así
+// que el click tiene que aterrizar en esa lista y no en el listado completo.
+function activeClientsHref(metrics: HomeMetrics): string {
+  const queryString = customerFiltersToQueryString({
+    status: metrics.expiredCount > 0 ? MEMBERSHIP_STATUS_EXPIRED : MEMBERSHIP_STATUS_ACTIVE,
+  })
+
+  return `${V2_CUSTOMERS}?${queryString}`
 }
 
 type Translator = Awaited<ReturnType<typeof getServerT>>['t']

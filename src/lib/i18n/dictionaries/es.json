@@ -281,6 +281,13 @@
           "line2": "VIP"
         }
       }
+    },
+    "typesWeekly": {
+      "5_days": "5 días semanales",
+      "3_days": "3 días semanales",
+      "2_days": "2 días semanales",
+      "daily": "Pase diario",
+      "vip": "VIP"
     }
   },
   "auth": {
@@ -680,9 +687,7 @@
       "quickActions": {
         "title": "Acciones rápidas",
         "newCustomer": "Nuevo cliente",
-        "registerPayment": "Registrar pago",
-        "toastComingSoon": "Próximamente",
-        "toastComingSoonDescription": "Esta acción llega en la próxima entrega."
+        "registerPayment": "Registrar pago"
       },
       "dailySummary": {
         "title": "Resumen del día",
@@ -703,9 +708,56 @@
         }
       }
     },
+    "comingSoon": {
+      "title": "Próximamente",
+      "description": "Esta acción llega en la próxima entrega."
+    },
     "underConstruction": {
       "title": "En construcción",
       "description": "Esta sección todavía no está disponible. Está planificada en el rediseño y llega en una próxima entrega."
+    },
+    "customers": {
+      "title": "Clientes",
+      "subtitle": "Gestioná los clientes del gimnasio y el estado de sus membresías.",
+      "searchPlaceholder": "Busca por nombre o apellido",
+      "newCustomer": "Nuevo cliente",
+      "filters": {
+        "statusLabel": "Estado",
+        "statusAll": "Todos los estados",
+        "typeLabel": "Membresías",
+        "typeAll": "Todas las membresías"
+      },
+      "status": {
+        "active": "Activa",
+        "expired": "Vencida",
+        "none": "Sin membresía"
+      },
+      "columns": {
+        "name": "Nombre y Apellido",
+        "membership": "Membresía",
+        "status": "Estado",
+        "expiration": "Vencimiento",
+        "attendances": "Asistencias"
+      },
+      "row": {
+        "noMembership": "Sin membresía"
+      },
+      "empty": {
+        "title": "Todavía no hay clientes",
+        "description": "Cuando des de alta al primer cliente vas a verlo en esta lista."
+      },
+      "noResults": {
+        "title": "Sin resultados",
+        "description": "Ningún cliente coincide con la búsqueda o los filtros aplicados.",
+        "clearFilters": "Limpiar filtros"
+      },
+      "error": {
+        "title": "No pudimos cargar los clientes",
+        "description": "Revisá la conexión y volvé a intentar.",
+        "retry": "Reintentar"
+      },
+      "loadingMore": "Cargando más clientes...",
+      "countLabel": "{count} clientes"
     }
   }
 }

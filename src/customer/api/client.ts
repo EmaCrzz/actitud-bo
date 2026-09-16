@@ -1,9 +1,13 @@
 import { createClient } from '@/lib/supabase/client'
 import { Customer, CustomerWithMembership } from '@/customer/types'
-import { CUSTOMERS_PAGE_SIZE, SEARCH_CUSTOMER } from '@/customer/consts'
+import { SEARCH_CUSTOMER } from '@/customer/consts'
+import {
+  fetchCustomersPageWith,
+  type FetchCustomersPageOptions,
+} from '@/customer/api/customers-query'
 import { removeFormatPersonId } from '@/lib/format-person-id'
 import { DatabaseResult } from '@/types/database-errors'
-import { basicCustomerValidation, basicMembershipValidation, mapCustomerRow } from '../utils'
+import { basicCustomerValidation, basicMembershipValidation } from '../utils'
 import { withRateLimit } from '@/lib/rate-limit'
 import { parseCurrency } from '@/lib/format-currency'
 import { parseAppTzDateString } from '@/lib/timezone'
@@ -50,33 +54,10 @@ async function _searchCustomer(query?: string) {
 export const searchCustomer = withRateLimit('search', _searchCustomer)
 
 // Paginación + búsqueda server-side para el listado de clientes
-async function _fetchCustomersPage({
-  query,
-  page,
-  pageSize = CUSTOMERS_PAGE_SIZE,
-}: {
-  query?: string
-  page: number
-  pageSize?: number
-}): Promise<CustomerWithMembership[]> {
-  const supabase = createClient()
-  const from = page * pageSize
-  const to = from + pageSize - 1
-
-  let request = supabase
-    .from('customers')
-    .select(SEARCH_CUSTOMER)
-    .order('first_name', { ascending: true })
-    .order('id', { ascending: true })
-    .range(from, to)
-
-  if (query) {
-    request = request.ilike('full_name_search', `%${normalizeSearchQuery(query)}%`)
-  }
-
-  const { data } = await request
-
-  return (data ?? []).map(mapCustomerRow)
+async function _fetchCustomersPage(
+  options: FetchCustomersPageOptions & { page: number }
+): Promise<CustomerWithMembership[]> {
+  return fetchCustomersPageWith(createClient(), options)
 }
 
 export const fetchCustomersPage = withRateLimit('search', _fetchCustomersPage)
