@@ -51,17 +51,26 @@ function AppShellInner({ user, todayLabel, children }: AppShellProps) {
     <div className='flex h-full w-full min-w-0'>
       <aside
         className={cn(
-          'hidden md:flex h-full rounded-xl bg-primary-contrast border transition-[width] duration-200',
+          'hidden md:flex h-full rounded-lg bg-primary-contrast border transition-[width] duration-200',
           collapsed ? 'md:w-16' : 'md:w-[255px]'
         )}
       >
         <AppSidebar user={user} />
       </aside>
 
-      {/* Main */}
-      <div className='flex flex-1 flex-col min-w-0 pl-0 md:pl-6 lg:pl-12'>
+      {/* Main
+       *
+       * `min-h-0` en los dos niveles no es opcional: un flex item tiene
+       * `min-height: auto`, así que no puede encogerse por debajo de su
+       * contenido. Sin esto, una página larga (un listado de clientes, sin ir
+       * más lejos) empuja el main más allá del `h-dvh` del wrapper `[data-v2]`
+       * y el sobrante se dibuja sobre el fondo del tenant v1.
+       *
+       * Es el gemelo vertical del `flex-1 w-full min-w-0` que documentó el ADR
+       * de la fase 1.5 para el ancho. */}
+      <div className='flex flex-1 flex-col min-h-0 min-w-0 pl-0 md:pl-6 lg:pl-12'>
         <Header todayLabel={todayLabel} user={user} onOpenMobileNav={() => setMobileOpen(true)} />
-        <main className='flex-1 pt-4 lg:pt-6'>{children}</main>
+        <main className='flex-1 min-h-0 pt-4 lg:pt-6'>{children}</main>
       </div>
 
       {/* Mobile drawer — siempre montado; Radix Portal no renderiza DOM cuando

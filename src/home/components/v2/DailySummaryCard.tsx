@@ -64,7 +64,7 @@ export default async function DailySummaryCard({ summary }: DailySummaryCardProp
 function EmptyState({ label }: { label: string }) {
   return (
     <div className='flex flex-col items-center justify-center gap-3 flex-1 py-8 rounded-lg border'>
-      <div className='flex align-middle p-3 rounded-xl bg-[#E5E5E5]'>
+      <div className='flex align-middle p-3 rounded-lg bg-[#E5E5E5]'>
         <Hourglass aria-hidden='true' className='size-8 text-muted-foreground opacity-40' />
       </div>
       <p className='text-sm text-muted-foreground text-center max-w-[250px]'>{label}</p>

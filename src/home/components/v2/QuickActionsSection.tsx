@@ -3,6 +3,7 @@
 import { CreditCard, UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslations } from '@/lib/i18n/context'
+import Button from '@/components/v2/ui/Button'
 
 export default function QuickActionsSection() {
   const { t } = useTranslations()
@@ -19,22 +20,14 @@ export default function QuickActionsSection() {
         {t('v2.home.quickActions.title')}
       </h2>
       <div className='flex flex-col sm:flex-row gap-3'>
-        <button
-          className='justify-start sm:w-auto flex gap-2 items-center px-4 py-2 border rounded-xl hover:bg-accent hover:text-accent-foreground transition-colors hover:cursor-pointer text-sm'
-          type='button'
-          onClick={notifyComingSoon}
-        >
+        <Button className='justify-start sm:w-auto' type='button' variant='outlined' onClick={notifyComingSoon}>
           <UserPlus className='size-4' />
           {t('v2.home.quickActions.newCustomer')}
-        </button>
-        <button
-          className='justify-start sm:w-auto flex gap-2 items-center px-4 py-2 border rounded-xl hover:bg-accent hover:text-accent-foreground transition-colors hover:cursor-pointer text-sm'
-          type='button'
-          onClick={notifyComingSoon}
-        >
+        </Button>
+        <Button className='justify-start sm:w-auto' type='button' variant='outlined' onClick={notifyComingSoon}>
           <CreditCard className='size-4' />
           {t('v2.home.quickActions.registerPayment')}
-        </button>
+        </Button>
       </div>
     </section>
   )

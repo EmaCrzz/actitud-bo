@@ -358,7 +358,7 @@ function MenuGroupItemCollapsed({
         </PopoverTrigger>
         <PopoverContent
           align='start'
-          className='w-56 !p-2 bg-primary-contrast rounded-xl'
+          className='w-56 !p-2 bg-primary-contrast rounded-lg'
           data-v2='true'
           side='right'
           sideOffset={8}

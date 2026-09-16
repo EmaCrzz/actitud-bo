@@ -12,7 +12,7 @@ export default async function UnderConstruction({ titleKey }: { titleKey: Transl
   const { t } = await getServerT()
 
   return (
-    <div className='h-full p-2.5 lg:p-5 rounded-xl border flex flex-col gap-3 lg:gap-6'>
+    <div className='h-full p-2.5 lg:p-5 rounded-lg border flex flex-col gap-3 lg:gap-6'>
       <h1 className='text-lg font-semibold'>{t(titleKey)}</h1>
       <div className='flex flex-1 flex-col items-center justify-center gap-3 text-center'>
         <div className='flex size-12 items-center justify-center rounded-full bg-muted'>
