@@ -32,7 +32,9 @@
     "understood": "Understood",
     "version": "Version",
     "viewCustomer": "View customer",
-    "yes": "Yes"
+    "yes": "Yes",
+    "pagination": "Pagination",
+    "pageOf": "Page {current} of {total}"
   },
   "buttons": {
     "addNew": "Add New",
@@ -287,6 +289,13 @@
       "3_days": "3 days a week",
       "2_days": "2 days a week",
       "daily": "Daily pass",
+      "vip": "VIP"
+    },
+    "typesShort": {
+      "5_days": "5 days",
+      "3_days": "3 days",
+      "2_days": "2 days",
+      "daily": "Day pass",
       "vip": "VIP"
     }
   },
@@ -726,12 +735,16 @@
         "statusLabel": "Status",
         "statusAll": "All statuses",
         "typeLabel": "Memberships",
-        "typeAll": "All memberships"
+        "typeAll": "All memberships",
+        "statusInactive": "Inactive",
+        "statusUnsubscribed": "Unsubscribed",
+        "statusUnavailable": "Not available yet"
       },
       "status": {
         "active": "Active",
         "expired": "Expired",
-        "none": "No membership"
+        "none": "No membership",
+        "expiring": "Expiring soon"
       },
       "columns": {
         "name": "Name",
@@ -758,7 +771,55 @@
         "retry": "Retry"
       },
       "loadingMore": "Loading more customers...",
-      "countLabel": "{count} customers"
+      "countLabel": "{count} customers",
+      "totalLabel": "{total} Total customers",
+      "profile": {
+        "title": "Customer profile",
+        "renew": "Renew",
+        "loadError": "We could not load the customer profile.",
+        "tabs": {
+          "membership": "Membership",
+          "payments": "Payments",
+          "assistances": "Attendance",
+          "info": "Info"
+        },
+        "membership": {
+          "current": "Current membership",
+          "none": "This customer has no membership on record.",
+          "progress": "Period progress",
+          "daysRemaining": "{days} days remaining",
+          "lastDay": "Last day",
+          "expiredSince": "Expired {days} days ago",
+          "price": "Price",
+          "expires": "Expires",
+          "assistances": "Attendance"
+        },
+        "payments": {
+          "date": "Payment:",
+          "paid": "Paid",
+          "empty": "No payments on record yet.",
+          "forbidden": "Only an administrator can view the payment history.",
+          "error": "We could not load the payments."
+        },
+        "assistances": {
+          "date": "Date:",
+          "total": "Total: {total}",
+          "currentMonth": "This month: {total}",
+          "empty": "No attendance on record yet.",
+          "error": "We could not load the attendance history.",
+          "loadMore": "Show more"
+        },
+        "info": {
+          "personalData": "Personal data",
+          "fullName": "Full name",
+          "personId": "ID number",
+          "birthDate": "Date of birth",
+          "phone": "Phone",
+          "notes": "Notes",
+          "noNotes": "No notes.",
+          "empty": "—"
+        }
+      }
     }
   }
 }

@@ -10,7 +10,7 @@ import { getServerT } from '@/lib/i18n/server'
 
 export default async function CustomerListPage() {
   const { t } = await getServerT()
-  const initialCustomers = await searchAllCustomers({ page: 0 })
+  const { customers: initialCustomers } = await searchAllCustomers({ page: 0 })
 
   return (
     <>

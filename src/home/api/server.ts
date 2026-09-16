@@ -8,7 +8,7 @@ import {
   parseAppTzDateString,
   shiftIsoDateInAppTz,
 } from '@/lib/timezone'
-import { UPCOMING_EXPIRATION_WINDOW_DAYS } from '@/home/consts'
+import { UPCOMING_EXPIRATION_WINDOW_DAYS } from '@/membership/consts'
 import { MEMBERSHIP_TYPE_DAILY, MEMBERSHIP_TYPE_VIP } from '@/membership/consts'
 import type { DailySummary, HomeMetrics, WeeklyAttendance } from '@/home/types'
 

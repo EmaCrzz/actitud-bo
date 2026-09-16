@@ -4,6 +4,7 @@ import { getWeekRange } from '@/lib/week'
 import { getApplicableDiscountForCustomer, getGroupsByCustomer } from '@/group/api/server'
 import {
   fetchCustomersPageWith,
+  type CustomersPage,
   type FetchCustomersPageOptions,
 } from '@/customer/api/customers-query'
 
@@ -14,7 +15,9 @@ import {
 // tenía la v1 y evita que un fallo de Supabase tire la página entera. En la v2 el
 // listado re-consulta desde el cliente ante cualquier cambio de filtro, y ahí sí
 // el error se muestra.
-export const searchAllCustomers = async (options: FetchCustomersPageOptions = {}) => {
+export const searchAllCustomers = async (
+  options: FetchCustomersPageOptions = {}
+): Promise<CustomersPage> => {
   const supabase = await createClient()
 
   try {
@@ -23,7 +26,7 @@ export const searchAllCustomers = async (options: FetchCustomersPageOptions = {}
     // eslint-disable-next-line no-console
     console.error('Error fetching customers:', error)
 
-    return []
+    return { customers: [], total: 0 }
   }
 }
 

@@ -1,8 +1,10 @@
 import { createClient } from '@/lib/supabase/client'
-import { Customer, CustomerWithMembership } from '@/customer/types'
-import { SEARCH_CUSTOMER } from '@/customer/consts'
+import { Customer, CustomerProfile } from '@/customer/types'
+import { CUSTOMER_PROFILE, SEARCH_CUSTOMER } from '@/customer/consts'
+import type { MembershipTypes } from '@/membership/consts'
 import {
   fetchCustomersPageWith,
+  type CustomersPage,
   type FetchCustomersPageOptions,
 } from '@/customer/api/customers-query'
 import { removeFormatPersonId } from '@/lib/format-person-id'
@@ -53,14 +55,71 @@ async function _searchCustomer(query?: string) {
 // Función exportada con rate limiting
 export const searchCustomer = withRateLimit('search', _searchCustomer)
 
-// Paginación + búsqueda server-side para el listado de clientes
+// Paginación + búsqueda server-side para el listado de clientes.
+//
+// Devuelve `{ customers, total }` en vez de sólo el array: el listado v2 pinta
+// un paginador numerado y el contador "N Total de clientes", que necesitan el
+// total. La forma paginada sirve igual a los dos modos de consumo — el listado
+// v1 (`customer/list.tsx`) la sigue usando con `useInfiniteQuery` acumulando
+// páginas, y el v2 la usa con página fija.
 async function _fetchCustomersPage(
   options: FetchCustomersPageOptions & { page: number }
-): Promise<CustomerWithMembership[]> {
+): Promise<CustomersPage> {
   return fetchCustomersPageWith(createClient(), options)
 }
 
 export const fetchCustomersPage = withRateLimit('search', _fetchCustomersPage)
+
+/**
+ * Datos del panel "Perfil del cliente" (Fase 6b).
+ *
+ * Se resuelve en el browser, igual que `fetchCustomerModalData` del modal de
+ * asistencia: el panel se abre a demanda desde una fila, así que precargar el
+ * perfil de las 20 filas de la página sería tirar 19 consultas a la basura.
+ *
+ * Las dos consultas van en paralelo aunque el precio dependa del tipo de
+ * membresía: `types_memberships` son cinco filas, así que traerlas todas y
+ * elegir en memoria sale más barato que encadenar un segundo round trip.
+ *
+ * El precio que muestra el panel es el **de lista del plan**, no el del último
+ * pago. `membership_payments` es admin-only a nivel RLS
+ * (20260702120000_finances_admin_only_rls), así que leer el monto real dejaría
+ * la ficha sin precio para los no-admin; y "Precio" en la card de la membresía
+ * es el del plan vigente, no el histórico de lo que se cobró.
+ */
+export async function fetchCustomerProfile(customerId: string): Promise<CustomerProfile | null> {
+  const supabase = createClient()
+
+  const [{ data: customer, error }, { data: types }] = await Promise.all([
+    supabase.from('customers').select(CUSTOMER_PROFILE).eq('id', customerId).maybeSingle(),
+    supabase.from('types_memberships').select('type, amount'),
+  ])
+
+  if (error) throw error
+  if (!customer) return null
+
+  const embedded = customer.customer_membership
+  const membership = Array.isArray(embedded) ? (embedded[0] ?? null) : (embedded ?? null)
+  const membershipType = (membership?.membership_type as MembershipTypes | undefined) ?? null
+
+  return {
+    id: customer.id,
+    first_name: customer.first_name,
+    last_name: customer.last_name,
+    person_id: customer.person_id,
+    phone: customer.phone,
+    email: customer.email,
+    birth_date: customer.birth_date,
+    notes: customer.notes,
+    assistance_count: customer.assistance_count ?? 0,
+    created_at: customer.created_at,
+    membership_type: membershipType,
+    expiration_date: membership?.expiration_date ?? null,
+    last_payment_date: membership?.last_payment_date ?? null,
+    membership_amount:
+      types?.find((type) => type.type === membershipType)?.amount ?? null,
+  }
+}
 
 export async function checkCustomerPersonId({
   formData,

@@ -27,3 +27,44 @@ export const SEARCH_CUSTOMER_WITH_MEMBERSHIP = `
 ` as const
 
 export const CUSTOMERS_PAGE_SIZE = 20
+
+/**
+ * Relación que se consulta para el listado: la **vista**, no la tabla.
+ *
+ * `customers_listing` es `customers` más el booleano `is_recently_active`, que
+ * es la clave de orden primaria. El corte depende de `now()`, así que no puede
+ * ser una columna generada y se calcula al leer. La vista tiene
+ * `security_invoker = true`: hereda las policies RLS de `customers`.
+ */
+export const CUSTOMERS_LISTING_RELATION = 'customers_listing'
+
+/**
+ * Ventana que define "cliente con actividad reciente", en días.
+ *
+ * **Está duplicada en la definición SQL de la vista** (migración
+ * `20260916183000`) porque Postgres tiene que evaluarla para ordenar y la app
+ * para explicar el corte. Si se cambia, se cambia en los dos lados.
+ */
+export const ACTIVE_CUSTOMER_WINDOW_DAYS = 30
+
+// Select del Perfil del cliente (panel lateral de la Fase 6b). Pide más columnas
+// que el listado porque el tab "Info" muestra DNI, nacimiento, teléfono y
+// observaciones, y el tab "Membresía" necesita `last_payment_date` para dibujar
+// la barra de progreso del período.
+//
+// Es un select aparte y no una ampliación de SEARCH_CUSTOMER a propósito: el
+// listado trae hasta 20 filas por página y no tiene por qué arrastrar el texto
+// libre de `notes` de cada una.
+export const CUSTOMER_PROFILE = `
+  id,
+  first_name,
+  last_name,
+  person_id,
+  phone,
+  email,
+  birth_date,
+  notes,
+  assistance_count,
+  created_at,
+  customer_membership (membership_type, expiration_date, last_payment_date)
+` as const

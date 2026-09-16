@@ -1,15 +1,16 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useInfiniteQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useDebounce } from 'use-debounce'
-import { useIntersectionObserver } from 'usehooks-ts'
 import { Plus } from 'lucide-react'
+import DataTablePagination from '@/components/v2/DataTablePagination'
 import FilterBar from '@/components/v2/FilterBar'
 import PageHeader from '@/components/v2/PageHeader'
 import Button from '@/components/v2/ui/Button'
 import { useComingSoonToast } from '@/components/v2/use-coming-soon-toast'
 import { fetchCustomersPage } from '@/customer/api/client'
+import type { CustomersPage } from '@/customer/api/customers-query'
 import { CUSTOMERS_PAGE_SIZE } from '@/customer/consts'
 import {
   areSameCustomerFilters,
@@ -22,20 +23,27 @@ import type { CustomerWithMembership } from '@/customer/types'
 import { useTranslations } from '@/lib/i18n/context'
 import type { MembershipTypes } from '@/membership/consts'
 import CustomerFilters from './CustomerFilters'
+import CustomerProfilePanel from './CustomerProfilePanel'
 import CustomersTable from './CustomersTable'
 
 const SEARCH_DEBOUNCE_MS = 400
 
 interface CustomersSectionProps {
-  /** Primera página, ya filtrada, resuelta por el server component. */
-  initialCustomers: CustomerWithMembership[]
-  /** Filtros con los que el server resolvió `initialCustomers`. */
+  /** Primera página pedida, ya filtrada, resuelta por el server component. */
+  initialPage: CustomersPage
+  /** Filtros con los que el server resolvió `initialPage`. */
   initialFilters: CustomerListFilters
+  /** Página (0-indexed) con la que el server resolvió `initialPage`. */
+  initialPageIndex: number
+  /** Ver `CustomerProfilePayments`: finanzas es admin-only a nivel RLS. */
+  canReadPayments: boolean
 }
 
 export default function CustomersSection({
-  initialCustomers,
+  initialPage,
   initialFilters,
+  initialPageIndex,
+  canReadPayments,
 }: CustomersSectionProps) {
   const { t } = useTranslations()
   const notifyComingSoon = useComingSoonToast()
@@ -45,72 +53,90 @@ export default function CustomersSection({
   const [membershipType, setMembershipType] = useState<MembershipTypes | null>(
     initialFilters.membershipType
   )
+  const [page, setPage] = useState(initialPageIndex)
   const [debouncedQuery] = useDebounce(queryInput, SEARCH_DEBOUNCE_MS)
+
+  // Cliente cuyo perfil está abierto. Se conserva al cerrar el panel para que la
+  // animación de salida no se quede sin contenido a mitad de camino.
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerWithMembership | null>(null)
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
 
   const filters = useMemo<CustomerListFilters>(
     () => ({ query: debouncedQuery, status, membershipType }),
     [debouncedQuery, status, membershipType]
   )
 
-  const {
-    data,
-    isError,
-    isFetching,
-    isFetchingNextPage,
-    fetchNextPage,
-    hasNextPage,
-    refetch,
-  } = useInfiniteQuery({
-    queryKey: ['customers', 'v2', 'list', filters],
-    queryFn: ({ pageParam }) => fetchCustomersPage({ ...filters, page: pageParam }),
-    initialPageParam: 0,
-    // Una página incompleta significa que no hay más: no pedimos `count` a
-    // Postgres para saber el total, porque el Figma no muestra paginador ni
-    // contador de resultados (decisión #4 del plan v2).
-    getNextPageParam: (lastPage, allPages) =>
-      lastPage.length < CUSTOMERS_PAGE_SIZE ? undefined : allPages.length,
-    // La primera página ya vino del server. Sólo sirve mientras los filtros sean
-    // los que el server usó; en cuanto cambian, cambia la query key y react-query
-    // consulta de verdad.
-    initialData: areSameCustomerFilters(filters, initialFilters)
-      ? { pages: [initialCustomers], pageParams: [0] }
-      : undefined,
+  const { data, isError, isFetching, isPlaceholderData, refetch } = useQuery({
+    queryKey: ['customers', 'v2', 'list', filters, page],
+    queryFn: () => fetchCustomersPage({ ...filters, page }),
+    // La página anterior queda en pantalla mientras llega la nueva: sin esto,
+    // cada click del paginador vacía la tabla al skeleton y la altura salta.
+    placeholderData: keepPreviousData,
+    initialData:
+      areSameCustomerFilters(filters, initialFilters) && page === initialPageIndex
+        ? initialPage
+        : undefined,
   })
 
-  const customers = useMemo(() => data?.pages.flat() ?? [], [data])
+  const customers = data?.customers ?? []
+  const total = data?.total ?? 0
   const isFiltered = hasActiveCustomerFilters(filters)
-  const isInitialLoading = isFetching && !isFetchingNextPage && customers.length === 0
+  const isInitialLoading = isFetching && !isPlaceholderData && customers.length === 0
 
-  // La URL refleja los filtros para que la vista sea compartible y recargable, y
-  // para que el card del home pueda linkear acá ya filtrado.
-  //
-  // `history.replaceState` en vez de `router.replace`: éste último re-ejecuta el
-  // server component y vuelve a traer la primera página que react-query ya tiene
-  // en cache. Next 15 soporta este patrón para updates de URL sin navegación.
-  useEffect(() => {
-    const queryString = customerFiltersToQueryString(filters)
-    const nextUrl = `${window.location.pathname}${queryString ? `?${queryString}` : ''}`
+  // Cambiar un filtro reinicia la paginación: quedarse en la página 7 de un
+  // listado que ahora tiene 2 páginas mostraría vacío sin explicar por qué.
+  const resetToFirstPage = useCallback(() => setPage(0), [])
 
-    if (nextUrl !== `${window.location.pathname}${window.location.search}`) {
-      window.history.replaceState(null, '', nextUrl)
-    }
-  }, [filters])
-
-  const { ref: sentinelRef } = useIntersectionObserver({
-    threshold: 0,
-    rootMargin: '200px',
-    onChange: (isIntersecting) => {
-      if (isIntersecting && hasNextPage && !isFetchingNextPage) {
-        fetchNextPage()
-      }
+  const handleQueryChange = useCallback(
+    (value: string) => {
+      setQueryInput(value)
+      resetToFirstPage()
     },
-  })
+    [resetToFirstPage]
+  )
+
+  const handleStatusChange = useCallback(
+    (value: MembershipStatusFilter | null) => {
+      setStatus(value)
+      resetToFirstPage()
+    },
+    [resetToFirstPage]
+  )
+
+  const handleMembershipTypeChange = useCallback(
+    (value: MembershipTypes | null) => {
+      setMembershipType(value)
+      resetToFirstPage()
+    },
+    [resetToFirstPage]
+  )
 
   const handleClearFilters = useCallback(() => {
     setQueryInput('')
     setStatus(null)
     setMembershipType(null)
+    resetToFirstPage()
+  }, [resetToFirstPage])
+
+  const handleSelectCustomer = useCallback((customer: CustomerWithMembership) => {
+    setSelectedCustomer(customer)
+    setIsProfileOpen(true)
   }, [])
+
+  // La URL refleja filtros y página para que la vista sea compartible y
+  // recargable, y para que el card del home pueda linkear acá ya filtrado.
+  //
+  // `history.replaceState` en vez de `router.replace`: éste último re-ejecuta el
+  // server component y vuelve a traer una página que react-query ya tiene en
+  // cache. Next 15 soporta este patrón para updates de URL sin navegación.
+  useEffect(() => {
+    const queryString = customerFiltersToQueryString(filters, page)
+    const nextUrl = `${window.location.pathname}${queryString ? `?${queryString}` : ''}`
+
+    if (nextUrl !== `${window.location.pathname}${window.location.search}`) {
+      window.history.replaceState(null, '', nextUrl)
+    }
+  }, [filters, page])
 
   return (
     <div className='flex min-h-0 flex-1 flex-col gap-4 lg:gap-6'>
@@ -135,15 +161,15 @@ export default function CustomersSection({
           <FilterBar.Search
             placeholder={t('v2.customers.searchPlaceholder')}
             value={queryInput}
-            onChange={setQueryInput}
+            onChange={handleQueryChange}
           />
         }
       >
         <CustomerFilters
           membershipType={membershipType}
           status={status}
-          onMembershipTypeChange={setMembershipType}
-          onStatusChange={setStatus}
+          onMembershipTypeChange={handleMembershipTypeChange}
+          onStatusChange={handleStatusChange}
         />
       </FilterBar>
 
@@ -155,16 +181,26 @@ export default function CustomersSection({
           isLoading={isInitialLoading}
           onClearFilters={handleClearFilters}
           onRetry={() => refetch()}
+          onSelectCustomer={handleSelectCustomer}
         />
-
-        {/* Scroll infinito: el Figma no dibuja paginador. El sentinel va dentro
-            del contenedor scrolleable, si no nunca entra en viewport. */}
-        {hasNextPage && (
-          <div ref={sentinelRef} className='py-4 text-center text-sm text-muted-foreground'>
-            {isFetchingNextPage ? t('v2.customers.loadingMore') : ''}
-          </div>
-        )}
       </div>
+
+      {!isError && (
+        <DataTablePagination
+          page={page}
+          pageSize={CUSTOMERS_PAGE_SIZE}
+          summary={t('v2.customers.totalLabel', { total })}
+          total={total}
+          onPageChange={setPage}
+        />
+      )}
+
+      <CustomerProfilePanel
+        canReadPayments={canReadPayments}
+        customer={selectedCustomer}
+        open={isProfileOpen}
+        onOpenChange={setIsProfileOpen}
+      />
     </div>
   )
 }

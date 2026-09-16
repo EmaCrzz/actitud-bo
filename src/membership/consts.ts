@@ -1,5 +1,18 @@
 import { TranslationKey } from '@/lib/i18n/types'
 
+/**
+ * Ventana para considerar una membresía "próxima a vencer", en días calendario
+ * de Argentina.
+ *
+ * Vivía en `home/consts.ts` cuando su único consumidor era el subtítulo del
+ * MetricCard "Clientes activos del mes". Desde la Fase 6b también la usa el
+ * estado "Por vencer" del listado de clientes — el filtro server-side y el badge
+ * de la fila — así que se mudó al dominio al que pertenece el concepto. Dos
+ * dominios leyendo el mismo umbral tienen que leerlo del mismo lugar: si se
+ * desincronizan, el home y el listado contarían distinto y nadie lo notaría.
+ */
+export const UPCOMING_EXPIRATION_WINDOW_DAYS = 7
+
 export const MEMBERSHIP_TYPE_5_DAYS = 'MEMBERSHIP_TYPE_5_DAYS' as const
 export const MEMBERSHIP_TYPE_3_DAYS = 'MEMBERSHIP_TYPE_3_DAYS' as const
 export const MEMBERSHIP_TYPE_2_DAYS = 'MEMBERSHIP_TYPE_2_DAYS' as const
@@ -41,6 +54,19 @@ export const MembershipTranslationWeekly: Record<MembershipTypes, TranslationKey
   [MEMBERSHIP_TYPE_2_DAYS]: 'membership.typesWeekly.2_days',
   [MEMBERSHIP_TYPE_DAILY]: 'membership.typesWeekly.daily',
   [MEMBERSHIP_TYPE_VIP]: 'membership.typesWeekly.vip',
+}
+
+// Nombre pelado del plan: "5 días". Lo usa el panel "Perfil del cliente" — la
+// card de membresía actual y cada fila del historial de pagos (capturas del
+// 2026-09-16) — donde el contexto ya dice que se está hablando de una membresía
+// y tanto el prefijo de `MembershipTranslation` ("Membresía: 5 días") como el
+// sufijo de `MembershipTranslationWeekly` ("5 días semanales") sobran.
+export const MembershipTranslationShort: Record<MembershipTypes, TranslationKey> = {
+  [MEMBERSHIP_TYPE_5_DAYS]: 'membership.typesShort.5_days',
+  [MEMBERSHIP_TYPE_3_DAYS]: 'membership.typesShort.3_days',
+  [MEMBERSHIP_TYPE_2_DAYS]: 'membership.typesShort.2_days',
+  [MEMBERSHIP_TYPE_DAILY]: 'membership.typesShort.daily',
+  [MEMBERSHIP_TYPE_VIP]: 'membership.typesShort.vip',
 }
 
 export const MembershipTranslationTwoLines: Record<

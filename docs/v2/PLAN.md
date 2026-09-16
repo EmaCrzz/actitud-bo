@@ -23,8 +23,8 @@
 | 3 | Flow "Registrar asistencia" (modal + confirmación + toast) | ✅ completa *(con pendientes)* | PR [#49](https://github.com/EmaCrzz/actitud-bo/pull/49) mergeado en `develop` el 2026-08-19. ADRs [20260819130435](../architecture/decisions/20260819130435_v2-attendance-modal.md) + [20260819163000](../architecture/decisions/20260819163000_success-tick-animation.md) + [20260819170000](../architecture/decisions/20260819170000_busqueda-de-clientes-insensible-a-acentos.md). **Quedaron pendientes** (verificación contra Figma, duplicado de asistencia, loading de búsqueda) → ver [Fase 3](#fase-3--flow-registrar-asistencia); se resuelven como fase 3.1 o dentro de la fase que los toque. |
 | 4 | Navegación v2 real (sidebar alineado al Figma + rutas stub) | ✅ completa | Rama `feat/v2-navegacion-sidebar`. ADR [20260915132556](../architecture/decisions/20260915132556_v2-navegacion-real-y-rutas-stub.md). Campana de notificaciones diferida. Falta verificación visual del drawer mobile. |
 | 5 | Primitivas transversales v2 (DataTable, SidePanel, ConfirmDialog, FilterBar, Stepper) | ✅ completa | Rama `feat/v2-primitivas`. ADR [20260916093140](../architecture/decisions/20260916093140_v2-primitivas-transversales.md). `FormModal` y `DetailModal` colapsaron en un solo `SidePanel`. Sandbox en `/v2/sandbox`. |
-| 6a | Sección Clientes — listado | ✅ completa | Rama `feat/v2-clientes`. ADR [20260916120738](../architecture/decisions/20260916120738_v2-listado-de-clientes.md). Query canónico compartido server/client, filtros en la URL, scroll infinito. |
-| 6b | Modal perfil de cliente + acciones de fila | ⚠️ bloqueada | **Falta diseño.** La cuota del MCP de Figma se agotó en la primera llamada del 2026-09-16 y los 6 frames del perfil + el dropdown de fila no se pudieron verificar. Se desbloquea con los PNGs en `docs/v2/figma/` — ver [Fase 6](#fase-6--sección-clientes--modal-perfil-de-cliente). |
+| 6a | Sección Clientes — listado | ✅ completa | Rama `feat/v2-clientes` (PR [#53](https://github.com/EmaCrzz/actitud-bo/pull/53)). ADR [20260916120738](../architecture/decisions/20260916120738_v2-listado-de-clientes.md). Query canónico compartido server/client, filtros en la URL. ~~scroll infinito~~ → **corregido a paginación en 6b**. |
+| 6b | Perfil del cliente + paginación | ✅ completa | Rama `feat/v2-perfil-cliente`. ADR [20260916161500](../architecture/decisions/20260916161500_v2-perfil-de-cliente-y-paginacion.md). Panel de 4 tabs, paginador transversal, filtro de estado a 3 valores, migración B10+B11. **No hay menú de acciones de fila** (el nodo que el plan creía que era, es el filtro `Estado`). Mobile sin verificar. |
 | 7 | Alta de cliente (desde Home y desde Clientes) | ⬜ pendiente | |
 | 8 | Registrar pago / renovar membresía + comprobante | ⬜ pendiente | Flow más largo del Figma (10 pantallas). |
 | 9 | Sección Asistencias | ⬜ pendiente | |
@@ -158,7 +158,8 @@ Lo que hace falta mirar en Figma para desbloquear la fase siguiente. **Se tacha 
 | 3 | ¿El rosa/magenta es la marca o placeholder? | Fase 5 | ✅ **Resuelto** — **es la marca de Actitud**. Ema: "hoy no es necesario que pienses en ello, podés mantener todo en escala de grises". Se construye con los tokens neutrales y la paleta se aplica en una pasada aparte |
 | 4 | Ancho del drawer mobile (¿260px?) + íconos de **Gastos** y **Balance** | Nada — deuda de la Fase 4 | ⬜ |
 | 5 | **¿El recargo por mora es override manual o sólo se muestra el calculado?** El form de renovación tiene Descuento y Recargo como selects, pero `billing-policy.ts` los calcula por día del mes | Fase 8 | ⬜ |
-| 6 | **¿"Sin membresía" es un estado real de cliente?** Aparece como opción del select de tipo en el alta | Fase 7 | ⬜ |
+| 6 | **¿"Sin membresía" es un estado real de cliente?** Aparece como opción del select de tipo en el alta | Fase 7 | 🟡 **Respondido parcialmente 2026-09-16.** Ema: *"en realidad es como un estado inicial del cliente, idealmente vamos a cargar un cliente y él contendrá la relación a su membresía siempre"*. Lectura: **no es un tipo del catálogo** — no se agrega `NONE` a `types_memberships`. Es el estado transitorio de un cliente recién creado. **Falta cerrar el detalle de modelado** (¿alta sin fila en `customer_membership`, o fila con `membership_type` nullable?) al arrancar la Fase 7 |
+| 7 | **Las 8 pantallas de la Fase 6b** — dropdown de acciones de fila (`2118:22594`) + las 5 vistas del `Customer Detail Modal` + los 2 frames mobile (`2222:42619`, `2228:47961`) | Fase 6b | 🟡 Ema va a pasar las capturas. La cuota del MCP sigue agotada — ver [Fase 6b](#6b--qué-falta-y-qué-se-necesita-para-desbloquearlo) |
 
 ### 2.4 Presentación de componentes (confirmada)
 
@@ -257,13 +258,13 @@ Componentes que el Figma instancia repetidamente a lo largo de los 17 flows. La 
 | `Input Search Group` | Flow asistencia (search + resultados) | ✅ existe | dentro de `AttendanceSearchCard.tsx` |
 | `Buttons` | Todas | ✅ **átomo propio de v2** | [v2/ui/Button.tsx](../../src/components/v2/ui/Button.tsx) — el de shadcn lleva geometría y tokens de v1 |
 | `Toast` | Flows 1, 2, 8, 10, 14, 15 | ✅ `sonner` | [src/components/ui/sonner.tsx](../../src/components/ui/sonner.tsx) |
-| `Customer Detail Modal` | Flows 1, 5, 6, 7 | ✅ **construido** | [SidePanel.tsx](../../src/components/v2/SidePanel.tsx). `AssistanceModal` ya fue refactorizado para consumirlo |
-| **`Data Table`** | Flows 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 17 | ✅ **construido** | [DataTable.tsx](../../src/components/v2/DataTable.tsx) — doble render; `mobileRow` es prop requerido |
+| `Customer Detail Modal` | Flows 1, 5, 6, 7 | ✅ **construido** | [SidePanel.tsx](../../src/components/v2/SidePanel.tsx). Lo consumen `AssistanceModal` y [CustomerProfilePanel.tsx](../../src/customer/components/v2/CustomerProfilePanel.tsx) (Fase 6b) |
+| **`Data Table`** | Flows 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 17 | ✅ **construido** | [DataTable.tsx](../../src/components/v2/DataTable.tsx) — doble render; `mobileRow` es prop requerido. Su pie es [DataTablePagination.tsx](../../src/components/v2/DataTablePagination.tsx) (Fase 6b) |
 | **`Dropdown`** (filtro / acciones de fila) | Flows 5, 6, 7, 11–17 | ✅ **construido** | [FilterDropdown.tsx](../../src/components/v2/FilterDropdown.tsx) + [FilterBar.tsx](../../src/components/v2/FilterBar.tsx) |
 | **`Modal / Membership Form`** | Flows 2, 3, 7, 8, 10, 11, 12, 14 | ✅ **construido** | [SidePanel.tsx](../../src/components/v2/SidePanel.tsx) — mismo shell que el Detail Modal: la geometría es idéntica |
 | **`Modal Dialog`** (confirmación) | Flows 3, 7, 13, 15 | ✅ **construido** | [ConfirmDialog.tsx](../../src/components/v2/ConfirmDialog.tsx) |
 | **`Payment Receipt`** | Flows 3, 7 | ❌ no existe | `src/membership/components/v2/PaymentReceipt.tsx` — Fase 8 |
-| `Tabs` | Flow 9 | ✅ shadcn `Tabs` | [src/components/ui/tabs.tsx](../../src/components/ui/tabs.tsx) |
+| `Tabs` | Flows 6, 9, 17 | ✅ **átomo propio de v2** | [v2/ui/Tabs.tsx](../../src/components/v2/ui/Tabs.tsx) — subrayado. El de shadcn es la variante *pill*, que no es lo que dibuja el Figma |
 | `Customer List` | Flow 9 | ❌ no existe | `src/assistance/components/v2/CustomerList.tsx` — Fase 9 |
 | `DateNavigation` | Flow 9 | ⚠️ existe v1 | [src/assistance/day-navigator.tsx](../../src/assistance/day-navigator.tsx) — portar |
 | `Form Input` | Flow 17 | ✅ shadcn `Input` + `Label` | — |
@@ -352,8 +353,8 @@ El logo además necesita un bucket de Supabase Storage con su política de acces
 | B7 | `discount_rules` | `valid_from`, `valid_to` | La sección Configuración → Promociones sugiere promos con vigencia. Hoy sólo hay `active` booleano. | 14 |
 | B8 | `profile` | `email` | Configuración → Usuarios necesita mostrar/invitar por email. Hoy el email vive sólo en `auth.users`. | 14 |
 | B9 | — | tabla de notificaciones | El header del Figma tiene campana con badge. No hay modelo. Puede resolverse como derivado (membresías por vencer) sin tabla. | 4 |
-| B10 | `customers` | `birth_date` | El form de alta pide **"Fecha de nacimiento"** (captura 2026-09-15). La tabla no tiene la columna. | 7 |
-| B11 | `customers` | `notes` | El paso 2 del alta tiene **"Observaciones / Notas internas"** (textarea). Sin columna donde guardarlo. | 7 |
+| ~~B10~~ | `customers` | ~~`birth_date`~~ | ✅ **Aplicada en la Fase 6b** (migración `20260916150000`). La pide el alta (Fase 7) y la **muestra** el tab Info del perfil, por eso se adelantó. | ~~7~~ 6b |
+| ~~B11~~ | `customers` | ~~`notes`~~ | ✅ **Aplicada en la Fase 6b** (misma migración). Ídem: la escribe el alta, la muestra el perfil. | ~~7~~ 6b |
 | B12 | `customer_membership` | `start_date` | El alta pide **"Fecha de inicio"** además de "Fecha de vencimiento". Hoy sólo existe `expiration_date`; el inicio se infiere de `last_payment_date`, que no es lo mismo. | 7 |
 | B13 | `customer_membership` | soportar **"Sin membresía"** | El select de tipo ofrece `Sin membresía`, pero `membership_type` es `NOT NULL` con FK a `types_memberships`. O se agrega un tipo `NONE`, o se permite alta sin fila en `customer_membership`. Ver decisión abierta #6 de [2.3](#23-validaciones-pendientes-de-ema-lista-viva). | 7 |
 
@@ -579,12 +580,14 @@ Seis problemas de estilo encontrados en revisión visual — ninguno detectable 
 
 ## Fase 6 — Sección Clientes + Modal perfil de cliente
 
-**Estado:** 🟡 partida en dos — **6a (listado) ✅ completa** · **6b (modal de perfil + acciones de fila) ⚠️ bloqueada por falta de diseño**
+**Estado:** ✅ **completa** — 6a (listado) y 6b (perfil del cliente + paginación). ADRs [20260916120738](../architecture/decisions/20260916120738_v2-listado-de-clientes.md) y [20260916161500](../architecture/decisions/20260916161500_v2-perfil-de-cliente-y-paginacion.md).
 **Figma:** desktop `2167:22900` (3 pantallas) + `2167:22901` (5 pantallas) · **mobile `2222:43027` (7 pantallas: 2 de listado + 4 del Detail Modal + 1 con drawer)**.
 
-> **Por qué se partió.** La cuota del MCP de Figma se agotó en la **primera** llamada de la sesión del 2026-09-16 (`2167:22900`), así que se implementó el listado con lo que daba el árbol de nodos + la fila mobile ya confirmada en [2.4](#24-presentación-de-componentes-confirmada). Después Ema pasó **la captura del listado desktop**, que confirmó dos cosas y corrigió seis — ver [Pantallas](#pantallas); las correcciones están aplicadas. El modal de perfil siguen siendo 5 frames de contenido desconocido: construirlo a ciegas es exactamente lo que prohíbe el [protocolo de Figma](#3-protocolo-de-trabajo-con-el-figma-obligatorio-por-fase).
+> **Por qué se partió.** La cuota del MCP de Figma se agotó en la **primera** llamada de la sesión del 2026-09-16 (`2167:22900`), así que se implementó el listado con lo que daba el árbol de nodos. 6b quedó bloqueada hasta que Ema pasó las capturas del perfil, en la sesión siguiente del mismo día.
 >
-> **Moraleja operativa:** el árbol de nodos alcanza para el *layout general* pero **no para las columnas de una tabla ni para el microcopy**. De las 6 correcciones, 3 eran columnas inventadas o faltantes. Para las fases con tabla (10, 11, 12, 14) conviene pedir la captura **antes** de definir columnas, no después.
+> **Moraleja operativa — versión endurecida.** 6a ya había aprendido que el árbol de nodos no alcanza para columnas ni microcopy. Las capturas de 6b mostraron que tampoco alcanza para **detectar controles enteros**: no aparecían ni el paginador ni tres de los cinco valores del filtro `Estado`. La regla pasa de *"pedir la captura antes de definir columnas"* a **"pedir la captura antes de definir la pantalla"**, y aplica a todas las fases con tabla que vienen (10, 11, 12, 14).
+>
+> **La cuota del MCP no se renueva en el día.** Se reintentó `2167:22900` en una segunda sesión del 2026-09-16 y devolvió el mismo rate limit. Reintentar mañana no es una estrategia — ver [decisión abierta #10](#decisiones-abiertas--riesgos).
 
 ### 6a — Qué quedó construido
 
@@ -594,10 +597,10 @@ Rama `feat/v2-clientes`, ADR [20260916120738](../architecture/decisions/20260916
 |---|---|
 | [customers-query.ts](../../src/customer/api/customers-query.ts) | **Query canónico del listado.** Recibe el cliente de Supabase por parámetro: hasta ahora el listado estaba escrito **dos veces** (`searchAllCustomers` en `api/server.ts` y `_fetchCustomersPage` en `api/client.ts`, idénticos). Ahora las dos son wrappers |
 | [filters.ts](../../src/customer/filters.ts) | Tipos, parseo y serialización de los filtros. Compartido entre el server component, la UI y el link del home |
-| [CustomersSection.tsx](../../src/customer/components/v2/CustomersSection.tsx) | Search + filtros + scroll infinito + sync de URL |
+| [CustomersSection.tsx](../../src/customer/components/v2/CustomersSection.tsx) | Search + filtros + sync de URL (~~scroll infinito~~ → paginación en 6b) |
 | [CustomersTable.tsx](../../src/customer/components/v2/CustomersTable.tsx) | Columnas desktop, fila mobile del Figma y los cuatro estados (vacío / sin resultados / cargando / error) |
 | [CustomerFilters.tsx](../../src/customer/components/v2/CustomerFilters.tsx) | Los dos dropdowns — `Estado` y `Membresías`, verificados |
-| `MembershipTranslationShort` en [membership/consts.ts](../../src/membership/consts.ts) | Nombre del plan sin el prefijo "Membresía:", que `MembershipTranslation` trae incluido |
+| `MembershipTranslationWeekly` en [membership/consts.ts](../../src/membership/consts.ts) | Nombre del plan como lo escribe la tabla desktop: "5 días semanales". *(Este plan lo anotaba como `MembershipTranslationShort`, que no existía — corregido el 2026-09-16. `MembershipTranslationShort` sí existe ahora, pero lo creó 6b y es otra cosa: "5 días" pelado.)* |
 | `v2.comingSoon.*` + [useComingSoonToast](../../src/components/v2/use-coming-soon-toast.ts) | El toast de "próximamente" estaba bajo `v2.home.quickActions.*`; se movió para que Clientes no consumiera copy de home |
 
 Decisiones que vale tener a mano para las fases siguientes:
@@ -609,18 +612,53 @@ Decisiones que vale tener a mano para las fases siguientes:
 - **"Sin membresía" se muestra pero no se filtra.** Es un badge neutral en la fila; como estado filtrable necesita RPC o la brecha B13 resuelta. Queda para la Fase 7.
 - **"Nuevo cliente" hace toast de "próximamente"** — el alta es la Fase 7. El botón existe porque el Figma lo tiene en la barra de filtros.
 
-### 6b — Qué falta y qué se necesita para desbloquearlo
+### 6b — Qué quedó construido
 
-Nodos a exportar a `docs/v2/figma/fase-6/` (decisión abierta #10):
+Rama `feat/v2-perfil-cliente`, ADR [20260916161500](../architecture/decisions/20260916161500_v2-perfil-de-cliente-y-paginacion.md). Destrabada con capturas de Ema (la cuota del MCP seguía agotada).
 
-| Nodo | Qué es | Para qué |
-|---|---|---|
-| ~~`2118:22308`~~ | ~~Listado desktop~~ | ✅ **resuelto 2026-09-16** con captura de Ema — ver [Pantallas](#pantallas) |
-| `2118:22594` | Dropdown de acciones de fila | Qué acciones hay (ver perfil, renovar, editar, eliminar?) |
-| `2118:22907` + `2118:25405` + `2118:23254` + `2118:23600` + `2118:24441` + `2118:24959` | Las 6 vistas del `Customer Detail Modal` | Qué tabs tiene y qué muestra cada uno |
-| `2222:42619` + `2228:47961` | Listado y detail modal mobile | Validar la fila y el modal full-screen |
+| Archivo | Qué es |
+|---|---|
+| [CustomerProfilePanel.tsx](../../src/customer/components/v2/CustomerProfilePanel.tsx) | El panel: `SidePanel` + los 4 tabs + footer `Cancelar`/`Renovar` |
+| `CustomerProfile{Membership,Payments,Assistances,Info}.tsx` | Un componente por tab |
+| [customer-status.ts](../../src/customer/components/v2/customer-status.ts) | Tono y label de cada estado. Compartido por la fila del listado y la card del perfil, para que no digan cosas distintas |
+| [DataTablePagination.tsx](../../src/components/v2/DataTablePagination.tsx) | **Paginador transversal.** Nace en `components/v2/` porque el Figma le pone el mismo pie a Membresías, Gastos, Ventas y Configuración |
+| [v2/ui/Tabs.tsx](../../src/components/v2/ui/Tabs.tsx) | Átomo de tabs con **subrayado**. El de `components/ui/` es la variante pill de shadcn. Cuarto caso de la regla, tras `Button`, `Input` y `Select` |
+| `getCustomerMembershipStatus` en [customer/utils.ts](../../src/customer/utils.ts) | Fuente única del estado derivado: replica los tres cortes del `WHERE` |
+| `fetchCustomerAssistances` en [assistance/api/client.ts](../../src/assistance/api/client.ts) | **El único endpoint nuevo.** El dominio sabía consultar por fecha o por semana, nunca el historial de una persona |
+| `MembershipTranslationShort` en [membership/consts.ts](../../src/membership/consts.ts) | "5 días" pelado, para la card y el historial de pagos |
+| Migración `20260916150000` | `customers.birth_date` + `customers.notes` — brechas **B10 y B11**, que el tab Info muestra |
 
-Lo que ya está resuelto y **no** hace falta preguntar: el `SidePanel` de la Fase 5 es el contenedor del modal (480×832 desktop / full-screen mobile), y la fila mobile es avatar + nombre + subtítulo + badge.
+**Lo que las capturas corrigieron del plan:**
+
+- **El listado tiene paginador.** `230 Total de clientes` + `‹ Anterior · 1 2 3 … · Siguiente ›`. 6a se había construido con scroll infinito justificando que *"el Figma no muestra paginador ni contador"*. **Cierra la [decisión abierta #4](#decisiones-abiertas--riesgos)**: las tablas del rediseño paginan.
+- **El filtro `Estado` tiene 5 valores**, no 2: Activo · Por vencer · Vencido · Inactivos · De baja.
+- **`2118:22594` no es un menú de acciones de fila** — es el filtro `Estado` desplegado. **No existe menú por fila**; el chevron abre el perfil directo. `CustomerRowActions.tsx` no se construyó porque no va.
+
+**Decisiones que vale tener a mano:**
+
+- **El scroll infinito no se perdió.** `fetchCustomersPageWith` sigue siendo page-based y devuelve `{ customers, total }`; el listado **v1** lo consume con `useInfiniteQuery`. Dos modos sobre el mismo query canónico.
+- **Los tres estados son mutuamente excluyentes.** Una membresía que vence en 3 días es "Por vencer", no "Activa" — si se solaparan, filtrar "Activo" devolvería filas con badge amarillo. El umbral es `UPCOMING_EXPIRATION_WINDOW_DAYS` (7), que **se mudó de `home/consts.ts` a `membership/consts.ts`** al pasar a tener dos dominios consumidores.
+- **`Inactivos` y `De baja` se listan deshabilitados** — ver [decisión abierta #13](#decisiones-abiertas--riesgos).
+- **El badge "Pagada" es una etiqueta fija, no un estado.** `membership_payments` no tiene columna de situación: toda fila de esa tabla *es* un pago hecho.
+- **El precio del panel es el de lista del plan** (`types_memberships.amount`), no el del último pago — ver la decisión de permisos abajo.
+- **`Renovar` hace toast de "próximamente"**: es el flow de la Fase 8.
+- **El listado se ordena por actividad real, no alfabéticamente.** Dos grupos, cada uno alfabético: arriba quienes asistieron en los últimos 30 días, debajo el resto. Ver abajo.
+
+#### Orden del listado — "señal de vida" aplicada al directorio
+
+El orden alfabético puro ponía arriba a clientes que no pisan el gimnasio hace años. Medido sobre dev (537 clientes): **223 (41%) nunca registraron una asistencia**, y de las primeras 20 filas alfabéticas **sólo 3 habían asistido en los últimos 30 días y 7 nunca**. Con el orden nuevo, 20 de 20.
+
+- **El corte es por asistencia, no por estado de membresía**, a pedido explícito de Ema: ordenar por "activos" perdería de vista a quien viene pero todavía no pagó — que son justamente los que hay que cobrar (39 en dev con asistencia este mes y sin membresía vigente).
+- **No es un criterio nuevo:** es el concepto de **"señal de vida"** que ya usaban `getBillingCycleProgress` ([incomes.ts](../../src/accounting/api/incomes.ts)) y `getExpiredMembershipsCount` ([home/api/server.ts](../../src/home/api/server.ts)) para excluir "churn silencioso" de los KPIs. Nunca se había aplicado al listado.
+- **Ventana de 30 días rodantes**, no mes calendario: la definición canónica usa mes en curso, que sirve para un KPI mensual pero haría colapsar el listado a un solo grupo cada día 1°.
+- **Dentro de cada grupo, alfabético.** El listado también es un directorio; la recencia pura lo haría impredecible para buscar a alguien.
+- **Implementación** (migración `20260916183000`): `customers.last_assistance_date` denormalizada — **el trigger `trigger_increment_assistance` que ya mantenía `assistance_count` ahora setea también la fecha, en el mismo `UPDATE`, a costo cero** — más la vista `customers_listing`, que agrega el booleano `is_recently_active` (el corte depende de `now()`, así que no puede ser columna generada).
+- ⚠️ **Es la primera vista del proyecto.** Dos cosas que cualquier vista futura tiene que repetir: **`security_invoker = true`** (sin él saltea la RLS de la tabla base y expone todas las filas), y **verificar que PostgREST pueda embeber** los recursos relacionados desde la vista antes de wirearla — se verificó contra la API real, incluido el `!inner`.
+- **El orden cambia también en el listado v1**, porque comparten el query canónico. Decidido así para no tener dos órdenes sobre una función compartida; reversible con un parámetro.
+
+> ⚠️ **Permisos del tab Pagos — decisión pendiente de Ema con el dato completo.** En la conversación se acordó que los pagos los viera todo el panel. Al implementar apareció que `membership_payments` es **admin-only a nivel RLS** desde `20260702120000_finances_admin_only_rls`, una restricción deliberada de defensa en profundidad del RBAC de finanzas. **No se tocó la RLS**: revertirla excede esta fase. El tab degrada honestamente — el rol se resuelve en el server y un no-admin ve "Sólo un administrador puede ver el historial de pagos" en vez de una lista vacía que mentiría. Si se quiere que todos los vean, es una migración de RLS y una decisión de seguridad propia.
+
+**Pendiente de verificar:** los dos frames mobile (`2222:42619`, `2228:47961`). El paginador degrada por criterio propio a 358px — se ocultan los números y queda `Anterior/Siguiente` + "Página X de Y".
 
 ### Pantallas
 
@@ -644,8 +682,22 @@ Lo que ya está resuelto y **no** hace falta preguntar: el `SidePanel` de la Fas
 - **El plan se escribe "5 días semanales"** en la columna de la tabla, contra el "Membresía: 5 días" que muestra la fila mobile. Son dos strings distintos por viewport, ambos verificados por captura → dos records en `membership/consts.ts`.
 - La acción primaria es `+ Nuevo cliente` (ícono `+`, no un ícono de persona) en el rosa de marca. El rosa entra en la pasada de paleta, según la decisión #2.
 
-**Menú de fila** (`2118:22594`): dropdown con acciones sobre el cliente. El chevron de la fila es su afordancia.
-**Perfil** (`2118:22907` y las 5 de la sección 6): `Customer Detail Modal`, aparentemente con tabs (5 frames del mismo modal = 5 vistas/tabs). Contenido probable: datos, membresía, historial de asistencias, historial de pagos. **Verificar cuáles son.**
+**Paginador** (mismo frame) — ✅ **verificado con captura el 2026-09-16.** Abajo a la izquierda `230 Total de clientes`; a la derecha `‹ Anterior · 1 [2] 3 … · Siguiente ›`. Lo que hace obsoleta la decisión abierta #4.
+
+**Filtro `Estado` desplegado** (`2118:22594`) — ✅ **verificado.** Cinco opciones, cada una con un punto de color: **Activo** (verde) · **Por vencer** (amarillo) · **Vencido** (rojo) · **Inactivos** (azul) · **De baja** (negro). **Este nodo no es un menú de acciones de fila**, como decía este plan: no existe tal menú.
+
+**Perfil del cliente** (`2118:22907` + las 5 de la sección 6) — ✅ **verificado con capturas el 2026-09-16.** `SidePanel` titulado **"Perfil del cliente"**, con avatar de iniciales + nombre debajo del header, **4 tabs** y footer fijo `Cancelar` + `Renovar` (con ícono de refresh):
+
+| Tab | Contenido |
+|---|---|
+| **Membresía** | Card con "Membresía actual" + badge, el plan en grande ("5 días"), "Progreso del período" + "30 días restantes" + barra, y tres columnas al pie: `Precio` · `Vence` · `Asistencias` |
+| **Pagos** | Lista de renovaciones. Cada fila: plan + fecha a la izquierda, monto + badge azul "Pagada" a la derecha. Al pie, "Último mes: 20" |
+| **Asistencias** | Filas `Fecha: dd/mm/aaaa` + hora a la derecha. Al pie, "Total: 20" (izq) y "Último mes: 20" (der) |
+| **Info** | Card "Datos personales" con `Nombre completo` · `DNI` · `Fecha de nacimiento` · `Teléfono`, y abajo "Observaciones" |
+
+> **Dos observaciones de copy del diseño**, ambas implementadas distinto y a avisar al diseñador:
+> - En el tab **Pagos** cada fila dice `Ultimo pago:` (sin tilde, y repetido en todas). Cada fila *es* un pago, así que "último" sólo aplica a la primera. Implementado como `Pago:`.
+> - El pie del tab **Pagos** dice "Último mes: 20", que es un conteo de asistencias heredado del tab de al lado. No se implementó.
 
 También es el destino del card "Clientes activos del mes" del home (`80` / `4 clientes con membresías vencidas`) — el link tiene que llegar acá con el filtro correspondiente ya aplicado.
 
@@ -671,15 +723,17 @@ También es el destino del card "Clientes activos del mes" del home (`80` / `4 c
 **Riesgo timezone:** medio, y **auditado en 6a** (ver el ADR). El listado es read-only: no escribe ninguna fecha. El riesgo es de lectura — el corte activa/vencida usa `getTodayRangeInAppTz().start` y el badge `isExpiredInAppTz`, así que las últimas 3 horas del día AR no cambian de estado.
 
 **Definición de hecho:**
-- [x] Listado con filtros y paginación funcionando con data real *(6a)*
-- [ ] Menú de fila con todas las acciones del Figma *(6b — bloqueado)*
-- [ ] Modal de perfil con todos sus tabs *(6b — bloqueado)*
+- [x] Listado con filtros funcionando con data real *(6a)*
+- [x] **Paginación numerada + contador de resultados** *(6b — el Figma sí la tiene)*
+- [x] ~~Menú de fila con todas las acciones del Figma~~ → **no existe**: el nodo era el filtro `Estado` *(6b)*
+- [x] Modal de perfil con todos sus tabs *(6b — Membresía · Pagos · Asistencias · Info)*
 - [x] Link desde el card del home llega con el filtro aplicado *(6a)*
 - [x] Estados vacío/cargando/error *(6a — más "sin resultados", que es distinto de "no hay clientes")*
 - [x] Responsive: tabla → lista de filas en mobile *(6a, vía `DataTable`)*
-- [x] Auditoría de timezone *(6a, documentada en el ADR)*
+- [x] Auditoría de timezone *(6a y 6b, documentadas en los ADRs)*
+- [ ] **Verificación visual en mobile** — faltan los frames `2222:42619` y `2228:47961`; el paginador degrada por criterio propio
 
-**ADR:** ✅ [20260916120738](../architecture/decisions/20260916120738_v2-listado-de-clientes.md) para 6a. 6b necesita el suyo si el modal de perfil trae endpoints nuevos.
+**ADR:** ✅ [20260916120738](../architecture/decisions/20260916120738_v2-listado-de-clientes.md) (6a) y [20260916161500](../architecture/decisions/20260916161500_v2-perfil-de-cliente-y-paginacion.md) (6b).
 
 ---
 
@@ -1082,7 +1136,7 @@ Ordenadas por impacto. Las que bloquean una fase están marcadas.
 2. **~~Paleta~~ → RESUELTO (2026-09-15).** El rosa/magenta **es la marca de Actitud**, y los Figmas nuevos apuntan a más alta fidelidad. Ema: *"hoy no es necesario que pienses en ello de momento, podés mantener todo en escala de grises si querés"*. **Decisión: las primitivas de la Fase 5 se construyen con los tokens neutrales actuales**, y la paleta de marca se aplica después en una pasada dedicada sobre las CSS vars de `[data-v2]` — que es exactamente para lo que sirve el theming scoped de la Fase 1. Evita mezclar decisiones de color con decisiones de API de componentes.
 3. **Estados de tabla y lista — parcialmente resueltos por el mobile.** En desktop hay tres anotaciones del diseñador pidiendo definirlos (`2118:22319`, `2118:22606`, `2118:29353`), pero **el mobile sí diseñó dos empty states**: `Gastos/Vacio` (`2286:119862`) y Ventas en $0 (`2265:70904`). Usar esos dos como referencia canónica y derivar el resto (cargando, error, sin resultados de filtro) en la Fase 5, documentándolos acá. Ya no hace falta pedir nada.
 
-4. **Paginación de tablas sin definir.** Ningún wireframe muestra paginador. Con el volumen actual (~cientos de clientes) scroll + filtros alcanza, pero conviene decidirlo en Fase 5 y no después de 11 tablas construidas.
+4. **~~Paginación de tablas sin definir~~ → RESUELTO (2026-09-16, Fase 6b).** El claim de que "ningún wireframe muestra paginador" era **falso**: la captura del listado de clientes tiene `230 Total de clientes` + paginador numerado. **Las tablas del rediseño paginan.** El componente es [DataTablePagination](../../src/components/v2/DataTablePagination.tsx), ya transversal en `components/v2/`; las fases 10–14 lo instancian en vez de decidir de nuevo. El scroll infinito sigue disponible sobre el mismo query — lo usa el listado v1 — para las secciones donde convenga.
 
 5. **⚠️ Alcance de Ventas (bloquea Fase 12).** ¿Control de stock? ¿Se puede anular una venta? ¿Múltiples productos por venta o uno solo? ¿Quién carga el catálogo de productos? Sin esto no se puede diseñar el schema.
 
@@ -1099,6 +1153,14 @@ Ordenadas por impacto. Las que bloquean una fase están marcadas.
 11. **Multi-tenant runtime.** Cuándo migrar la DB a `tenant_id` + RLS. No bloquea la v2 de Actitud pero debería resolverse antes de onboardear un 2do tenant. Cruza con las decisiones #6 y #5 (tablas nuevas: ¿nacen con `tenant_id`?).
 
 12. **Toggle de v2 en el perfil de usuario.** Hoy el flag se habilita por SQL directo. ¿Se hace UI de admin, o se deja así hasta el corte?
+
+13. **⚠️ "Inactivos" y "De baja" no tienen modelo de datos (Fase 6b, ya entregada con ellos deshabilitados).** El filtro `Estado` del Figma tiene cinco valores; sólo tres se derivan de `customer_membership.expiration_date`. Falta definir:
+    - ¿**"De baja"** es una acción explícita del operador (se fue del gimnasio)? Necesita columna de estado en `customers` — o `deleted_at`, según si se quiere soft delete.
+    - ¿**"Inactivos"** es otra cosa, o el diseño duplicó el mismo concepto? Si es "tiene membresía pero no viene hace N días", es derivado de `assistance` y hay que fijar el N.
+
+    Mientras tanto se listan apagados en el dropdown. Ocultarlos escondería la diferencia con el diseño; filtrar por una regla inventada devolvería resultados falsos con cara de correctos.
+
+14. **Permisos del historial de pagos (Fase 6b).** El tab Pagos del perfil lee `membership_payments`, que es **admin-only a nivel RLS** por decisión deliberada (`20260702120000_finances_admin_only_rls`). Se acordó en conversación que lo viera todo el panel, pero eso requiere revertir una restricción de seguridad, no sólo sacar un guard de app. Entregado degradando honestamente para no-admin. **Decidir si se abre la RLS** — y si se abre, si es sólo lectura y sólo de los pagos del propio cliente consultado.
 
 ---
 
@@ -1196,4 +1258,25 @@ Aplica a **toda** fase antes de pedir review. Está pensado para que el otro dev
   - **El árbol de nodos no alcanza para definir columnas de tabla ni microcopy.** 3 de las 6 correcciones eran columnas. Para las fases con tabla que vienen (10, 11, 12, 14): pedir la captura **antes** de definir las columnas.
   - **Tercer claim desactualizado del plan**: la convención decía que `getServerT()` no existe, cuando lo introdujo el PR #50 y lo usa todo v2. Corregido.
   - **`.or()` sobre recurso embebido necesita `referencedTable`.** Se verificó la URL generada (`customer_membership.or=(...)`) inspeccionando `request.url` con un script descartable, sin pegarle a la DB — técnica útil para cualquier filtro PostgREST no trivial.
+  — Ema + Claude.
+- 2026-09-16 — **Arranque de la Fase 6b (`feat/v2-perfil-cliente`), sin código todavía.** Se reintentó la cuota del MCP de Figma y volvió el mismo rate limit del seat View: **la cuota no se renovó en el día**, así que 6b sigue bloqueada hasta que Ema pase las capturas de los 8 frames. Lo que sí se hizo:
+  - **Relevado el inventario de API del modal de perfil** (ver [6b](#6b--qué-falta-y-qué-se-necesita-para-desbloquearlo)) para no re-explorar cuando lleguen las capturas. Dos hallazgos: `getMembershipPayments` llama a `requireAdmin()`, así que un tab de pagos tiene una decisión de permisos detrás; y **no existe ningún endpoint de historial de asistencias por cliente** — `fetchCustomerModalData` trae sólo la semana en curso. Es el único endpoint nuevo que anticipa la fase.
+  - **Respondida a medias la decisión abierta #6** ("Sin membresía"). Ema: es un **estado inicial del cliente**, no un tipo del catálogo → se descarta agregar `NONE` a `types_memberships`. Falta cerrar si el alta deja al cliente sin fila en `customer_membership` o con `membership_type` nullable; se resuelve al arrancar la Fase 7.
+  — Ema + Claude.
+- 2026-09-16 — **Fase 6b completa** (`feat/v2-perfil-cliente`), y con eso la Fase 6 entera. ADR [20260916161500](../architecture/decisions/20260916161500_v2-perfil-de-cliente-y-paginacion.md). Ema pasó las 6 capturas del listado y del perfil, que destrabaron la fase y **corrigieron tres supuestos del plan**:
+  - **El listado tiene paginador y contador de resultados.** 6a se había construido con scroll infinito justificando que el Figma no los mostraba. Sí los muestra. Se revirtió a paginación server-side con `count: 'exact'`, se extrajo `DataTablePagination` a `components/v2/` para las 10 tablas que vienen, y **se cerró la decisión abierta #4**. El scroll infinito no se perdió: el mismo query canónico lo sigue alimentando en el listado v1.
+  - **El filtro `Estado` tiene 5 valores, no 2** — Activo · Por vencer · Vencido · Inactivos · De baja. Se implementaron los tres derivables de `expiration_date` (con los tres cortes mutuamente excluyentes, y "Por vencer" reusando la ventana de 7 días del home, que se mudó a `membership/consts.ts`). Los otros dos no tienen modelo → nueva decisión abierta #13, listados deshabilitados.
+  - **`2118:22594` no es un menú de acciones de fila**, como decía este plan: es el filtro `Estado` desplegado. **No existe menú por fila** — el chevron abre el perfil. Un componente entero que no había que construir.
+  - **Endurecida la moraleja de 6a:** el árbol de nodos tampoco alcanza para detectar *controles enteros*. Pasa de "pedir la captura antes de definir columnas" a **"antes de definir la pantalla"**.
+  - **Cuarto y quinto claim desactualizado del plan:** `MembershipTranslationShort` figuraba como creado en 6a y no existía (era `MembershipTranslationWeekly`, con otro propósito); y la descripción de `2118:22594`. Ambos corregidos acá.
+  - **Brechas B10 y B11 aplicadas** (`customers.birth_date`, `customers.notes`) — migración aditiva, sin backfill. El tab Info las muestra, así que se adelantaron desde la Fase 7. **B12 no**: quedaría NULL para todo el histórico y la barra de progreso necesita el fallback a `last_payment_date` igual.
+  - **Un solo endpoint nuevo en toda la fase:** `fetchCustomerAssistances`. Los pagos ya tenían `/api/accounting/payments?customer_id=` y se reusó.
+  - **Apareció una decisión de seguridad que no estaba sobre la mesa** (nueva #14): se había acordado que los pagos los viera todo el panel, pero `membership_payments` es admin-only **a nivel RLS** por una migración deliberada. No se tocó la RLS; el tab degrada con un mensaje explícito de permisos en vez de mostrar una lista vacía.
+  - **La cuota del MCP de Figma no se renueva en el día** — se confirmó con un segundo intento.
+  — Ema + Claude.
+- 2026-09-16 — **Orden del listado de clientes por actividad real** (misma rama que 6b, migración `20260916183000`). Salió de mirar la pantalla terminada con data real: cumplía el Figma al pie de la letra y era casi inútil — **de las primeras 20 filas alfabéticas, sólo 3 habían asistido en el último mes y 7 nunca pisaron el gimnasio**; el 41% de la base nunca registró una asistencia. Dos grupos alfabéticos: actividad reciente arriba, resto abajo. Detalle en [Fase 6b](#6b--qué-quedó-construido). Lo que deja como aprendizaje transversal:
+  - **El wireframe no puede mostrar este tipo de problema.** El Figma dibuja ocho filas de ejemplo, todas activas, así que el orden se ve perfecto en el diseño. **Mirar cada pantalla nueva con data real antes de cerrarla**, no sólo compararla contra el frame. Es el complemento de la moraleja de 6a, que era sobre lo que el Figma no dice; ésta es sobre lo que el Figma no puede decir.
+  - **El dominio ya había nombrado el problema.** "Señal de vida" / "churn silencioso" estaba definido y comentado hacía meses en accounting y en el home. Antes de diseñar un criterio nuevo, buscar si el proyecto ya lo resolvió en otro lado.
+  - **Primera vista del proyecto**, con dos requisitos que aplican a toda vista futura: `security_invoker = true` y verificar el embedding de PostgREST contra la API real antes de usarla.
+  - **Denormalizar salió gratis** porque ya existía el trigger de `assistance_count`. Relevante para el tier gratuito de Supabase (la base está en 25 MB de 500): el patrón caro habría sido agregar `max(assistance_date)` en cada request.
   — Ema + Claude.
