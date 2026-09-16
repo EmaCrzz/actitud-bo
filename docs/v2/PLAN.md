@@ -23,7 +23,8 @@
 | 3 | Flow "Registrar asistencia" (modal + confirmación + toast) | ✅ completa *(con pendientes)* | PR [#49](https://github.com/EmaCrzz/actitud-bo/pull/49) mergeado en `develop` el 2026-08-19. ADRs [20260819130435](../architecture/decisions/20260819130435_v2-attendance-modal.md) + [20260819163000](../architecture/decisions/20260819163000_success-tick-animation.md) + [20260819170000](../architecture/decisions/20260819170000_busqueda-de-clientes-insensible-a-acentos.md). **Quedaron pendientes** (verificación contra Figma, duplicado de asistencia, loading de búsqueda) → ver [Fase 3](#fase-3--flow-registrar-asistencia); se resuelven como fase 3.1 o dentro de la fase que los toque. |
 | 4 | Navegación v2 real (sidebar alineado al Figma + rutas stub) | ✅ completa | Rama `feat/v2-navegacion-sidebar`. ADR [20260915132556](../architecture/decisions/20260915132556_v2-navegacion-real-y-rutas-stub.md). Campana de notificaciones diferida. Falta verificación visual del drawer mobile. |
 | 5 | Primitivas transversales v2 (DataTable, SidePanel, ConfirmDialog, FilterBar, Stepper) | ✅ completa | Rama `feat/v2-primitivas`. ADR [20260916093140](../architecture/decisions/20260916093140_v2-primitivas-transversales.md). `FormModal` y `DetailModal` colapsaron en un solo `SidePanel`. Sandbox en `/v2/sandbox`. |
-| 6 | Sección Clientes + Modal perfil de cliente | ⬜ pendiente | |
+| 6a | Sección Clientes — listado | ✅ completa | Rama `feat/v2-clientes`. ADR [20260916120738](../architecture/decisions/20260916120738_v2-listado-de-clientes.md). Query canónico compartido server/client, filtros en la URL, scroll infinito. |
+| 6b | Modal perfil de cliente + acciones de fila | ⚠️ bloqueada | **Falta diseño.** La cuota del MCP de Figma se agotó en la primera llamada del 2026-09-16 y los 6 frames del perfil + el dropdown de fila no se pudieron verificar. Se desbloquea con los PNGs en `docs/v2/figma/` — ver [Fase 6](#fase-6--sección-clientes--modal-perfil-de-cliente). |
 | 7 | Alta de cliente (desde Home y desde Clientes) | ⬜ pendiente | |
 | 8 | Registrar pago / renovar membresía + comprobante | ⬜ pendiente | Flow más largo del Figma (10 pantallas). |
 | 9 | Sección Asistencias | ⬜ pendiente | |
@@ -397,6 +398,12 @@ Cerradas. El detalle de implementación vive en los ADRs linkeados en la tabla d
 - **Cuidado con los wrappers de shadcn que aplican estilos propios.** `AlertDialogCancel` y `AlertDialogAction` hardcodean `buttonVariants()` de v1 en su `className`, así que pasarles un Button de v2 por `asChild` no alcanza: el wrapper lo pisa igual. En esos casos hay que usar el primitive de Radix directamente (`AlertDialogPrimitive.Cancel`). Verificar esto en cada primitive v2 que envuelva algo de `components/ui/`.
 - **Antes de reusar cualquier primitive de `components/ui/` en v2, verificar su altura y su `rounded`.** Están customizados para v1 y arrastran su geometría: el `Input` mide ~56px (`text-base` + `py-4`) contra los 36px del Figma, y el `SelectTrigger` lo mismo. Ya hay tres casos (`Button`, `Input`, `Select`). Si no matchean, el átomo va a `v2/ui/`.
 - **…y verificar también si hardcodea colores.** `SelectItem` y `SelectContent` de v1 fijan `text-white` directo, lo que en la paleta clara de v2 deja el item resaltado invisible. En cambio `DropdownMenuItem` usa tokens (`focus:bg-accent`) y funciona bien. El criterio no es "v1 malo": es **hardcodeo vs token**. Cuando hardcodea, se baja al primitive de Radix y se construye el átomo en `v2/ui/` — ya hay tres: [Button](../../src/components/v2/ui/Button.tsx), [Input](../../src/components/v2/ui/Input.tsx) y [Select](../../src/components/v2/ui/Select.tsx).
+- **La `FilterBar` es una sola fila en desktop** — `[search flexible] [dropdowns] [acción primaria]` — y dos en mobile: search + acción icon-only arriba, dropdowns repartiéndose el ancho abajo. Se resuelve con un solo contenedor `flex-wrap` + utilidades `order`, no con dos contenedores. Aplica a Clientes, Ventas, Gastos y Configuración. (Verificado por captura en la fase 6.)
+- **El trigger de un `FilterDropdown` sin filtro aplicado muestra el nombre del filtro** ("Estado", "Membresías"), no el label de la opción "todos". Ese label largo sólo se ve dentro de la lista.
+- **Un `<input type='search'>` trae el botón de cancelar de WebKit**, que convive con el botón de limpiar propio y deja dos afordancias para la misma acción. El átomo [Input](../../src/components/v2/ui/Input.tsx) lo esconde con `[&::-webkit-search-cancel-button]:hidden`, y el `type='search'` se mantiene por la semántica. No sale en Firefox, así que es de los bugs que sólo se ven en el navegador correcto.
+- **⚠️ Todo átomo con `w-full` en su base necesita ancho propio cuando comparte fila.** `Input` y `SelectTrigger` son `w-full` porque nacieron para ocupar el ancho de su campo en un formulario. Dentro de un contenedor `w-auto` eso significa "100% del contenedor": **dos hermanos al 100% se desbordan y pintan encima del elemento siguiente** — no se recortan ni empujan, se superponen, así que no se ve como un problema de layout sino como un componente roto. Pasó con los dos dropdowns tapando el botón "Nuevo cliente". El fix es un ancho explícito por breakpoint (`sm:w-44`), que `twMerge` deja convivir con el `w-full` de la base porque son modifiers distintos. Vale para las 4 secciones con `FilterBar` que quedan.
+- **El header de un `DataTable` es una banda gris con esquinas redondeadas**, no una fila con borde inferior. Con `border-separate` el radius va en las celdas de los extremos: un `<tr>` no acepta `overflow: hidden`.
+- **El avatar de iniciales va también en la tabla desktop**, no sólo en la fila mobile — está en la celda de nombre. Por eso `DataTableAvatar` es un export propio.
 - **Los campos y botones de una misma fila miden 36px** (`h-9`). Es el valor del Figma: `Input Search` 622×36 junto a `Buttons` 177×36 en el home, `Search Bar` 306×36 junto a `New Client Button` 40×36 en Clientes. Los dropdowns de filtro, que van en su propia fila, miden 32px.
 - **El radius de v2 es `rounded-lg`, no `rounded-xl`.** Bajo `[data-v2]`, `globals.css` define `--radius: 0.5rem` ("Figma radius-md"), y `rounded-lg` mapea a ese token. **`rounded-xl` es un literal de Tailwind de 12px** que ignora el token y queda 50% más redondo que el diseño. Había 16 usos en v2; se corrigieron todos. Es la misma clase de error que `bg-primary-500`: escribir una utilidad de Tailwind en vez del token del proyecto.
 - **Las alturas de los átomos son explícitas (`h-8`/`h-9`), no derivadas del padding.** Dejarlas emerger de `py-*` hacía que dos elementos de la misma fila alinearan por casualidad — o no alinearan.
@@ -406,7 +413,9 @@ Cerradas. El detalle de implementación vive en los ADRs linkeados en la tabla d
 - **Y `min-h-0` en la columna vertical**, si no una página más alta que el viewport desborda el `h-dvh` del wrapper `[data-v2]` y se dibuja sobre el fondo del tenant v1. Es el gemelo vertical de la regla anterior. (Fase 5.)
 - **Formatear fechas en el server y pasar strings al client.** `format(new Date(), ...)` dentro de un `'use client'` genera hydration mismatch y arrastra `date-fns/locale/es` al bundle.
 - **Sub-componentes explícitos en vez de mega-render con ramas inline** (regla `patterns-explicit-variants`).
-- **`getServerT()` / `getServerTranslations()` no existen** (el `examples.md` está desactualizado). En Server Components: `import { api } from '@/lib/i18n/api'` → `const { t } = await api.fetch(lang, tenant)`.
+- **En Server Components la traducción sale de `getServerT()`**: `import { getServerT } from '@/lib/i18n/server'` → `const { t } = await getServerT()`. Devuelve también `lang` y `tenant`, resueltos una sola vez por request (está wrappeado en `React.cache`, así que llamarlo en el layout y en tres componentes del mismo request no repite el fetch).
+
+  > **Corrección (2026-09-16).** Esta convención decía que `getServerT()` **no existe** y que había que usar `api.fetch(lang, tenant)` con `lang`/`tenant` threading por props. Era cierto hasta el PR [#50](https://github.com/EmaCrzz/actitud-bo/pull/50), que introdujo `getServerT()` justamente para eliminar ese threading (ADR [20260908111054](../architecture/decisions/20260908111054_centralizar-resolucion-de-lang-tenant-en-i18n.md)) — y el plan quedó contradiciendo al código que el propio plan había pedido. Tercer claim desactualizado encontrado al ejecutar una fase; ver la nota de la Fase 4.
 
 ---
 
@@ -570,13 +579,72 @@ Seis problemas de estilo encontrados en revisión visual — ninguno detectable 
 
 ## Fase 6 — Sección Clientes + Modal perfil de cliente
 
-**Estado:** ⬜ pendiente
+**Estado:** 🟡 partida en dos — **6a (listado) ✅ completa** · **6b (modal de perfil + acciones de fila) ⚠️ bloqueada por falta de diseño**
 **Figma:** desktop `2167:22900` (3 pantallas) + `2167:22901` (5 pantallas) · **mobile `2222:43027` (7 pantallas: 2 de listado + 4 del Detail Modal + 1 con drawer)**.
+
+> **Por qué se partió.** La cuota del MCP de Figma se agotó en la **primera** llamada de la sesión del 2026-09-16 (`2167:22900`), así que se implementó el listado con lo que daba el árbol de nodos + la fila mobile ya confirmada en [2.4](#24-presentación-de-componentes-confirmada). Después Ema pasó **la captura del listado desktop**, que confirmó dos cosas y corrigió seis — ver [Pantallas](#pantallas); las correcciones están aplicadas. El modal de perfil siguen siendo 5 frames de contenido desconocido: construirlo a ciegas es exactamente lo que prohíbe el [protocolo de Figma](#3-protocolo-de-trabajo-con-el-figma-obligatorio-por-fase).
+>
+> **Moraleja operativa:** el árbol de nodos alcanza para el *layout general* pero **no para las columnas de una tabla ni para el microcopy**. De las 6 correcciones, 3 eran columnas inventadas o faltantes. Para las fases con tabla (10, 11, 12, 14) conviene pedir la captura **antes** de definir columnas, no después.
+
+### 6a — Qué quedó construido
+
+Rama `feat/v2-clientes`, ADR [20260916120738](../architecture/decisions/20260916120738_v2-listado-de-clientes.md).
+
+| Archivo | Qué es |
+|---|---|
+| [customers-query.ts](../../src/customer/api/customers-query.ts) | **Query canónico del listado.** Recibe el cliente de Supabase por parámetro: hasta ahora el listado estaba escrito **dos veces** (`searchAllCustomers` en `api/server.ts` y `_fetchCustomersPage` en `api/client.ts`, idénticos). Ahora las dos son wrappers |
+| [filters.ts](../../src/customer/filters.ts) | Tipos, parseo y serialización de los filtros. Compartido entre el server component, la UI y el link del home |
+| [CustomersSection.tsx](../../src/customer/components/v2/CustomersSection.tsx) | Search + filtros + scroll infinito + sync de URL |
+| [CustomersTable.tsx](../../src/customer/components/v2/CustomersTable.tsx) | Columnas desktop, fila mobile del Figma y los cuatro estados (vacío / sin resultados / cargando / error) |
+| [CustomerFilters.tsx](../../src/customer/components/v2/CustomerFilters.tsx) | Los dos dropdowns — `Estado` y `Membresías`, verificados |
+| `MembershipTranslationShort` en [membership/consts.ts](../../src/membership/consts.ts) | Nombre del plan sin el prefijo "Membresía:", que `MembershipTranslation` trae incluido |
+| `v2.comingSoon.*` + [useComingSoonToast](../../src/components/v2/use-coming-soon-toast.ts) | El toast de "próximamente" estaba bajo `v2.home.quickActions.*`; se movió para que Clientes no consumiera copy de home |
+
+Decisiones que vale tener a mano para las fases siguientes:
+
+- **El estado del cliente se deriva de `customer_membership.expiration_date`**, no existe columna de activo/inactivo. `expiration_date` nulo cuenta como vencida — la misma regla en el badge y en el `WHERE`, a propósito.
+- **Filtros server-side sin migración**, con joins embebidos de PostgREST: `SEARCH_CUSTOMER_WITH_MEMBERSHIP` usa `customer_membership!inner` porque **PostgREST sólo filtra por columnas de un recurso embebido si el join es inner**. El filtro "Vencida" va con `.or()` + `referencedTable` para incluir los nulos.
+- **Sin paginador ni `count`**: scroll infinito reusando el patrón de la lista v1 (`useInfiniteQuery` + `useIntersectionObserver`). Coherente con la decisión abierta #4.
+- **Los filtros viven en la URL** y se sincronizan con `window.history.replaceState`, no con `router.replace` — éste re-ejecutaría el server component por cada tecla del search.
+- **"Sin membresía" se muestra pero no se filtra.** Es un badge neutral en la fila; como estado filtrable necesita RPC o la brecha B13 resuelta. Queda para la Fase 7.
+- **"Nuevo cliente" hace toast de "próximamente"** — el alta es la Fase 7. El botón existe porque el Figma lo tiene en la barra de filtros.
+
+### 6b — Qué falta y qué se necesita para desbloquearlo
+
+Nodos a exportar a `docs/v2/figma/fase-6/` (decisión abierta #10):
+
+| Nodo | Qué es | Para qué |
+|---|---|---|
+| ~~`2118:22308`~~ | ~~Listado desktop~~ | ✅ **resuelto 2026-09-16** con captura de Ema — ver [Pantallas](#pantallas) |
+| `2118:22594` | Dropdown de acciones de fila | Qué acciones hay (ver perfil, renovar, editar, eliminar?) |
+| `2118:22907` + `2118:25405` + `2118:23254` + `2118:23600` + `2118:24441` + `2118:24959` | Las 6 vistas del `Customer Detail Modal` | Qué tabs tiene y qué muestra cada uno |
+| `2222:42619` + `2228:47961` | Listado y detail modal mobile | Validar la fila y el modal full-screen |
+
+Lo que ya está resuelto y **no** hace falta preguntar: el `SidePanel` de la Fase 5 es el contenedor del modal (480×832 desktop / full-screen mobile), y la fila mobile es avatar + nombre + subtítulo + badge.
 
 ### Pantallas
 
-**Listado** (`2118:22308`): `FilterBar` (search + 2 dropdowns) + botón primario + `DataTable`. Los 2 dropdowns son probablemente estado de membresía y tipo de membresía — **verificar**.
-**Menú de fila** (`2118:22594`): dropdown con acciones sobre el cliente.
+**Listado** (`2118:22308`) — ✅ **verificado con captura el 2026-09-16.** Anatomía exacta:
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│ [🔍 Busca por nombre o apellido      ] [Estado ▾] [Membresías ▾] [+ Nuevo cliente] │
+├────────────────────────────────────────────────────────────────────────┤
+│ Nombre y Apellido  │ Membresía         │ Estado   │ Vencimiento │ Asistencias │  │  ← banda gris
+│ (AN) Ana Beltrán   │ 5 días semanales  │ [Activa] │ 31/08/2026  │ 20          │ ›│
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+- **Los cuatro controles van en una sola fila** en desktop — search flexible, los dos dropdowns y la acción primaria. No es search+acción arriba y filtros abajo.
+- **Los dropdowns se llaman `Estado` y `Membresías`**, y el trigger muestra **el nombre del filtro** mientras no hay nada aplicado (no "Todos los estados"). Confirma la inferencia del árbol de nodos sobre qué filtran.
+- **Columnas: `Nombre y Apellido` · `Membresía` · `Estado` · `Vencimiento` · `Asistencias`**, todas alineadas a la izquierda, más una columna de chevron al final que abre el detail modal. **No hay columna de contacto ni DNI** — se habían inventado en la primera pasada de 6a y se sacaron.
+- **El avatar de iniciales también está en desktop**, dentro de la celda de nombre. No es un tratamiento exclusivo de la fila mobile.
+- **El header de la tabla es una banda gris con esquinas redondeadas**, no una fila con borde inferior.
+- **El badge activo dice "Activa"**, no "Activo" (concuerda con "membresía"). Corrige lo que decía [2.4](#24-presentación-de-componentes-confirmada).
+- **El plan se escribe "5 días semanales"** en la columna de la tabla, contra el "Membresía: 5 días" que muestra la fila mobile. Son dos strings distintos por viewport, ambos verificados por captura → dos records en `membership/consts.ts`.
+- La acción primaria es `+ Nuevo cliente` (ícono `+`, no un ícono de persona) en el rosa de marca. El rosa entra en la pasada de paleta, según la decisión #2.
+
+**Menú de fila** (`2118:22594`): dropdown con acciones sobre el cliente. El chevron de la fila es su afordancia.
 **Perfil** (`2118:22907` y las 5 de la sección 6): `Customer Detail Modal`, aparentemente con tabs (5 frames del mismo modal = 5 vistas/tabs). Contenido probable: datos, membresía, historial de asistencias, historial de pagos. **Verificar cuáles son.**
 
 También es el destino del card "Clientes activos del mes" del home (`80` / `4 clientes con membresías vencidas`) — el link tiene que llegar acá con el filtro correspondiente ya aplicado.
@@ -593,25 +661,25 @@ También es el destino del card "Clientes activos del mes" del home (`80` / `4 c
 
 ### A construir
 
-- `src/app/[lang]/[tenant]/v2/customers/page.tsx`
-- `src/customer/components/v2/CustomersTable.tsx`, `CustomerFilters.tsx`, `CustomerRowActions.tsx`
-- `src/customer/components/v2/CustomerDetailModal.tsx` + un componente por tab
-- Endpoint de listado paginado con filtros — `searchAllCustomers` hoy no pagina ni filtra por estado de membresía. **Extenderlo en `src/customer/api/server.ts`, no duplicar.**
+- ~~`src/app/[lang]/[tenant]/v2/customers/page.tsx`~~ ✅ 6a
+- ~~`CustomersTable.tsx`, `CustomerFilters.tsx`~~ ✅ 6a · `CustomerRowActions.tsx` → 6b
+- `src/customer/components/v2/CustomerDetailModal.tsx` + un componente por tab → **6b**
+- ~~Listado paginado con filtros~~ ✅ 6a — se extrajo el query a [customers-query.ts](../../src/customer/api/customers-query.ts), compartido por server y client, porque **ya estaba duplicado** entre `api/server.ts` y `api/client.ts`.
 
-**Brechas de DB:** ninguna bloqueante. Si el perfil muestra "activo/inactivo", `customers` no tiene ese campo — se deriva de `customer_membership.expiration_date`.
+**Brechas de DB:** ninguna bloqueante. El estado activo/vencida se deriva de `customer_membership.expiration_date`, como se anticipó.
 
-**Riesgo timezone:** medio. El filtro "activos del mes" y el badge de vencida usan `getMonthRangeInAppTz` y `isExpiredInAppTz`.
+**Riesgo timezone:** medio, y **auditado en 6a** (ver el ADR). El listado es read-only: no escribe ninguna fecha. El riesgo es de lectura — el corte activa/vencida usa `getTodayRangeInAppTz().start` y el badge `isExpiredInAppTz`, así que las últimas 3 horas del día AR no cambian de estado.
 
 **Definición de hecho:**
-- [ ] Listado con filtros y paginación funcionando con data real
-- [ ] Menú de fila con todas las acciones del Figma
-- [ ] Modal de perfil con todos sus tabs
-- [ ] Link desde el card del home llega con el filtro aplicado
-- [ ] Estados vacío/cargando/error
-- [ ] Responsive: tabla → cards en mobile
-- [ ] Auditoría de timezone
+- [x] Listado con filtros y paginación funcionando con data real *(6a)*
+- [ ] Menú de fila con todas las acciones del Figma *(6b — bloqueado)*
+- [ ] Modal de perfil con todos sus tabs *(6b — bloqueado)*
+- [x] Link desde el card del home llega con el filtro aplicado *(6a)*
+- [x] Estados vacío/cargando/error *(6a — más "sin resultados", que es distinto de "no hay clientes")*
+- [x] Responsive: tabla → lista de filas en mobile *(6a, vía `DataTable`)*
+- [x] Auditoría de timezone *(6a, documentada en el ADR)*
 
-**ADR:** sí — paginación y filtrado server-side de clientes, y estructura del modal de perfil.
+**ADR:** ✅ [20260916120738](../architecture/decisions/20260916120738_v2-listado-de-clientes.md) para 6a. 6b necesita el suyo si el modal de perfil trae endpoints nuevos.
 
 ---
 
@@ -1119,4 +1187,13 @@ Aplica a **toda** fase antes de pedir review. Está pensado para que el otro dev
     - **El círculo del paso activo del `Stepper` era invisible**: usaba `bg-primary-500`, que no existe (la escala del `@theme` va sin guion antes del número). Ni el type-check ni el lint detectan una clase de Tailwind inexistente — sólo se ve en pantalla.
     - **Los botones estaban mal en el sandbox — y el home tampoco era consistente consigo mismo**: convivían dos `contained` (`bg-sidebar-accent` gris medio y `bg-foreground` negro) y dos `outlined` con geometría distinta. Se creó el átomo [v2/ui/Button.tsx](../../src/components/v2/ui/Button.tsx) con `contained`/`outlined`/`ghost`/`destructive` y se unificó todo el home. **Cambio visual:** "Registrar asistencia" pasa de gris medio a negro.
     - **Estructura nueva:** `src/components/v2/ui/` para átomos (Button, StatusBadge), `src/components/v2/` para compuestos.
+  — Ema + Claude.
+- 2026-09-16 — **Fase 6 partida en 6a y 6b; 6a (listado de clientes) completa** (`feat/v2-clientes`). ADR [20260916120738](../architecture/decisions/20260916120738_v2-listado-de-clientes.md). La cuota del MCP de Figma se agotó en la **primera** llamada de la sesión, así que ninguno de los 9 frames de la fase se pudo verificar. Se entregó lo que no requería adivinar (el listado) y se documentó explícitamente lo que sí (el modal de perfil y el dropdown de acciones → 6b, con la lista de nodos a exportar). Hallazgos y desvíos:
+  - **El query del listado estaba duplicado desde antes de la v2** — `searchAllCustomers` (server) y `_fetchCustomersPage` (client) eran la misma consulta escrita dos veces. Extraído a `customers-query.ts`, que recibe el cliente de Supabase por parámetro. Nadie lo había notado porque ninguna de las dos copias había cambiado nunca.
+  - **Los filtros no necesitaron migración.** PostgREST filtra por columnas de un recurso embebido si el join es `!inner`; de ahí la segunda variante del select. Se descartó el RPC `search_customers_paginated` (más expresivo, resolvería "sin membresía" y daría `count`) porque cuesta migración y el Figma no muestra paginador ni contador.
+  - **"Sin membresía" se muestra pero no se filtra** — decisión abierta #6 sin resolver, se arrastra a la Fase 7 junto con la brecha B13.
+  - **Ema pasó la captura del listado desktop en la misma sesión y se corrigieron 6 cosas** (ver [Pantallas](#pantallas)): la barra de filtros va en **una sola fila**; los dropdowns se llaman `Estado`/`Membresías` y el trigger muestra el nombre del filtro; las columnas son `Nombre y Apellido · Membresía · Estado · Vencimiento · Asistencias` — **se habían inventado "Contacto" y el DNI bajo el nombre, y faltaba "Asistencias"**; el avatar de iniciales va también en desktop; el header de la tabla es una banda gris; el badge dice **"Activa"**; y el plan se escribe "5 días semanales" en la tabla contra "Membresía: 5 días" en la fila mobile. Cuatro de esas correcciones se promovieron a convención porque son de las primitivas, no de Clientes.
+  - **El árbol de nodos no alcanza para definir columnas de tabla ni microcopy.** 3 de las 6 correcciones eran columnas. Para las fases con tabla que vienen (10, 11, 12, 14): pedir la captura **antes** de definir las columnas.
+  - **Tercer claim desactualizado del plan**: la convención decía que `getServerT()` no existe, cuando lo introdujo el PR #50 y lo usa todo v2. Corregido.
+  - **`.or()` sobre recurso embebido necesita `referencedTable`.** Se verificó la URL generada (`customer_membership.or=(...)`) inspeccionando `request.url` con un script descartable, sin pegarle a la DB — técnica útil para cualquier filtro PostgREST no trivial.
   — Ema + Claude.

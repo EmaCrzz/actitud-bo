@@ -15,6 +15,11 @@ export interface Customer {
 }
 export interface CustomerWithMembership extends Customer {
   membership_type: MembershipTypes | null
+  // Vencimiento de la membresía actual. Null si el cliente no tiene fila en
+  // `customer_membership` o la tiene sin fecha. El listado v2 lo usa para el
+  // badge de estado, que se deriva con `isExpiredInAppTz` — no hay columna de
+  // "activo/inactivo" en `customers`.
+  expiration_date: string | null
 }
 
 export interface CustomerMembership {

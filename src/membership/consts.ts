@@ -28,6 +28,21 @@ export const MembershipTranslation: Record<MembershipTypes, TranslationKey> = {
   [MEMBERSHIP_TYPE_VIP]: 'membership.types.vip',
 }
 
+// Nombre del plan como lo escribe la tabla de clientes del Figma desktop:
+// "5 días semanales" (captura del 2026-09-16). Existe además de
+// `MembershipTranslation` porque esa trae el prefijo incluido —
+// "Membresía: 5 días" — que es justo lo que muestra la **fila mobile**, mientras
+// la columna de una tabla ya titulada "Membresía" no lo quiere.
+//
+// Dos variantes, dos capturas: no es preferencia, cada viewport dice lo suyo.
+export const MembershipTranslationWeekly: Record<MembershipTypes, TranslationKey> = {
+  [MEMBERSHIP_TYPE_5_DAYS]: 'membership.typesWeekly.5_days',
+  [MEMBERSHIP_TYPE_3_DAYS]: 'membership.typesWeekly.3_days',
+  [MEMBERSHIP_TYPE_2_DAYS]: 'membership.typesWeekly.2_days',
+  [MEMBERSHIP_TYPE_DAILY]: 'membership.typesWeekly.daily',
+  [MEMBERSHIP_TYPE_VIP]: 'membership.typesWeekly.vip',
+}
+
 export const MembershipTranslationTwoLines: Record<
   MembershipTypes,
   Record<string, TranslationKey>

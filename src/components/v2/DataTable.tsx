@@ -66,16 +66,22 @@ export default function DataTable<T>({
 
   return (
     <div className={className}>
-      {/* Desktop: tabla real */}
+      {/* Desktop: tabla real.
+          El header es una banda gris con las esquinas redondeadas, no una fila
+          con borde inferior — verificado en el Figma del listado de clientes el
+          2026-09-16. Con `border-separate` el radius va en las celdas de los
+          extremos, porque un `<tr>` no acepta `overflow: hidden`. */}
       <table className='hidden w-full border-separate border-spacing-0 md:table'>
         <thead>
           <tr>
-            {columns.map((column) => (
+            {columns.map((column, index) => (
               <th
                 key={column.id}
                 className={cn(
-                  'border-b px-3 py-2 text-xs font-medium text-muted-foreground',
+                  'bg-muted px-3 py-2.5 text-xs font-medium text-muted-foreground',
                   column.align === 'right' ? 'text-right' : 'text-left',
+                  index === 0 && 'rounded-l-lg',
+                  !rowActions && index === columns.length - 1 && 'rounded-r-lg',
                   column.className
                 )}
                 scope='col'
@@ -83,7 +89,7 @@ export default function DataTable<T>({
                 {column.header}
               </th>
             ))}
-            {rowActions && <th className='w-12 border-b px-3 py-2' />}
+            {rowActions && <th className='w-12 rounded-r-lg bg-muted px-3 py-2.5' />}
           </tr>
         </thead>
         <tbody>
@@ -134,6 +140,27 @@ export default function DataTable<T>({
   )
 }
 
+/**
+ * Avatar de iniciales sobre círculo gris. Aparece en la fila mobile **y en la
+ * columna de nombre del desktop** (verificado en el Figma del listado de
+ * clientes el 2026-09-16), así que vive acá y no dentro de la fila mobile.
+ *
+ * Las iniciales las resuelve `getInitials` de `@/lib/format-person`.
+ */
+export function DataTableAvatar({ initials, className }: { initials: string; className?: string }) {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        'flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground',
+        className
+      )}
+    >
+      {initials}
+    </span>
+  )
+}
+
 interface DataTableMobileRowProps {
   /** Iniciales para el avatar. Usar `getInitials` de `@/lib/format-person`. */
   initials: string
@@ -162,9 +189,7 @@ export function DataTableMobileRow({
 }: DataTableMobileRowProps) {
   const content = (
     <>
-      <span className='flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground'>
-        {initials}
-      </span>
+      <DataTableAvatar initials={initials} />
       <span className='flex min-w-0 flex-1 flex-col text-left'>
         <span className='truncate text-sm font-medium'>{title}</span>
         {subtitle && <span className='truncate text-sm text-muted-foreground'>{subtitle}</span>}

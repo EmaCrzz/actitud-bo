@@ -20,6 +20,13 @@ export default function Input({ className, ...props }: React.ComponentProps<'inp
       className={cn(
         'h-9 w-full min-w-0 rounded-lg border bg-input-background px-3 text-sm',
         'placeholder:text-input-placeholder',
+        // Con `type='search'`, WebKit dibuja su propio botón de cancelar — una
+        // ✕ azul con estilos del sistema — que quedaba al lado del botón de
+        // limpiar de la FilterBar: dos afordancias distintas para la misma
+        // acción. Se esconde el nativo y queda el nuestro, que sigue los tokens
+        // de v2. El `type='search'` se mantiene por la semántica (role
+        // searchbox) y porque habilita Escape para limpiar.
+        '[&::-webkit-search-cancel-button]:hidden',
         'outline-none transition-colors hover:border-input-hover-border',
         'focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-0',
         'disabled:cursor-not-allowed disabled:opacity-40',

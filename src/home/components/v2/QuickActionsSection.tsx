@@ -1,18 +1,13 @@
 'use client'
 
 import { CreditCard, UserPlus } from 'lucide-react'
-import { toast } from 'sonner'
 import { useTranslations } from '@/lib/i18n/context'
 import Button from '@/components/v2/ui/Button'
+import { useComingSoonToast } from '@/components/v2/use-coming-soon-toast'
 
 export default function QuickActionsSection() {
   const { t } = useTranslations()
-
-  const notifyComingSoon = () => {
-    toast(t('v2.home.quickActions.toastComingSoon'), {
-      description: t('v2.home.quickActions.toastComingSoonDescription'),
-    })
-  }
+  const notifyComingSoon = useComingSoonToast()
 
   return (
     <section aria-labelledby='v2-quick-actions-title' className='flex flex-col gap-3'>

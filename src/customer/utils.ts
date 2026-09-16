@@ -4,25 +4,25 @@ import { isExpiredInAppTz, parseAppTzDateString } from '@/lib/timezone'
 
 // customer_membership viene como objeto cuando la relación tiene UNIQUE en customer_id,
 // y como array cuando Supabase la resuelve como 1:N. Esta normalización cubre ambos casos.
-type CustomerMembershipShape =
-  | { membership_type: MembershipTypes | null }
-  | Array<{ membership_type: MembershipTypes | null }>
-  | null
-  | undefined
+interface EmbeddedMembership {
+  membership_type: MembershipTypes | null
+  expiration_date?: string | null
+}
 
-type CustomerRow = Omit<CustomerWithMembership, 'membership_type'> & {
+type CustomerMembershipShape = EmbeddedMembership | EmbeddedMembership[] | null | undefined
+
+type CustomerRow = Omit<CustomerWithMembership, 'membership_type' | 'expiration_date'> & {
   customer_membership?: CustomerMembershipShape
 }
 
 export function mapCustomerRow(row: CustomerRow): CustomerWithMembership {
-  const membership = row.customer_membership
-  const membership_type = Array.isArray(membership)
-    ? (membership[0]?.membership_type ?? null)
-    : (membership?.membership_type ?? null)
+  const embedded = row.customer_membership
+  const membership = Array.isArray(embedded) ? (embedded[0] ?? null) : (embedded ?? null)
 
   return {
     ...row,
-    membership_type,
+    membership_type: membership?.membership_type ?? null,
+    expiration_date: membership?.expiration_date ?? null,
   }
 }
 
