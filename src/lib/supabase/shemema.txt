@@ -48,7 +48,12 @@ CREATE TABLE public.customers (
   person_id character varying NOT NULL,
   phone character varying,
   email character varying,
+  birth_date date,
+  notes text,
   assistance_count integer DEFAULT 0,
+  -- Denormalizada desde public.assistance por trigger_increment_assistance,
+  -- igual que assistance_count. NULL = nunca asistió. Ordena el listado.
+  last_assistance_date timestamp with time zone,
   full_name text DEFAULT TRIM(BOTH FROM (((COALESCE(first_name, ''::character varying))::text || ' '::text) || (COALESCE(last_name, ''::character varying))::text)),
   CONSTRAINT customers_pkey PRIMARY KEY (id)
 );
@@ -125,3 +130,15 @@ CREATE TABLE public.user_feature_flags (
   CONSTRAINT user_feature_flags_pkey PRIMARY KEY (user_id, flag_name),
   CONSTRAINT user_feature_flags_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profile(id)
 );
+-- Vistas
+-- =============================================================================
+-- customers + el flag de actividad reciente que ordena el listado de clientes.
+-- security_invoker = true: hereda las policies RLS de public.customers, no las
+-- saltea. El corte depende de now(), por eso es una vista y no una columna
+-- generada (Postgres las exige inmutables).
+CREATE VIEW public.customers_listing WITH (security_invoker = true) AS
+SELECT
+  c.*,
+  (c.last_assistance_date IS NOT NULL
+   AND c.last_assistance_date >= (now() - interval '30 days')) AS is_recently_active
+FROM public.customers c;

@@ -22,6 +22,40 @@ export interface CustomerWithMembership extends Customer {
   expiration_date: string | null
 }
 
+/**
+ * Datos que alimentan el panel "Perfil del cliente" (Fase 6b).
+ *
+ * Es un tipo propio y no una extensión de `Customer` porque `birth_date` y
+ * `notes` sólo vienen en el select del perfil (`CUSTOMER_PROFILE`): sumarlas a
+ * `Customer` las haría aparecer como presentes en todos los call sites que usan
+ * los selects del listado, donde en realidad llegan `undefined`.
+ */
+export interface CustomerProfile {
+  id: string
+  first_name: string
+  last_name: string
+  person_id: string
+  phone: string | null
+  email: string | null
+  birth_date: string | null
+  notes: string | null
+  assistance_count: number
+  created_at: string
+  membership_type: MembershipTypes | null
+  expiration_date: string | null
+  /**
+   * Inicio del período vigente, usado como referencia de la barra de progreso.
+   *
+   * No es realmente la fecha de inicio: `customer_membership` no tiene
+   * `start_date` (brecha B12 del plan v2) y el inicio se infiere del último
+   * pago. Es la mejor aproximación disponible, y es null para membresías que
+   * nunca registraron un pago (VIP), donde la barra no se dibuja.
+   */
+  last_payment_date: string | null
+  /** Precio de lista del plan (`types_memberships.amount`). Null si no tiene plan. */
+  membership_amount: number | null
+}
+
 export interface CustomerMembership {
   membership_type: MembershipTypes
   expiration_date: string | null

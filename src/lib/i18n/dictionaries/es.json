@@ -32,7 +32,9 @@
     "understood": "Entendido",
     "version": "Versión",
     "viewCustomer": "Ver cliente",
-    "yes": "Sí"
+    "yes": "Sí",
+    "pagination": "Paginación",
+    "pageOf": "Página {current} de {total}"
   },
   "buttons": {
     "addNew": "Agregar Nuevo",
@@ -286,6 +288,13 @@
       "5_days": "5 días semanales",
       "3_days": "3 días semanales",
       "2_days": "2 días semanales",
+      "daily": "Pase diario",
+      "vip": "VIP"
+    },
+    "typesShort": {
+      "5_days": "5 días",
+      "3_days": "3 días",
+      "2_days": "2 días",
       "daily": "Pase diario",
       "vip": "VIP"
     }
@@ -725,12 +734,16 @@
         "statusLabel": "Estado",
         "statusAll": "Todos los estados",
         "typeLabel": "Membresías",
-        "typeAll": "Todas las membresías"
+        "typeAll": "Todas las membresías",
+        "statusInactive": "Inactivos",
+        "statusUnsubscribed": "De baja",
+        "statusUnavailable": "Todavía no disponible"
       },
       "status": {
         "active": "Activa",
         "expired": "Vencida",
-        "none": "Sin membresía"
+        "none": "Sin membresía",
+        "expiring": "Por vencer"
       },
       "columns": {
         "name": "Nombre y Apellido",
@@ -757,7 +770,55 @@
         "retry": "Reintentar"
       },
       "loadingMore": "Cargando más clientes...",
-      "countLabel": "{count} clientes"
+      "countLabel": "{count} clientes",
+      "totalLabel": "{total} Total de clientes",
+      "profile": {
+        "title": "Perfil del cliente",
+        "renew": "Renovar",
+        "loadError": "No pudimos cargar el perfil del cliente.",
+        "tabs": {
+          "membership": "Membresía",
+          "payments": "Pagos",
+          "assistances": "Asistencias",
+          "info": "Info"
+        },
+        "membership": {
+          "current": "Membresía actual",
+          "none": "Este cliente no tiene una membresía registrada.",
+          "progress": "Progreso del período",
+          "daysRemaining": "{days} días restantes",
+          "lastDay": "Último día",
+          "expiredSince": "Vencida hace {days} días",
+          "price": "Precio",
+          "expires": "Vence",
+          "assistances": "Asistencias"
+        },
+        "payments": {
+          "date": "Pago:",
+          "paid": "Pagada",
+          "empty": "Todavía no hay pagos registrados.",
+          "forbidden": "Sólo un administrador puede ver el historial de pagos.",
+          "error": "No pudimos cargar los pagos."
+        },
+        "assistances": {
+          "date": "Fecha:",
+          "total": "Total: {total}",
+          "currentMonth": "Último mes: {total}",
+          "empty": "Todavía no hay asistencias registradas.",
+          "error": "No pudimos cargar las asistencias.",
+          "loadMore": "Ver más"
+        },
+        "info": {
+          "personalData": "Datos personales",
+          "fullName": "Nombre completo",
+          "personId": "DNI",
+          "birthDate": "Fecha de nacimiento",
+          "phone": "Teléfono",
+          "notes": "Observaciones",
+          "noNotes": "Sin observaciones.",
+          "empty": "—"
+        }
+      }
     }
   }
 }

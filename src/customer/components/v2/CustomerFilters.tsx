@@ -5,6 +5,7 @@ import {
   FILTER_ALL,
   MEMBERSHIP_STATUS_ACTIVE,
   MEMBERSHIP_STATUS_EXPIRED,
+  MEMBERSHIP_STATUS_EXPIRING,
   type MembershipStatusFilter,
 } from '@/customer/filters'
 import { useTranslations } from '@/lib/i18n/context'
@@ -42,12 +43,27 @@ export default function CustomerFilters({
     <>
       <FilterDropdown
         allLabel={t('v2.customers.filters.statusAll')}
-        // Más angosto que el default: su contenido más largo es "Vencida".
-        className='sm:w-36'
+        // Más angosto que el default: su contenido más largo es "Por vencer".
+        className='sm:w-40'
         label={t('v2.customers.filters.statusLabel')}
         options={[
           { value: MEMBERSHIP_STATUS_ACTIVE, label: t('v2.customers.status.active') },
+          { value: MEMBERSHIP_STATUS_EXPIRING, label: t('v2.customers.status.expiring') },
           { value: MEMBERSHIP_STATUS_EXPIRED, label: t('v2.customers.status.expired') },
+          // Los otros dos estados del Figma. Ver `customer/filters.ts`: no hay
+          // columna en `customers` que los soporte ni definición de qué los
+          // separa, así que se listan apagados en vez de filtrar por una regla
+          // inventada.
+          {
+            value: 'inactive',
+            label: `${t('v2.customers.filters.statusInactive')} · ${t('v2.customers.filters.statusUnavailable')}`,
+            disabled: true,
+          },
+          {
+            value: 'unsubscribed',
+            label: `${t('v2.customers.filters.statusUnsubscribed')} · ${t('v2.customers.filters.statusUnavailable')}`,
+            disabled: true,
+          },
         ]}
         value={status ?? FILTER_ALL}
         onChange={(value) =>

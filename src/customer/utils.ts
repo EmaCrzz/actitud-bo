@@ -1,6 +1,43 @@
 import { CustomerWithMembership } from '@/customer/types'
-import { MEMBERSHIP_TYPE_DAILY, MembershipTypes } from '@/membership/consts'
-import { isExpiredInAppTz, parseAppTzDateString } from '@/lib/timezone'
+import {
+  MEMBERSHIP_TYPE_DAILY,
+  MembershipTypes,
+  UPCOMING_EXPIRATION_WINDOW_DAYS,
+} from '@/membership/consts'
+import { daysUntilInAppTz, isExpiredInAppTz, parseAppTzDateString } from '@/lib/timezone'
+
+/**
+ * Estado de membresía derivado, tal como lo pinta el badge de cada fila.
+ *
+ * `none` no es un valor del filtro (ver `customer/filters.ts`): es lo que se
+ * muestra cuando el cliente no tiene fila en `customer_membership`.
+ */
+export type CustomerMembershipStatus = 'none' | 'active' | 'expiring' | 'expired'
+
+/**
+ * Deriva el estado de un cliente a partir del vencimiento de su membresía.
+ *
+ * `customers` no tiene columna de activo/inactivo: el estado sale de
+ * `customer_membership.expiration_date`, siempre en el día calendario de
+ * Argentina. Las tres ramas replican **exactamente** los tres cortes que
+ * `fetchCustomersPageWith` aplica en el `WHERE`, y por eso el umbral sale de la
+ * misma constante: si el badge y el filtro usaran reglas distintas, filtrar por
+ * "Por vencer" devolvería filas pintadas de verde.
+ */
+export function getCustomerMembershipStatus(
+  customer: Pick<CustomerWithMembership, 'membership_type' | 'expiration_date'>
+): CustomerMembershipStatus {
+  if (!customer.membership_type) return 'none'
+  // `isExpiredInAppTz(null)` es `true`, así que una membresía sin fecha cuenta
+  // como vencida — igual que en el filtro, donde el `is.null` entra en la rama
+  // de vencidas.
+  if (isExpiredInAppTz(customer.expiration_date)) return 'expired'
+  if (!customer.expiration_date) return 'expired'
+
+  return daysUntilInAppTz(customer.expiration_date) < UPCOMING_EXPIRATION_WINDOW_DAYS
+    ? 'expiring'
+    : 'active'
+}
 
 // customer_membership viene como objeto cuando la relación tiene UNIQUE en customer_id,
 // y como array cuando Supabase la resuelve como 1:N. Esta normalización cubre ambos casos.

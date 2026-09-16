@@ -7,6 +7,16 @@ import { cn } from '@/lib/utils'
 export interface FilterOption {
   value: string
   label: string
+  /**
+   * La opción se muestra pero no se puede elegir.
+   *
+   * Existe para los estados que el Figma dibuja pero el modelo de datos todavía
+   * no soporta ("Inactivos" y "De baja" en Clientes). Mostrarlos apagados dice
+   * la verdad — el filtro existe, todavía no funciona — mientras que ocultarlos
+   * escondería una diferencia con el diseño y devolver resultados vacíos sería
+   * derechamente mentir.
+   */
+  disabled?: boolean
 }
 
 interface FilterDropdownProps {
@@ -72,7 +82,7 @@ export default function FilterDropdown({
       <SelectContent>
         <SelectItem value={allValue}>{allLabel ?? t('common.all')}</SelectItem>
         {options.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
+          <SelectItem key={option.value} disabled={option.disabled} value={option.value}>
             {option.label}
           </SelectItem>
         ))}

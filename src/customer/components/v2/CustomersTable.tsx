@@ -1,6 +1,6 @@
 'use client'
 
-import { Users } from 'lucide-react'
+import { ChevronRight, Users } from 'lucide-react'
 import DataTable, {
   DataTableAvatar,
   DataTableMobileRow,
@@ -10,11 +10,12 @@ import EmptyState from '@/components/v2/EmptyState'
 import Button from '@/components/v2/ui/Button'
 import StatusBadge from '@/components/v2/ui/StatusBadge'
 import type { CustomerWithMembership } from '@/customer/types'
+import { getCustomerMembershipStatus } from '@/customer/utils'
 import { formatDate } from '@/lib/format-date'
 import { getInitials } from '@/lib/format-person'
 import { useTranslations } from '@/lib/i18n/context'
-import { isExpiredInAppTz } from '@/lib/timezone'
 import { MembershipTranslation, MembershipTranslationWeekly } from '@/membership/consts'
+import { CUSTOMER_STATUS_LABEL, CUSTOMER_STATUS_TONE } from './customer-status'
 
 interface CustomersTableProps {
   customers: CustomerWithMembership[]
@@ -24,6 +25,8 @@ interface CustomersTableProps {
   /** Hay búsqueda o filtros activos: cambia el copy del estado vacío. */
   isFiltered: boolean
   onClearFilters: () => void
+  /** Abre el panel "Perfil del cliente". Lo dispara el chevron y la fila entera. */
+  onSelectCustomer: (customer: CustomerWithMembership) => void
 }
 
 /**
@@ -31,10 +34,8 @@ interface CustomersTableProps {
  *
  * Columnas verificadas contra el Figma (`2118:22308`, captura del 2026-09-16):
  * **Nombre y Apellido · Membresía · Estado · Vencimiento · Asistencias**, con
- * avatar de iniciales en la primera y todo alineado a la izquierda. El chevron
- * que el Figma dibuja al final de cada fila abre el `Customer Detail Modal`, que
- * es Fase 6b — no se agrega hasta que exista, para no dejar una afordancia que
- * no hace nada.
+ * avatar de iniciales en la primera y todo alineado a la izquierda, más el
+ * chevron del final que abre el Perfil del cliente.
  */
 export default function CustomersTable({
   customers,
@@ -43,6 +44,7 @@ export default function CustomersTable({
   onRetry,
   isFiltered,
   onClearFilters,
+  onSelectCustomer,
 }: CustomersTableProps) {
   const { t } = useTranslations()
 
@@ -86,6 +88,28 @@ export default function CustomersTable({
       header: t('v2.customers.columns.attendances'),
       cell: (customer) => customer.assistance_count ?? 0,
     },
+    {
+      id: 'open',
+      header: '',
+      align: 'right',
+      className: 'w-12',
+      // La fila entera es clickeable, pero un `<tr onClick>` no se alcanza con
+      // teclado. El chevron es un botón de verdad para que el perfil también se
+      // abra con Tab + Enter; frena la propagación para no disparar dos veces.
+      cell: (customer) => (
+        <button
+          aria-label={t('common.viewCustomer')}
+          className='rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground hover:cursor-pointer'
+          type='button'
+          onClick={(event) => {
+            event.stopPropagation()
+            onSelectCustomer(customer)
+          }}
+        >
+          <ChevronRight aria-hidden className='size-4' />
+        </button>
+      ),
+    },
   ]
 
   return (
@@ -127,8 +151,11 @@ export default function CustomersTable({
       }
       getRowId={(customer) => customer.id}
       isLoading={isLoading}
-      mobileRow={(customer) => <CustomerMobileRow customer={customer} />}
+      mobileRow={(customer) => (
+        <CustomerMobileRow customer={customer} onSelect={() => onSelectCustomer(customer)} />
+      )}
       rows={customers}
+      onRowClick={onSelectCustomer}
     />
   )
 }
@@ -141,24 +168,17 @@ function fullName(customer: CustomerWithMembership): string {
 
 /**
  * Badge de estado de la fila. `customers` no tiene columna de activo/inactivo:
- * el estado se deriva del vencimiento de la membresía, en el día calendario de
- * Argentina. `isExpiredInAppTz(null)` es `true`, así que un cliente con membresía
- * sin fecha cuenta como vencida — la misma regla que aplica el filtro de estado
- * en `customers-query.ts`.
+ * el estado se deriva del vencimiento de la membresía en el día calendario de
+ * Argentina, con `getCustomerMembershipStatus` — la **misma** función que
+ * replica los cortes del `WHERE` de `customers-query.ts`, para que el filtro y
+ * el badge no puedan decir cosas distintas de la misma fila.
  */
 function CustomerStatusBadge({ customer }: { customer: CustomerWithMembership }) {
   const { t } = useTranslations()
-
-  if (!customer.membership_type) {
-    return <StatusBadge tone='neutral'>{t('v2.customers.status.none')}</StatusBadge>
-  }
-
-  const isExpired = isExpiredInAppTz(customer.expiration_date)
+  const status = getCustomerMembershipStatus(customer)
 
   return (
-    <StatusBadge tone={isExpired ? 'danger' : 'success'}>
-      {isExpired ? t('v2.customers.status.expired') : t('v2.customers.status.active')}
-    </StatusBadge>
+    <StatusBadge tone={CUSTOMER_STATUS_TONE[status]}>{t(CUSTOMER_STATUS_LABEL[status])}</StatusBadge>
   )
 }
 
@@ -166,7 +186,13 @@ function CustomerStatusBadge({ customer }: { customer: CustomerWithMembership })
 // "Membresía: 5 días" + badge de estado a la derecha. El subtítulo usa
 // `MembershipTranslation` (que ya trae el prefijo) y no la variante "semanales"
 // del desktop: son los dos textos que muestran las capturas de cada viewport.
-function CustomerMobileRow({ customer }: { customer: CustomerWithMembership }) {
+function CustomerMobileRow({
+  customer,
+  onSelect,
+}: {
+  customer: CustomerWithMembership
+  onSelect: () => void
+}) {
   const { t } = useTranslations()
   const name = fullName(customer)
 
@@ -180,6 +206,7 @@ function CustomerMobileRow({ customer }: { customer: CustomerWithMembership }) {
           : t('v2.customers.row.noMembership')
       }
       title={name}
+      onClick={onSelect}
     />
   )
 }

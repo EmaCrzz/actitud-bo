@@ -34,9 +34,14 @@ export default function ListCustomers({ initialCustomers }: Props) {
     queryFn: ({ pageParam }) =>
       fetchCustomersPage({ query: debouncedQuery || undefined, page: pageParam }),
     initialPageParam: 0,
+    // Una página incompleta significa que no hay más. El query también devuelve
+    // `total`, que este listado no usa: la v1 acumula páginas con scroll
+    // infinito y nunca muestra cuántas hay.
     getNextPageParam: (lastPage, allPages) =>
-      lastPage.length < CUSTOMERS_PAGE_SIZE ? undefined : allPages.length,
-    initialData: debouncedQuery ? undefined : { pages: [initialCustomers], pageParams: [0] },
+      lastPage.customers.length < CUSTOMERS_PAGE_SIZE ? undefined : allPages.length,
+    initialData: debouncedQuery
+      ? undefined
+      : { pages: [{ customers: initialCustomers, total: initialCustomers.length }], pageParams: [0] },
   })
 
   const { ref: sentinelRef } = useIntersectionObserver({
@@ -49,7 +54,7 @@ export default function ListCustomers({ initialCustomers }: Props) {
     },
   })
 
-  const customers = useMemo(() => data?.pages.flat() ?? [], [data])
+  const customers = useMemo(() => data?.pages.flatMap((page) => page.customers) ?? [], [data])
   const hasCustomers = customers.length > 0
   const isInitialLoading = isFetching && !isFetchingNextPage && customers.length === 0
 
