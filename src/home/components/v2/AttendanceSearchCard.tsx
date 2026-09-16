@@ -5,6 +5,7 @@ import { Search, LoaderCircle, UserPlus, X } from 'lucide-react'
 import Link from 'next/link'
 import { useCustomerSearch } from '@/customer/hooks/use-customer-search'
 import { useTranslations } from '@/lib/i18n/context'
+import Button from '@/components/v2/ui/Button'
 import type { Customer } from '@/customer/types'
 import { CUSTOMER_NEW } from '@/consts/routes'
 import AssistanceModal from './AssistanceModal'
@@ -64,14 +65,14 @@ export default function AttendanceSearchCard() {
           )}
         </div>
 
-        <button
-          className='px-3 py-2.5 text-sm text-white shrink-0 rounded-xl bg-sidebar-accent hover:bg-sidebar-ring transition-colors hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 font-medium'
+        <Button
+          className='shrink-0'
           disabled={!selectedCustomer}
           type='button'
           onClick={handleOpenModal}
         >
           {t('v2.home.attendanceSearch.cta')}
-        </button>
+        </Button>
       </div>
 
       <AssistanceModal

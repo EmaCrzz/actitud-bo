@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
+import SidePanel from '@/components/v2/SidePanel'
+import Button from '@/components/v2/ui/Button'
 import { fetchCustomerModalData, createAssistance } from '@/assistance/api/client'
 import type { CustomerModalData } from '@/assistance/api/client'
 import { useTranslations } from '@/lib/i18n/context'
@@ -138,72 +139,54 @@ export default function AssistanceModal({ customer, open, onOpenChange }: Assist
     ? t(MembershipTranslation[modalData.membership.type])
     : null
 
+  const fullName = customer ? `${customer.first_name} ${customer.last_name}` : ''
+
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        className='flex flex-col !p-4 gap-0 w-full sm:max-w-[520px]'
-        data-v2='true'
-        showCloseButton={false}
-      >
-        {/* Header */}
-        <div className='flex items-center justify-between border-b pb-4'>
-          <div className='flex items-center gap-3'>
-            <div className='size-10 rounded-full bg-muted flex items-center justify-center shrink-0'>
-              <span className='text-sm font-semibold text-muted-foreground'>
-                {customer ? getInitials(`${customer.first_name} ${customer.last_name}`) : '??'}
-              </span>
-            </div>
-            <SheetTitle className='text-base font-semibold'>
-              {customer ? `${customer.first_name} ${customer.last_name}` : ''}
-            </SheetTitle>
-          </div>
-          <button
-            aria-label={t('common.close')}
-            className='size-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors hover:cursor-pointer'
-            type='button'
-            onClick={() => onOpenChange(false)}
-          >
-            ✕
-          </button>
+    <SidePanel
+      avatar={
+        <div className='size-10 rounded-full bg-muted flex items-center justify-center shrink-0'>
+          <span className='text-sm font-semibold text-muted-foreground'>
+            {customer ? getInitials(fullName) : '??'}
+          </span>
         </div>
-
-        {/* Body */}
-        <div className='flex-1 overflow-y-auto flex flex-col gap-4 py-4'>
-          {loadingData ? (
-            <ModalSkeleton />
-          ) : (
-            <>
-              <MembershipSection isActive={membershipIsActive} label={membershipLabel} t={t} />
-              <AttendanceSection newAssistanceDate={confirmedAt} slots={weekSlots} t={t} />
-              <NoticeArea
-                membershipIsExpired={membershipIsExpired}
-                registeredEarlierToday={registeredEarlierToday}
-                t={t}
-              />
-            </>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className='border-t flex gap-3 pt-4'>
-          <Link
-            className='flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm border rounded-xl hover:bg-muted transition-colors text-center'
-            href={`${CUSTOMER}/${customer?.id}`}
-            onClick={() => onOpenChange(false)}
-          >
-            {t('v2.home.attendanceModal.viewProfile')}
-          </Link>
-          <button
-            className='flex-1 px-4 py-2.5 text-sm font-medium text-white bg-foreground rounded-xl hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed hover:cursor-pointer'
+      }
+      footer={
+        <div className='flex gap-3'>
+          <Button asChild className='flex-1' variant='outlined'>
+            <Link href={`${CUSTOMER}/${customer?.id}`} onClick={() => onOpenChange(false)}>
+              {t('v2.home.attendanceModal.viewProfile')}
+            </Link>
+          </Button>
+          <Button
+            className='flex-1'
             disabled={hasAssistanceToday || submitting || loadingData}
             type='button'
             onClick={handleConfirm}
           >
             {submitting ? t('assistance.waitMoment') : t('v2.home.attendanceModal.confirmCta')}
-          </button>
+          </Button>
         </div>
-      </SheetContent>
-    </Sheet>
+      }
+      open={open}
+      title={fullName}
+      onOpenChange={onOpenChange}
+    >
+      <div className='flex flex-col gap-4'>
+        {loadingData ? (
+          <ModalSkeleton />
+        ) : (
+          <>
+            <MembershipSection isActive={membershipIsActive} label={membershipLabel} t={t} />
+            <AttendanceSection newAssistanceDate={confirmedAt} slots={weekSlots} t={t} />
+            <NoticeArea
+              membershipIsExpired={membershipIsExpired}
+              registeredEarlierToday={registeredEarlierToday}
+              t={t}
+            />
+          </>
+        )}
+      </div>
+    </SidePanel>
   )
 }
 
@@ -229,7 +212,7 @@ function MembershipSection({
   const badgeTone = label ? (isActive ? 'active' : 'expired') : 'none'
 
   return (
-    <div className='rounded-xl border p-4 flex flex-col gap-2 bg-sidebar-accent-foreground'>
+    <div className='rounded-lg border p-4 flex flex-col gap-2 bg-sidebar-accent-foreground'>
       <div className='flex items-center justify-between'>
         <span className='text-xs font-semibold uppercase tracking-widest text-muted-foreground'>
           {t('v2.home.attendanceModal.membershipSection')}
@@ -267,7 +250,7 @@ function AttendanceSection({
   const monthCapitalized = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)
 
   return (
-    <div className='rounded-xl border p-4 flex flex-col gap-3'>
+    <div className='rounded-lg border p-4 flex flex-col gap-3'>
       <div className='flex items-center justify-between'>
         <span className='text-sm font-medium text-muted-foreground'>
           {t('v2.home.attendanceModal.attendanceSection')}
@@ -275,7 +258,7 @@ function AttendanceSection({
         <span className='text-sm text-muted-foreground'>{monthCapitalized}</span>
       </div>
 
-      <ul className='flex flex-col divide-y divide-border border rounded-xl'>
+      <ul className='flex flex-col divide-y divide-border border rounded-lg'>
         {slots.map((slot, i) => {
           const attended = slot.assistance
           // true solo para el slot recién confirmado en esta sesión
@@ -417,8 +400,8 @@ function SlotIcon({ attended, isNew }: { attended: boolean; isNew: boolean }) {
 function ModalSkeleton() {
   return (
     <div className='flex flex-col gap-4 animate-pulse'>
-      <div className='rounded-xl border p-4 h-20 bg-muted/40' />
-      <div className='rounded-xl border p-4 h-40 bg-muted/40' />
+      <div className='rounded-lg border p-4 h-20 bg-muted/40' />
+      <div className='rounded-lg border p-4 h-40 bg-muted/40' />
     </div>
   )
 }

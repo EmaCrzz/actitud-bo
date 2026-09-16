@@ -22,7 +22,7 @@
 | 2 | Home v2 (primera pantalla real) | ✅ completa | PRs [#47](https://github.com/EmaCrzz/actitud-bo/pull/47) y [#48](https://github.com/EmaCrzz/actitud-bo/pull/48). Search + métricas + daily summary + weekly attendance con data real. |
 | 3 | Flow "Registrar asistencia" (modal + confirmación + toast) | ✅ completa *(con pendientes)* | PR [#49](https://github.com/EmaCrzz/actitud-bo/pull/49) mergeado en `develop` el 2026-08-19. ADRs [20260819130435](../architecture/decisions/20260819130435_v2-attendance-modal.md) + [20260819163000](../architecture/decisions/20260819163000_success-tick-animation.md) + [20260819170000](../architecture/decisions/20260819170000_busqueda-de-clientes-insensible-a-acentos.md). **Quedaron pendientes** (verificación contra Figma, duplicado de asistencia, loading de búsqueda) → ver [Fase 3](#fase-3--flow-registrar-asistencia); se resuelven como fase 3.1 o dentro de la fase que los toque. |
 | 4 | Navegación v2 real (sidebar alineado al Figma + rutas stub) | ✅ completa | Rama `feat/v2-navegacion-sidebar`. ADR [20260915132556](../architecture/decisions/20260915132556_v2-navegacion-real-y-rutas-stub.md). Campana de notificaciones diferida. Falta verificación visual del drawer mobile. |
-| 5 | Primitivas transversales v2 (DataTable, FormModal, ConfirmDialog, FilterBar, DetailModal) | ⬜ pendiente | Bloquea fases 6–14. |
+| 5 | Primitivas transversales v2 (DataTable, SidePanel, ConfirmDialog, FilterBar, Stepper) | ✅ completa | Rama `feat/v2-primitivas`. ADR [20260916093140](../architecture/decisions/20260916093140_v2-primitivas-transversales.md). `FormModal` y `DetailModal` colapsaron en un solo `SidePanel`. Sandbox en `/v2/sandbox`. |
 | 6 | Sección Clientes + Modal perfil de cliente | ⬜ pendiente | |
 | 7 | Alta de cliente (desde Home y desde Clientes) | ⬜ pendiente | |
 | 8 | Registrar pago / renovar membresía + comprobante | ⬜ pendiente | Flow más largo del Figma (10 pantallas). |
@@ -254,13 +254,13 @@ Componentes que el Figma instancia repetidamente a lo largo de los 17 flows. La 
 | `Card` (resumen/agenda) | Home, Balance | ✅ existe (parcial) | `DailySummaryCard.tsx`, `WeeklyAttendanceCard.tsx` |
 | `Input Search` | Home, Clientes, Ventas, Gastos | ✅ existe | `AttendanceSearchCard.tsx` — extraer a genérico en Fase 5 |
 | `Input Search Group` | Flow asistencia (search + resultados) | ✅ existe | dentro de `AttendanceSearchCard.tsx` |
-| `Buttons` | Todas | ✅ shadcn `Button` | [src/components/ui/button.tsx](../../src/components/ui/button.tsx) |
+| `Buttons` | Todas | ✅ **átomo propio de v2** | [v2/ui/Button.tsx](../../src/components/v2/ui/Button.tsx) — el de shadcn lleva geometría y tokens de v1 |
 | `Toast` | Flows 1, 2, 8, 10, 14, 15 | ✅ `sonner` | [src/components/ui/sonner.tsx](../../src/components/ui/sonner.tsx) |
-| `Customer Detail Modal` | Flows 1, 5, 6, 7 | 🟡 parcial | `src/home/components/v2/AssistanceModal.tsx` es una variante; el genérico es de Fase 6 |
-| **`Data Table`** | Flows 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 17 | ❌ **no existe** | `src/components/v2/DataTable.tsx` — **Fase 5, la pieza más reusada del rediseño** |
-| **`Dropdown`** (filtro / acciones de fila) | Flows 5, 6, 7, 11–17 | ⚠️ hay `dropdown-menu` y `select` shadcn, falta el wrapper de filtro | `src/components/v2/FilterDropdown.tsx` — Fase 5 |
-| **`Modal / Membership Form`** | Flows 2, 3, 7, 8, 10, 11, 12, 14 | ❌ no existe | `src/components/v2/FormModal.tsx` — Fase 5. **Ojo: pese al nombre, es el shell genérico de formulario en modal, no algo de membresías.** |
-| **`Modal Dialog`** (confirmación) | Flows 3, 7, 13, 15 | ⚠️ hay `alert-dialog` shadcn | `src/components/v2/ConfirmDialog.tsx` — Fase 5 |
+| `Customer Detail Modal` | Flows 1, 5, 6, 7 | ✅ **construido** | [SidePanel.tsx](../../src/components/v2/SidePanel.tsx). `AssistanceModal` ya fue refactorizado para consumirlo |
+| **`Data Table`** | Flows 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 17 | ✅ **construido** | [DataTable.tsx](../../src/components/v2/DataTable.tsx) — doble render; `mobileRow` es prop requerido |
+| **`Dropdown`** (filtro / acciones de fila) | Flows 5, 6, 7, 11–17 | ✅ **construido** | [FilterDropdown.tsx](../../src/components/v2/FilterDropdown.tsx) + [FilterBar.tsx](../../src/components/v2/FilterBar.tsx) |
+| **`Modal / Membership Form`** | Flows 2, 3, 7, 8, 10, 11, 12, 14 | ✅ **construido** | [SidePanel.tsx](../../src/components/v2/SidePanel.tsx) — mismo shell que el Detail Modal: la geometría es idéntica |
+| **`Modal Dialog`** (confirmación) | Flows 3, 7, 13, 15 | ✅ **construido** | [ConfirmDialog.tsx](../../src/components/v2/ConfirmDialog.tsx) |
 | **`Payment Receipt`** | Flows 3, 7 | ❌ no existe | `src/membership/components/v2/PaymentReceipt.tsx` — Fase 8 |
 | `Tabs` | Flow 9 | ✅ shadcn `Tabs` | [src/components/ui/tabs.tsx](../../src/components/ui/tabs.tsx) |
 | `Customer List` | Flow 9 | ❌ no existe | `src/assistance/components/v2/CustomerList.tsx` — Fase 9 |
@@ -380,8 +380,30 @@ Cerradas. El detalle de implementación vive en los ADRs linkeados en la tabla d
 - **Header, Sidebar y Main son cards individuales** (rounded-lg + border + `bg-primary-contrast`) sobre fondo blanco.
 - **Padding externo del viewport** en `globals.css` sobre `[data-v2]`: `1rem 1.5rem` mobile, `2rem 3rem` desktop (≥1024).
 - **`data-v2='true'` hay que propagarlo explícitamente a cualquier primitive que renderice via portal** (`Sheet`, `Dialog`, `Popover`, `DropdownMenu`). Radix monta fuera del wrapper `[data-v2]` y sin eso hereda la paleta del tenant v1.
+- **…y ese portal necesita además un `!p-*` explícito.** `globals.css` aplica `[data-v2='true'] { padding: 2rem 3rem }` para el padding externo del viewport, así que el portal hereda 48px horizontales que se suman a su padding propio. Un `p-0` común pierde por especificidad: va con `!`. (Descubierto en la fase 5 tras repetir el error en tres primitivas.)
+
+  Para no depender de la memoria, este comando lista cada portal con `data-v2` y marca los que no tienen el override:
+
+  ```bash
+  grep -rn "data-v2='true'" src --include=*.tsx | grep -v layout.tsx | while IFS=: read -r f l r; do
+    sed -n "$((l>14?l-14:1)),$((l+3))p" "$f" | grep -qE '!p-[0-9]|!px-' \
+      && echo "  ok   $f:$l" || echo "  FALTA $f:$l"
+  done
+  ```
+
+  (Las menciones de `data-v2` dentro de comentarios dan falso positivo; verificar a mano las que marque.)
+- **La escala de color del `@theme` NO lleva guion antes del número.** Es `primary300`, `primary400`, `primary` (= el 500), `primary600`… Escribir `bg-primary-500` **no genera ninguna utilidad**: el fondo queda transparente y ni el type-check ni el lint lo detectan — sólo se ve mirando la pantalla. Pasó en el `Stepper` de la fase 5, donde el círculo del paso activo quedaba invisible (texto casi blanco sobre fondo transparente). Ante la duda, verificar el bloque `@theme` de `globals.css` antes de inventar una clase.
+- **Los botones de v2 salen de `@/components/v2/ui/Button`, no del `Button` de shadcn.** El de shadcn lleva la geometría de v1 (`rounded-[4px]`, `font-headline`) y apunta a los tokens del tenant viejo. Variantes: `contained` (acción primaria, `bg-foreground`), `outlined` (secundaria), `ghost`, `destructive`. Para envolver un `<Link>`, `asChild`. **No usar para afordances de ícono ni filas clickeables** — ésos no son botones visuales.
+- **Cuidado con los wrappers de shadcn que aplican estilos propios.** `AlertDialogCancel` y `AlertDialogAction` hardcodean `buttonVariants()` de v1 en su `className`, así que pasarles un Button de v2 por `asChild` no alcanza: el wrapper lo pisa igual. En esos casos hay que usar el primitive de Radix directamente (`AlertDialogPrimitive.Cancel`). Verificar esto en cada primitive v2 que envuelva algo de `components/ui/`.
+- **Antes de reusar cualquier primitive de `components/ui/` en v2, verificar su altura y su `rounded`.** Están customizados para v1 y arrastran su geometría: el `Input` mide ~56px (`text-base` + `py-4`) contra los 36px del Figma, y el `SelectTrigger` lo mismo. Ya hay tres casos (`Button`, `Input`, `Select`). Si no matchean, el átomo va a `v2/ui/`.
+- **…y verificar también si hardcodea colores.** `SelectItem` y `SelectContent` de v1 fijan `text-white` directo, lo que en la paleta clara de v2 deja el item resaltado invisible. En cambio `DropdownMenuItem` usa tokens (`focus:bg-accent`) y funciona bien. El criterio no es "v1 malo": es **hardcodeo vs token**. Cuando hardcodea, se baja al primitive de Radix y se construye el átomo en `v2/ui/` — ya hay tres: [Button](../../src/components/v2/ui/Button.tsx), [Input](../../src/components/v2/ui/Input.tsx) y [Select](../../src/components/v2/ui/Select.tsx).
+- **Los campos y botones de una misma fila miden 36px** (`h-9`). Es el valor del Figma: `Input Search` 622×36 junto a `Buttons` 177×36 en el home, `Search Bar` 306×36 junto a `New Client Button` 40×36 en Clientes. Los dropdowns de filtro, que van en su propia fila, miden 32px.
+- **El radius de v2 es `rounded-lg`, no `rounded-xl`.** Bajo `[data-v2]`, `globals.css` define `--radius: 0.5rem` ("Figma radius-md"), y `rounded-lg` mapea a ese token. **`rounded-xl` es un literal de Tailwind de 12px** que ignora el token y queda 50% más redondo que el diseño. Había 16 usos en v2; se corrigieron todos. Es la misma clase de error que `bg-primary-500`: escribir una utilidad de Tailwind en vez del token del proyecto.
+- **Las alturas de los átomos son explícitas (`h-8`/`h-9`), no derivadas del padding.** Dejarlas emerger de `py-*` hacía que dos elementos de la misma fila alinearan por casualidad — o no alinearan.
+- **Los átomos van en `src/components/v2/ui/`**, los compuestos en `src/components/v2/`. Criterio: si compone otros componentes o tiene estado propio, es compuesto; si es una pieza terminal de presentación, es átomo.
 - **Nada de `useIsMobile()` para decidir qué se monta.** Causa flash de hidratación. Gate por CSS (`hidden md:flex`) y dejar ambos montados.
 - **Wrappers dentro del AppShell necesitan `flex-1 w-full min-w-0`**, si no colapsan al mínimo de sus children en pantallas anchas.
+- **Y `min-h-0` en la columna vertical**, si no una página más alta que el viewport desborda el `h-dvh` del wrapper `[data-v2]` y se dibuja sobre el fondo del tenant v1. Es el gemelo vertical de la regla anterior. (Fase 5.)
 - **Formatear fechas en el server y pasar strings al client.** `format(new Date(), ...)` dentro de un `'use client'` genera hydration mismatch y arrastra `date-fns/locale/es` al bundle.
 - **Sub-componentes explícitos en vez de mega-render con ramas inline** (regla `patterns-explicit-variants`).
 - **`getServerT()` / `getServerTranslations()` no existen** (el `examples.md` está desactualizado). En Server Components: `import { api } from '@/lib/i18n/api'` → `const { t } = await api.fetch(lang, tenant)`.
@@ -496,59 +518,53 @@ Además, sólo "Inicio" tiene `href`. El resto son items muertos.
 
 ## Fase 5 — Primitivas transversales v2
 
-**Estado:** ⬜ pendiente · **bloquea las fases 6–14**
-**Figma:** instancias repetidas a lo largo de las dos páginas. Las reglas de layout mobile están en [2.1](#21-convenciones-de-layout-mobile-derivadas-del-árbol-de-nodos) y son vinculantes para esta fase.
+**Estado:** ✅ completa — rama `feat/v2-primitivas`. ADR [20260916093140](../architecture/decisions/20260916093140_v2-primitivas-transversales.md).
+**Sandbox de revisión:** `/v2/sandbox` (temporal — se borra cuando las primitivas estén consumidas por secciones reales).
 
-Esta fase no entrega ninguna pantalla de usuario. Entrega los 5 componentes que las 9 fases siguientes van a instanciar decenas de veces. Hacerlos mal o hacerlos tarde significa reescribir 9 secciones.
+Esta fase no entregó ninguna pantalla de usuario: entregó los componentes que las fases 6 a 14 instancian decenas de veces.
 
-### 5.1 `DataTable` — la pieza más reusada
+### Qué quedó construido
 
-Aparece en 11 de los 17 flows. Requisitos derivados del árbol de nodos:
+**Átomos** — `src/components/v2/ui/`. Existen porque los primitives de `components/ui/` están customizados para v1 y arrastran su geometría o hardcodean colores:
 
-- Columnas configurables con render custom por celda (badges de estado, montos, fechas).
-- **Dropdown de acciones por fila** — el flow 5 (`2118:22594`) muestra un `Dropdown` sobre la tabla; es el menú contextual de la fila.
-- Estados: vacío, cargando (skeleton de filas), error, sin resultados de filtro. Desktop no los diseñó, pero **mobile sí tiene dos empty states de referencia**: `Gastos/Vacio` (`2286:119862`) y Ventas en $0 (`2265:70904`). Derivar el resto de ahí y anotarlos acá.
-- Paginación o scroll infinito: **sin definir en el diseño** → [Decisiones abiertas](#decisiones-abiertas--riesgos) #4.
-- **Responsive:** el mobile instancia `Data Table` a 358–390 de ancho y 481–544 de alto, así que el diseñador definió alguna degradación — **pero el árbol de nodos no dice cuál** (cards apiladas, scroll horizontal, menos columnas). **Es la incógnita más importante que queda del diseño: verificar visualmente `2201:57977` o `2277:88832` antes de escribir una línea del componente.**
+| Componente | Por qué no se reusó el de v1 |
+|---|---|
+| [Button](../../src/components/v2/ui/Button.tsx) | El de shadcn trae `rounded-[4px]` y `font-headline`, y sus variantes apuntan a tokens del tenant viejo. Variantes: `contained` · `outlined` · `ghost` · `destructive`. Tamaños `sm` (32px) · `md` (36px) · `icon`. `asChild` para envolver un `<Link>` |
+| [Input](../../src/components/v2/ui/Input.tsx) | El de v1 mide ~56px (`text-base` + `py-4`); el Figma pide 36px |
+| [Select](../../src/components/v2/ui/Select.tsx) | `SelectContent` tiene `text-white` en su base y `SelectItem` hardcodea `data-[highlighted]:text-white` — sobre la paleta clara de v2 el item resaltado quedaba invisible. Construido sobre los primitives de Radix |
+| [StatusBadge](../../src/components/v2/ui/StatusBadge.tsx) | Nuevo. Los badges Activo/Vencida de todas las listas |
 
-Recomendación de implementación: **tabla propia sobre `<table>` semántico**, no TanStack Table. El uso real es render + orden + filtros server-side; una lib de 14kB para eso es sobre-ingeniería y complica el theming scoped.
+**Compuestos** — `src/components/v2/`:
 
-### 5.2 `FormModal` (Figma: `Modal / Membership Form`)
+| Componente | Notas |
+|---|---|
+| [DataTable](../../src/components/v2/DataTable.tsx) | **Dos renders, no uno responsive.** Tabla `<table>` en desktop; en mobile una lista de filas. `mobileRow` es prop **requerido** para que el compilador recuerde el mobile en cada sección. Incluye `DataTableMobileRow` con la forma estándar del Figma (avatar + nombre + subtítulo + badge) y skeletons |
+| [SidePanel](../../src/components/v2/SidePanel.tsx) | **Absorbió a `FormModal` y `DetailModal`**: la geometría del Figma es idéntica para los dos (`x=800, 480×832` desktop, `390×844` full-screen mobile). Slot `pinned` para el `Stepper` o la ficha del cliente. Slot `avatar` para cuando el título es la identidad del cliente |
+| [ConfirmDialog](../../src/components/v2/ConfirmDialog.tsx) | Centrado, 512 de ancho. Usa los primitives de Radix directo: los wrappers `AlertDialogCancel`/`Action` de shadcn hardcodean `buttonVariants()` de v1 |
+| [FilterBar](../../src/components/v2/FilterBar.tsx) + [FilterDropdown](../../src/components/v2/FilterDropdown.tsx) | Se compone con children; la cantidad de dropdowns varía por sección |
+| [Stepper](../../src/components/v2/Stepper.tsx) · [EmptyState](../../src/components/v2/EmptyState.tsx) · [PageHeader](../../src/components/v2/PageHeader.tsx) | Piezas menores |
 
-Shell genérico de formulario en modal, usado por 8 flows para cosas distintas (alta de cliente, pago, plan de membresía, gasto, venta). **El nombre en Figma es engañoso: no es específico de membresías.**
+**Fuera de `v2/`:** se agregó `min-h-0` a la columna del main del [AppShell](../../src/components/v2/AppShell.tsx) — sin eso, una página más alta que el viewport desbordaba sobre el fondo del tenant v1. Y se unificaron los botones del home v2, que tenían dos `contained` y dos `outlined` distintos entre sí.
 
-- Soporta **multi-step** — los flows 2, 3 y 7 muestran 4–6 frames consecutivos con el mismo modal, que son los pasos del formulario.
-- Desktop: panel lateral / dialog centrado (confirmar cuál contra `2117:8942`).
-- Mobile: **full-screen 390×844** (`2175:28633`, `2183:39583`, `2286:117668`). **No es bottom sheet** — el árbol de nodos mobile lo desmiente.
-- Debe manejar: header con título y cierre, body scrolleable, footer con acciones primaria/secundaria, indicador de paso, estado de submit.
+### Definición de hecho
 
-### 5.3 `ConfirmDialog` (Figma: `Modal Dialog`)
+- [x] Primitivas construidas, con sandbox para verlas en aislamiento
+- [x] Estados vacío / cargando / error resueltos en `DataTable` como slots (la primitiva no decide copy, así que no agrega keys de i18n)
+- [x] `data-v2='true'` + su `!p-*` en todos los portales — [comando de auditoría](#fuentes-de-verdad) en las convenciones
+- [x] `AssistanceModal` refactorizado sobre `SidePanel`
+- [x] `type-check` limpio · `lint` en 22 warnings / 0 errores (baseline de `develop`)
+- [ ] **Responsive verificado a 1440 / 768 / 375** — falta el paso por 375
+- [ ] **Accesibilidad:** foco atrapado en modales, navegación por teclado en la tabla. Los `aria-label` están; el resto no se verificó
 
-Confirmación destructiva o de compromiso. Aparece en flow 3 (`2118:17604`, confirmar pago), flow 7 (`2118:27698`), flow 13 (`2139:17917`, exportar) y flow 15 (`2141:49736`, eliminar gasto). Wrapper sobre `alert-dialog` de shadcn con variante destructiva y estado de loading en el botón de confirmar.
+### Deuda que queda
 
-### 5.4 `FilterBar` + `FilterDropdown`
+- **`PrimitivesSandbox.tsx` no usa i18n.** Excepción consciente (es un harness de dev), documentada en el ADR.
+- **Paginación de `DataTable`:** no se implementó. Ningún wireframe la muestra y agregarla después es aditivo. Sigue como [decisión abierta](#decisiones-abiertas--riesgos) #4.
+- **Paleta:** todo en escala de grises. El rosa de marca entra en una pasada dedicada sobre las CSS vars de `[data-v2]`.
 
-El bloque `Search field` del Figma es en realidad una barra de filtros: `Input Search` + N `Dropdown` + botón de acción primaria. La cantidad de dropdowns varía por sección (Clientes: 2, Ventas/Gastos: 3, Balance: 2 sin search). Componer, no parametrizar con booleanos.
+### Lo que esta fase dejó como convenciones
 
-### 5.5 `DetailModal` shell
-
-Base del `Customer Detail Modal` (flows 1, 5, 6, 7). Panel lateral en desktop / full-screen en mobile, con header de identidad, tabs y footer de acciones. `AssistanceModal.tsx` ya resuelve una variante concreta — **al construir el genérico, refactorizar `AssistanceModal` para consumirlo**, no dejar dos implementaciones.
-
-### 5.6 Piezas menores
-
-`EmptyState`, `PageHeader` (título + fecha + acción, el `Greetings Container` del Figma), skeletons por tipo de contenido.
-
-**Riesgo timezone:** ninguno (son componentes de presentación). Pero `DataTable` va a renderizar fechas: la regla de formatear en server y pasar strings se aplica.
-
-**Definición de hecho:**
-- [ ] Los 5 componentes construidos con página de sandbox para verlos en aislamiento
-- [ ] Estados vacío/cargando/error definidos y documentados acá para `DataTable`
-- [ ] `data-v2='true'` propagado en todos los que usan portal
-- [ ] Responsive verificado a 1440 / 768 / 375
-- [ ] `AssistanceModal` refactorizado sobre `DetailModal`
-- [ ] Accesibilidad: foco atrapado en modales, `aria-label` en acciones de ícono, navegación por teclado en la tabla
-
-**ADR:** sí — decisiones de API de componentes, tabla propia vs librería, y los estados de tabla que el Figma no cubre.
+Seis problemas de estilo encontrados en revisión visual — ninguno detectable por `type-check` ni `lint`. Todos promovidos a reglas en la [lista de convenciones](#fases-02-histórico): el `!p-*` de los portales, el `min-h-0`, la escala de color sin guion (`primary`, no `primary-500`), el radius `rounded-lg` y no `rounded-xl`, los wrappers de shadcn que hardcodean estilos, y la diferencia entre primitives que usan tokens y los que hardcodean colores.
 
 ---
 
@@ -1088,4 +1104,19 @@ Aplica a **toda** fase antes de pedir review. Está pensado para que el otro dev
   - **La paleta rosa es la marca**, pero se difiere: las primitivas se construyen en escala de grises y el color entra en una pasada aparte.
   - **Bonus — 4 brechas de DB nuevas** del form de alta de cliente: `customers.birth_date` (B10), `customers.notes` (B11), `customer_membership.start_date` (B12) y soporte de "Sin membresía" (B13).
   - **Bonus — se cerró un hueco de la Fase 8**: el `Payment Receipt` en mobile sí existe, es el dialog de éxito con botón Compartir. Y apareció una decisión de negocio nueva: el form deja elegir Descuento y Recargo a mano, mientras `billing-policy.ts` los calcula por día del mes.
+  — Ema + Claude.
+- 2026-09-16 — **Fase 5 completa** (`feat/v2-primitivas`). Construidas las primitivas que consumen las fases 6–14: `DataTable`, `SidePanel`, `ConfirmDialog`, `FilterBar` + `FilterDropdown`, `Stepper`, `StatusBadge`, `EmptyState`, `PageHeader`. Sandbox de revisión en `/v2/sandbox`. Decisiones y desvíos:
+  - **`FormModal` y `DetailModal` colapsaron en un solo `SidePanel`.** El plan los preveía como dos componentes; la geometría del Figma los desmiente — ambos son `x=800, 480×832` en desktop y full-screen en mobile. Son el mismo contenedor con contenido distinto.
+  - **`mobileRow` es un prop requerido de `DataTable`**, no opcional: convierte el hallazgo "en mobile no es una tabla" en algo que el compilador recuerda en cada sección futura.
+  - **Sin TanStack Table ni el `table` de shadcn.** Tabla propia sobre `<table>` semántico: el uso real es render + filtros server-side.
+  - **Sin paginación** por ahora — ningún wireframe la muestra y agregarla después es aditivo.
+  - **Todo en escala de grises**, según lo acordado; la paleta de marca entra en una pasada aparte sobre las CSS vars de `[data-v2]`.
+  - **`AssistanceModal` refactorizado sobre `SidePanel`** en vez de dejar dos implementaciones. Cambio visual menor: 520px → 480px, que es el valor del Figma.
+  - **Excepción consciente:** `PrimitivesSandbox.tsx` no usa i18n. Es un harness de dev, no producto; traducirlo sumaría ~20 keys a borrar después. Documentado en el ADR.
+  - **Dos bugs encontrados en la revisión visual de Ema**, ambos promovidos a convención porque aplican a todo lo que venga:
+    - **Todo portal con `data-v2` necesita un `!p-*` explícito.** El `[data-v2='true'] { padding: 2rem 3rem }` de `globals.css` se hereda en el portal y se suma al padding propio; un `p-0` común pierde por especificidad. El `AppShell` ya lo hacía desde la fase 1.5 pero nunca se escribió por qué, así que el error se repitió en tres primitivas.
+    - **`min-h-0` en la columna del main del `AppShell`.** Una página más alta que el viewport desbordaba el `h-dvh` del wrapper y se dibujaba sobre el fondo maroon del tenant v1. Es el gemelo vertical del `min-w-0` de la fase 1.5. Sin este fix, la fase 6 se topaba con el mismo bug apenas hubiera 20 filas.
+    - **El círculo del paso activo del `Stepper` era invisible**: usaba `bg-primary-500`, que no existe (la escala del `@theme` va sin guion antes del número). Ni el type-check ni el lint detectan una clase de Tailwind inexistente — sólo se ve en pantalla.
+    - **Los botones estaban mal en el sandbox — y el home tampoco era consistente consigo mismo**: convivían dos `contained` (`bg-sidebar-accent` gris medio y `bg-foreground` negro) y dos `outlined` con geometría distinta. Se creó el átomo [v2/ui/Button.tsx](../../src/components/v2/ui/Button.tsx) con `contained`/`outlined`/`ghost`/`destructive` y se unificó todo el home. **Cambio visual:** "Registrar asistencia" pasa de gris medio a negro.
+    - **Estructura nueva:** `src/components/v2/ui/` para átomos (Button, StatusBadge), `src/components/v2/` para compuestos.
   — Ema + Claude.

@@ -21,7 +21,7 @@ export default async function WeeklyAttendanceCard({ weekly }: WeeklyAttendanceC
         <ChevronDown aria-hidden='true' className='size-4 text-muted-foreground' />
       </div>
 
-      <ul className='flex flex-col gap-3 border rounded-xl p-4'>
+      <ul className='flex flex-col gap-3 border rounded-lg p-4'>
         {weekly.map((day, i) => {
           const dayKey = DAY_KEYS[i]
           const label = t(`v2.home.weeklyAttendance.days.${dayKey}`)
