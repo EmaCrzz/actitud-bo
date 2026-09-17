@@ -68,6 +68,10 @@ O sea: el riesgo nunca estuvo en que alguien viera la v2 sin permiso, sino en qu
 
 - **El diff de schema entre entornos es barato y debería ser rutina.** Comparar relaciones y columnas de prod contra dev tomó dos queries y produjo la lista exhaustiva del delta — 2 relaciones y 4 columnas — más el dato que más tranquilizó: **no hay un solo objeto en prod que dev no tenga**, o sea que no hay divergencia acumulada, prod es un subconjunto limpio.
 
+- **Diffear relaciones y columnas no alcanza: faltaban las funciones.** La primera verificación comparó tablas, vistas y columnas, y concluyó "prod es un subconjunto limpio de dev". La conclusión era correcta pero la evidencia estaba incompleta — se completó al diffear también `pg_proc` (dev tiene 6 funciones de más: el helper del flag y las de `unaccent`; ninguna existe sólo en prod). **Un diff de schema que omite funciones, triggers o policies no es un diff de schema.** Lo destapó una repregunta de Ema sobre el alcance del `NOT NULL`, no la verificación propia.
+
+- **Un `NOT NULL` obliga a auditar los escritores, no sólo los datos.** Que haya 0 nulos hoy prueba que la migración *aplica*, no que ningún camino intente escribir uno. Auditando los RPC aparecieron **dos overloads** de `upsert_customer_membership_with_payment`: el de 14 parámetros valida y corta con `MISSING_PAYMENT_METHOD`, pero el legacy de 10 —que es el que llama el alta de cliente— escribe `COALESCE(p_payment_type, 'efectivo')` sin guarda. No hay regresión, porque `COALESCE` nunca produce `NULL` y `'efectivo'` ya violaba el CHECK antes. Pero el residuo quedó anotado en el plan v2 para la Fase 7: **cerrar el defecto en la columna no lo cierra en las funciones que escriben esa columna.**
+
 - **DDL transaccional convierte "esperemos que funcione" en evidencia.** Ensayar contra los datos reales y hacer rollback es la diferencia entre creer que una migración aplica y saberlo. Cuesta segundos y debería ser parte del procedimiento, no una técnica que alguien recuerda.
 
 ## Plan
@@ -75,7 +79,7 @@ O sea: el riesgo nunca estuvo en que alguien viera la v2 sin permiso, sino en qu
 ### Pasos
 
 1. Auditar el gate de `v2_access`: dónde se aplica, si falla abierto o cerrado, y quién tiene el flag en cada entorno.
-2. Diffear el schema de prod contra dev — relaciones y columnas — para obtener el delta exhaustivo.
+2. Diffear el schema de prod contra dev — relaciones, columnas **y funciones** — para obtener el delta exhaustivo.
 3. Mapear cada objeto del delta al código que lo consume, separando v1 de v2.
 4. Clasificar las 6 migraciones pendientes contra la taxonomía de `workflow.md` y determinar el orden de deploy.
 5. Ensayar la secuencia completa contra producción dentro de `BEGIN … ROLLBACK`, con `lock_timeout` corto.
@@ -109,5 +113,6 @@ Todas las sentencias en decenas de milisegundos. Verificación post-rollback con
 
 ### Fuera de alcance
 
+- **El literal `'efectivo'` dentro del overload legacy de `upsert_customer_membership_with_payment`.** Residuo del Defecto C que la migración de columna no cubre. No es regresión ni riesgo del release — existe igual en dev y prod, y `COALESCE` nunca produce `NULL` — pero el camino de falla sigue vivo: un alta con "pagó" tildado y forma de pago vacía falla. Tocar ese RPC es "cambiar el comportamiento de una función que el código ya usa", y el alta es la **Fase 7**, que además tiene que decidir si migra al overload de 14 params. Anotado en el plan v2.
 - **Brecha B5 (DNI único).** Sigue abierta; requiere decisión caso por caso sobre 8 pares.
 - **Automatizar la aplicación de migraciones en CI.** Hoy `db:push-prod` es manual y deliberadamente confirmado. Automatizarlo es una decisión propia; el ensayo lo hace más seguro sin cambiar quién aprieta el botón.
