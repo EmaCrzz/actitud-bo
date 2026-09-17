@@ -16,7 +16,7 @@ import { CUSTOMER } from '@/consts/routes'
 import { cn } from '@/lib/utils'
 import { getInitials } from '@/lib/format-person'
 import { formatDayLabelInAppTz, formatTimeInAppTz } from '@/lib/format-date'
-import { buildWeekSlots } from '@/assistance/utils'
+import { buildWeekSlots, isDuplicateAssistanceError } from '@/assistance/utils'
 import type { WeekAssistance, WeekSlot } from '@/assistance/utils'
 import SuccessTick, { SuccessTickRing } from '@/components/SuccessTick'
 import AlertContainedIcon from '@/components/icons/alert-contained'
@@ -79,6 +79,18 @@ export default function AssistanceModal({ customer, open, onOpenChange }: Assist
 
     setSubmitting(false)
     if (error?.code) {
+      // El botón ya está deshabilitado cuando `hasAssistanceToday`, así que
+      // llegar acá con un duplicado significa que la asistencia se registró
+      // desde otra pestaña o dispositivo entre que se abrió el modal y se
+      // confirmó. El constraint de DB lo ataja; el mensaje tiene que explicar
+      // qué pasó, no mostrar el error de Postgres.
+      if (isDuplicateAssistanceError(error)) {
+        toast.warning(t('assistance.alreadyRegisteredToday'))
+        onOpenChange(false)
+        router.refresh()
+
+        return
+      }
       toast.error(t('assistance.errorRegistering'), { description: error.message })
 
       return

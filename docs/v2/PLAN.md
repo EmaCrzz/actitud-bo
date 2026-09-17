@@ -25,8 +25,8 @@
 | 5 | Primitivas transversales v2 (DataTable, SidePanel, ConfirmDialog, FilterBar, Stepper) | ✅ completa | Rama `feat/v2-primitivas`. ADR [20260916093140](../architecture/decisions/20260916093140_v2-primitivas-transversales.md). `FormModal` y `DetailModal` colapsaron en un solo `SidePanel`. Sandbox en `/v2/sandbox`. |
 | 6a | Sección Clientes — listado | ✅ completa | Rama `feat/v2-clientes` (PR [#53](https://github.com/EmaCrzz/actitud-bo/pull/53)). ADR [20260916120738](../architecture/decisions/20260916120738_v2-listado-de-clientes.md). Query canónico compartido server/client, filtros en la URL. ~~scroll infinito~~ → **corregido a paginación en 6b**. |
 | 6b | Perfil del cliente + paginación | ✅ completa | Rama `feat/v2-perfil-cliente`. ADR [20260916161500](../architecture/decisions/20260916161500_v2-perfil-de-cliente-y-paginacion.md). Panel de 4 tabs, paginador transversal, filtro de estado a 3 valores, migración B10+B11. **No hay menú de acciones de fila** (el nodo que el plan creía que era, es el filtro `Estado`). Mobile sin verificar. |
-| 7 | Alta de cliente (desde Home y desde Clientes) | ⬜ pendiente | |
-| 8 | Registrar pago / renovar membresía + comprobante | ⬜ pendiente | Flow más largo del Figma (10 pantallas). |
+| 7 | Alta de cliente (desde Home y desde Clientes) | ⚠️ **bloqueada** | **El paso 2 del diseño no modela el cobro.** v1 registra el pago en el alta; el Figma sólo pide `Forma de pago`, sin monto, sin confirmación de cobro, sin descuento y sin primera asistencia → el alta crearía membresía sin fila en `membership_payments`. Ver [Fase 7](#fase-7--alta-de-cliente) y [decisión abierta #15](#decisiones-abiertas--riesgos). Las capturas del 2026-09-17 **sí** cerraron el resto del diseño. |
+| 8 | Registrar pago / renovar membresía + comprobante | ⬜ pendiente | Flow más largo del Figma (10 pantallas). **Pasa a ir antes que la 7**: su diseño del cobro está completo y es el que a la 7 le falta. |
 | 9 | Sección Asistencias | ⬜ pendiente | |
 | 10 | Sección Membresías (planes y precios) | ⬜ pendiente | |
 | 11 | Sección Gastos (crear/editar/eliminar) | ⬜ pendiente | Requiere migración: `payment_method` en `expenses`. |
@@ -347,7 +347,7 @@ El logo además necesita un bucket de Supabase Storage con su política de acces
 | B1 | `expenses` | `payment_method` | Los flows 14–16 muestran KPIs "Efectivo / Transferencias" en Gastos y en Balance. Hoy `expenses` no distingue medio de pago, así que ese desglose **no se puede calcular**. | 11 |
 | B2 | `expenses` | `deleted_at` (o hard delete confirmado) | El flow 15 es "Eliminar gastos creados". Hoy `deleteExpense` hace hard delete. Decidir si el rediseño quiere papelera o borrado definitivo. | 11 |
 | B3 | `membership_payments` | `receipt_number` | Los flows 3 y 7 terminan en un `Payment Receipt`. Un comprobante sin número identificable es difícil de referenciar después. | 8 |
-| B4 | `assistance` | UNIQUE parcial `(customer_id, fecha-en-AR)` | Nada impide registrar dos asistencias del mismo cliente el mismo día. El flow 1 no muestra manejo de duplicado. | 3 |
+| ~~B4~~ | `assistance` | ~~UNIQUE `(customer_id, fecha-en-AR)`~~ | ✅ **Aplicada el 2026-09-17** (migración `20260917120100`, ADR [20260917120000](../architecture/decisions/20260917120000_integridad-de-escritura-pagos-y-asistencias.md)). Índice UNIQUE sobre el día calendario AR + limpieza de 28 duplicados + recomputo de `assistance_count`. El error `23505` se traduce a `assistance.alreadyRegisteredToday` en las dos UIs. | ~~3~~ ✅ |
 | B5 | `customers` | `person_id` sin UNIQUE | Se pueden dar de alta dos clientes con el mismo DNI. Los flows 2 y 8 (alta de cliente) deberían detectarlo. | 7 |
 | B6 | `types_memberships` | `active`, `description` | El flow 10 es un CRUD de planes de membresía. Sin `active` no se puede discontinuar un plan sin romper el histórico de pagos que lo referencian. | 10 |
 | B7 | `discount_rules` | `valid_from`, `valid_to` | La sección Configuración → Promociones sugiere promos con vigencia. Hoy sólo hay `active` booleano. | 14 |
@@ -358,9 +358,11 @@ El logo además necesita un bucket de Supabase Storage con su política de acces
 | B12 | `customer_membership` | `start_date` | El alta pide **"Fecha de inicio"** además de "Fecha de vencimiento". Hoy sólo existe `expiration_date`; el inicio se infiere de `last_payment_date`, que no es lo mismo. | 7 |
 | B13 | `customer_membership` | soportar **"Sin membresía"** | El select de tipo ofrece `Sin membresía`, pero `membership_type` es `NOT NULL` con FK a `types_memberships`. O se agrega un tipo `NONE`, o se permite alta sin fila en `customer_membership`. Ver decisión abierta #6 de [2.3](#23-validaciones-pendientes-de-ema-lista-viva). | 7 |
 
-### C. Defecto latente detectado en el schema actual
+### C. ~~Defecto latente detectado en el schema actual~~ → ✅ RESUELTO (2026-09-17)
 
-**`membership_payments.payment_method` tiene `DEFAULT 'efectivo'` pero el CHECK sólo admite `'PAYMENT_CASH'` / `'PAYMENT_TRANSFER'`.**
+> **Cerrado** por la migración `20260917120000` — ADR [20260917120000](../architecture/decisions/20260917120000_integridad-de-escritura-pagos-y-asistencias.md). Se confirmó contra producción que el defecto era real, y **el arreglo obvio habría empeorado el bug**: sacar sólo el `DEFAULT` deja pasar `NULL`, porque un CHECK pasa cuando su expresión no es `FALSE` y `NULL = ANY(ARRAY[...])` devuelve `NULL`. Un pago sin método no rompe nada visible pero descuadra el desglose "Efectivo / Transferencias" de ingresos y del Balance. Se aplicó `DROP DEFAULT` **+ `SET NOT NULL`**, y `payment_method` pasó a requerido en `CreateMembershipPaymentData`. Descripción original abajo, como registro.
+
+**`membership_payments.payment_method` tenía `DEFAULT 'efectivo'` pero el CHECK sólo admite `'PAYMENT_CASH'` / `'PAYMENT_TRANSFER'`.**
 
 ```sql
 payment_method character varying DEFAULT 'efectivo'::character varying
@@ -442,7 +444,7 @@ Los 3 commits de `feat/v2-attendance-modal` están en `origin/develop`, no en `m
    - Mobile: `2175:26167` (Customer Detail Modal full-screen) → `2175:25926` (búsqueda con resultados) → `2175:25752` (home scroll).
    - **El `AssistanceModal.tsx` actual usa `Sheet`.** El mobile del Figma es full-screen 390×844, así que probablemente esté bien — pero verificar `2175:26167` antes de darlo por cerrado.
 2. **Estado de loading de la búsqueda** (`2065:15004`). Confirmar si es skeleton de filas o spinner, y si el input queda deshabilitado.
-3. **Duplicado de asistencia** (brecha B4). Hoy nada impide registrar dos veces el mismo día. Definir: ¿el modal bloquea el botón si ya hay asistencia hoy, o se agrega el UNIQUE parcial en DB y se maneja el error? Recomendación: **ambos** — UX que previene + constraint que garantiza.
+3. ~~**Duplicado de asistencia** (brecha B4).~~ ✅ **Resuelto el 2026-09-17** — ADR [20260917120000](../architecture/decisions/20260917120000_integridad-de-escritura-pagos-y-asistencias.md). Quedó con las tres capas que recomendaba este punto: la UI ya prevenía (`hasAssistanceToday` deshabilita el botón en el modal v2 y en la pantalla v1), el índice UNIQUE sobre el día calendario AR garantiza, y `isDuplicateAssistanceError` traduce el `23505` al copy `assistance.alreadyRegisteredToday` que ya existía.
 4. **Toast de éxito** (`2117:8258`). Verificar copy, duración y si es global (`sonner`) o inline.
 5. **Refresh del home post-registro.** Confirmar que "Asistencias de hoy", "Resumen del día" y "Asistencias semanal" se actualizan sin full reload.
 
@@ -460,7 +462,7 @@ Los 3 commits de `feat/v2-attendance-modal` están en `origin/develop`, no en `m
 
 **Definición de hecho:**
 - [ ] Las 6 pantallas restantes verificadas contra el Figma
-- [ ] Duplicado de asistencia resuelto (UX + constraint)
+- [x] Duplicado de asistencia resuelto (UX + constraint) *(2026-09-17, fuera de la rama de la fase)*
 - [ ] Loading de búsqueda implementado
 - [ ] Home se refresca post-registro sin reload
 - [ ] Auditoría de timezone escrita en el ADR
@@ -739,12 +741,46 @@ También es el destino del card "Clientes activos del mes" del home (`80` / `4 c
 
 ## Fase 7 — Alta de cliente
 
-**Estado:** ⬜ pendiente
+**Estado:** ⚠️ **bloqueada** (2026-09-17) — el diseño no modela el cobro. Todo lo demás está verificado y listo para construir.
 **Figma:** desktop `2166:22897` ("Desde el home", 7 pantallas) + `2167:22903` ("Desde Clientes", 4 pantallas) · **mobile `2222:43030` (3 pantallas, un solo flow)**.
 
-> El mobile diseñó **una sola** sección de alta con 2 pasos, y desde Clientes se entra por el `New Client Button` icon-only del listado. Eso **valida el enfoque de un formulario con dos entradas** que ya proponía este plan. Si desktop tiene 5 pasos y mobile 2, resolver la diferencia antes de implementar.
+> ### ⚠️ Bloqueante — el paso 2 no modela el cobro
+>
+> Detectado por Ema el 2026-09-17, al revisar las capturas ya completas. **El alta de v1 registra el pago; la del Figma no.**
+>
+> `createCustomerWithMembership` ([customer/api/client.ts](../../src/customer/api/client.ts)) delega en el RPC `upsert_customer_membership_with_payment` con catorce parámetros. El paso 2 del diseño cubre **uno**:
+>
+> | Dato que v1 captura en el alta | Parámetro del RPC | ¿Está en el Figma? |
+> |---|---|---|
+> | Confirmación de cobro (checkbox "pagó") | `p_is_paid` | ❌ |
+> | Monto | `p_gross_amount` | ❌ |
+> | Descuento + regla + nota | `p_discount_amount`, `p_discount_rule_id`, `p_discount_note` | ❌ |
+> | Primera asistencia | `p_register_assistance` | ❌ |
+> | Forma de pago | `p_payment_type` | ✅ |
+>
+> **Consecuencia:** el formulario crearía la membresía **sin fila en `membership_payments`**. El cliente queda con membresía vigente y el ingreso nunca entra en la contabilidad del mes. No rompe nada visible — sólo falta plata en el balance. Es el mismo perfil de falla silenciosa que el bug de fechas del ADR [20260709153000](../architecture/decisions/20260709153000_representacion-canonica-de-fechas-ar.md).
+>
+> **Incoherencia interna que lo confirma como olvido, no como simplificación:** el paso 2 pide `Forma de pago` **sin nada que pagar**. `payment_method` sólo existe como columna dentro de una fila de `membership_payments`; sin monto ni confirmación de cobro no hay dónde guardarlo.
+>
+> **Y el diseño sí sabe modelar el cobro** — lo hace completo en la [Fase 8](#fase-8--registrar-pago--renovar-membresía--comprobante): sección *"Condiciones y forma de pago"* con `Promociones` · `Descuento` · `Recargo` · `Forma de pago`, más la tabla de Resumen con el Total. Nunca lo trajo al alta.
+>
+> **Qué pedirle al diseñador:** agregar al paso 2 la confirmación de cobro, el monto, el descuento y la primera asistencia — o directamente reusar el bloque "Condiciones y forma de pago" del flow de renovación.
+>
+> **Consecuencia de orden:** conviene **hacer la Fase 8 antes que la 7**. La 8 tiene el diseño completo y construye el bloque de cobro que a la 7 le falta; después el alta lo reusa. Al revés, o se construye el alta incompleta o se diseña el bloque de cobro dos veces.
 
-### Contenido del formulario (confirmado en captura del 2026-09-15)
+### Contenido del formulario (confirmado en capturas del 2026-09-15 y del 2026-09-17)
+
+> **Lo que cerraron las capturas del 2026-09-17** (7 frames desktop + 1 mobile, pasadas por Ema; la cuota del MCP sigue agotada):
+>
+> - **No son 5 pasos vs 2: son 2 pasos en ambos viewports.** Queda cerrado el hueco que este plan arrastraba desde el 2026-09-15. **Mismo formulario, dos entradas** — el flow desde el listado de Clientes es idéntico al del home.
+> - **Es un `SidePanel` derecho en desktop** y **full-screen con flecha atrás en mobile**, no un modal centrado.
+> - **El form no pide email.** Confirmado que no era un olvido del diseño: `customers.email` existe y no se usa en el alta.
+> - **Estado de submit:** el botón pasa a **"Un momento"** con spinner, deshabilitado en rosa claro.
+> - **La confirmación es una alerta verde inline dentro del panel** — *"Nuevo cliente creado correctamente"*, arriba del footer — **no** un toast global de `sonner`. Difiere de lo que este plan asumía.
+> - **Las fechas vienen prellenadas** (`01/08/2026` → `31/08/2026`, con "hoy" = 01/08). No es "+1 mes" (sería 01/09): es fin de mes o +30 días. **Regla sin definir.** El validador de [customer/utils.ts](../../src/customer/utils.ts) ya exige que el vencimiento no supere un mes desde el inicio, pero no prellena nada.
+> - **`Sin membresía` es el valor por defecto del select de tipo**, no una opción más de la lista — y con ese valor el diseño igual muestra `Forma de pago`. Ver B13 abajo.
+>
+> Dos cosas del mobile que **no son de esta fase** y hay que pasarle al diseñador: el `Resumen del día` usa el copy *"Aun no hay actividad registrada por el momento."* (sin tilde en "Aún"), y las asistencias semanales se dibujan como barras **horizontales** contra las verticales del desktop. Ambas son de la Fase 2.
 
 Header: flecha atrás + **"Nuevo cliente"** + subtítulo *"Complete los datos para registrar un cliente."*
 Stepper de 2 pasos con check verde al completar el primero. Footer: `Cancelar` (outline) + `Siguiente` → en el paso 2, `Guardar cliente`.
@@ -755,21 +791,37 @@ Stepper de 2 pasos con check verde al completar el primero. Footer: `Cancelar` (
 |---|---|---|
 | Nombre | `customers.first_name` | ✅ |
 | Apellido | `customers.last_name` | ✅ |
-| DNI | `customers.person_id` | ✅ (sin UNIQUE — brecha B5) |
-| **Fecha de nacimiento** | — | ❌ **brecha B10** |
+| DNI | `customers.person_id` | ✅ — sin UNIQUE (**B5**, diferida a PR propio: ver abajo) |
+| Fecha de nacimiento | `customers.birth_date` | ✅ **B10 aplicada en 6b** |
 | Contacto (teléfono) | `customers.phone` | ✅ |
 
-> El form **no pide email**, aunque `customers.email` existe. Confirmar si se saca de la UI o falta en el diseño.
+> El form **no pide email** — confirmado por captura el 2026-09-17, no es un olvido del diseño.
 
 **Paso 2 — "Membresía inicial"**
 
 | Campo | Columna en DB | Estado |
 |---|---|---|
-| Tipo de membresía (incluye **"Sin membresía"**) | `customer_membership.membership_type` | ⚠️ **brecha B13** |
-| **Fecha de inicio** | — | ❌ **brecha B12** |
+| Tipo de membresía | `customer_membership.membership_type` | ✅ con **B13 decidida**: se saca "Sin membresía" del select |
+| Fecha de inicio | — | ❌ **brecha B12** (decidida, sin implementar) |
 | Fecha de vencimiento | `customer_membership.expiration_date` | ✅ |
-| Forma de pago | `membership_payments.payment_method` | ✅ |
-| **Observaciones / Notas internas** | — | ❌ **brecha B11** |
+| Forma de pago | `membership_payments.payment_method` | ⚠️ **sin fila de pago que la contenga** — ver el bloqueante |
+| Observaciones / Notas internas | `customers.notes` | ✅ **B11 aplicada en 6b** |
+
+#### Decisiones tomadas el 2026-09-17 (válidas cuando se retome)
+
+- **B5 — DNI duplicado → índice parcial UNIQUE + pre-check, en PR aparte.** Se mantiene la validación actual por UX ([client.ts](../../src/customer/api/client.ts) hace un `SELECT` por DNI antes de habilitar el paso siguiente, y [errors.ts](../../src/customer/errors.ts) ya maneja `PERSON_ID_ALREADY_EXISTS` con toast + "Ver cliente"), y se agrega `CREATE UNIQUE INDEX ... WHERE person_id IS NOT NULL AND person_id <> ''` debajo. Hoy es un **check-then-act en dos round trips**: entre el `SELECT` y el `INSERT` no hay nada que impida que entre otro.
+
+  ⚠️ **No se puede aplicar todavía.** Medido contra dev y prod el 2026-09-17: **8 DNIs duplicados, 16 filas, idéntico en ambos entornos** (y 0 clientes sin DNI). Siete pares son la misma persona cargada dos veces (`Monica`/`Mónica Perez`, `Mili`/`Milagros Villanueva`, `Iván`/`Ivan Franco`, `Diamela Roja`/`Rojas`, `Nadia belén`/`belen Ramirez`, `Enzo Lescano` y `Conrado Nani` repetidos). **El octavo no lo es:** `40990184` son `Matias Manucci` y `Belena Manucci` — mismo apellido, nombres distintos, o sea un DNI mal tipeado, no un alta duplicada. Mergearlos fusionaría dos personas reales.
+
+  Varios pares tienen historial de los dos lados (`Mili Villanueva`: 86 asistencias y membresía vigente; `Milagros Villanueva`: 3), así que unificar exige **reasignar `assistance` y `membership_payments` antes de borrar**, o se pierde historial y se descuadran los KPIs. Es una migración de datos con decisión caso por caso, riesgo propio y ADR propio → **PR separado, no entra en la Fase 7.**
+
+- **B12 — `customer_membership.start_date` → se agrega, nullable, sin backfill.** El dato ya se pide en v1, pero se guarda **pisando `last_payment_date`** ([client.ts](../../src/customer/api/client.ts) manda el `start_date` del form como `p_last_payment_date`), una columna que leen accounting ([incomes.ts](../../src/accounting/api/incomes.ts)) y la barra de progreso del perfil v2. Se separan, y un helper único `getMembershipPeriodStart()` centraliza el fallback `start_date ?? last_payment_date` para el histórico — hoy ese workaround está inline en [CustomerProfileMembership.tsx](../../src/customer/components/v2/CustomerProfileMembership.tsx). Sin backfill: inventar un inicio para 537 clientes sería fabricar datos.
+
+- **B13 — "Sin membresía" se saca del select; toda alta crea membresía.** Decisión de Ema, **divergencia deliberada contra el Figma** — avisar al diseñador. Se descartó el tipo `NONE` en `types_memberships` porque un valor centinela contaminaría el CRUD de la Fase 10, los precios, accounting y el select de renovación.
+
+  Dos consecuencias a no olvidar: el select arranca en **"Selecciona una opción"** (mismo placeholder que `Forma de pago` en el diseño) y `Tipo de membresía` pasa a ser requerido; y **sacarlo del alta no elimina el estado** — hay **8 clientes sin fila de `customer_membership` en prod** (medido el 2026-09-17), así que el listado tiene que seguir renderizando "Sin membresía". El query canónico ya los tolera: el join es `!inner` **sólo cuando hay filtro aplicado** ([customers-query.ts](../../src/customer/api/customers-query.ts)).
+
+- **Prefill de fechas — sin definir.** Pendiente de Ema cuando se retome. Candidatas: inicio = hoy + vence = fin de mes (encaja con el ciclo día-de-mes fijo de la política de cobro), o vence = hoy + 30 días.
 
 **Riesgo timezone — crítico en este form.** Hay **tres** datepickers (nacimiento, inicio, vencimiento). Los tres devuelven `"YYYY-MM-DD"` y los tres van a la DB. Cada uno debe pasar por `parseAppTzDateString` antes del RPC. Es exactamente el call site donde ya se rompió dos veces.
 
@@ -785,30 +837,36 @@ Mismo formulario, **dos puntos de entrada**: el botón "Nuevo cliente" de Accion
 
 ### A construir
 
-- `src/customer/components/v2/CustomerFormModal.tsx` sobre `FormModal` de Fase 5.
+- `src/customer/components/v2/CustomerFormModal.tsx` sobre el **`SidePanel`** de Fase 5 (no `FormModal`: colapsaron en uno solo) + el `Stepper`, que ya trae el check verde del diseño.
 - Un componente por paso.
-- Validación con los mismos errores que v1 (reusar `src/customer/errors.ts`).
-- Toast de éxito (`2117:10405`, `2110:27462`) + refresh del listado / home.
+- **Un `Textarea` v2** para las notas internas — es lo único del formulario que no tiene átomo. Los tres datepickers reusan `UncontrolledDatePicker` ([src/components/uncontrolled-date-picker.tsx](../../src/components/uncontrolled-date-picker.tsx)), que ya usan `membership-form.tsx` y el form de gastos.
+- Validación con los mismos errores que v1 (reusar [src/customer/errors.ts](../../src/customer/errors.ts) y el validador de [customer/utils.ts](../../src/customer/utils.ts), que ya exige vencimiento > inicio y ≤ un mes).
+- **Alerta verde inline dentro del panel** (`Nuevo cliente creado correctamente`) — no toast global — + refresh del listado / home.
+- **El bloque de cobro que falta en el diseño** → ver el bloqueante. Es lo que hace que esta fase convenga después de la 8.
 
-**Brechas de DB:** B5 — `customers.person_id` no es UNIQUE. Decidir si el alta valida DNI duplicado en app, en DB, o ambos. Recomendación: constraint UNIQUE + manejo del error en el form, porque la validación sólo en app tiene race condition.
+**Brechas de DB:** B12 (decidida, ver arriba). **B5 queda fuera**: la limpieza de los 8 DNIs duplicados + el índice UNIQUE van en PR propio con ADR propio.
 
 **Riesgo timezone:** alto si el paso de membresía crea un pago. `last_payment_date`, `expiration_date` y `renewal_date` van a la DB — **todas por `parseAppTzDateString`**.
 
 **Definición de hecho:**
+- [ ] **Desbloqueada:** el diseño del paso 2 modela el cobro (o se decide construirlo sin él, asumiendo explícitamente que el alta no registra ingreso)
 - [ ] Alta completa desde ambas entradas
-- [ ] Validaciones idénticas a v1 (incluido DNI duplicado)
-- [ ] Toast + refresh de la vista de origen
+- [ ] **El alta cobrada crea fila en `membership_payments`** y el ingreso aparece en la contabilidad del mes
+- [ ] Validaciones idénticas a v1 (el pre-check de DNI queda como está; el índice UNIQUE es otro PR)
+- [ ] Alerta inline de éxito + refresh de la vista de origen
 - [ ] Cancelar a mitad no deja registros huérfanos
-- [ ] Auditoría de timezone del paso de membresía
+- [ ] Auditoría de timezone del paso de membresía — **tres datepickers** (nacimiento, inicio, vencimiento), los tres por `parseAppTzDateString`
 
-**ADR:** sí — unificación del alta en un solo componente con dos entradas + decisión sobre DNI único.
+**ADR:** sí — unificación del alta en un solo componente con dos entradas + B12 + B13 (incluida la divergencia deliberada contra el Figma).
 
 ---
 
 ## Fase 8 — Registrar pago / renovar membresía + comprobante
 
-**Estado:** ⬜ pendiente
+**Estado:** ⬜ pendiente — **pasa a ir antes que la Fase 7** (2026-09-17).
 **Figma:** desktop `2166:22898` ("Desde el home", 10 pantallas — el flow más largo) + `2167:22902` ("Desde Cliente/Perfil", 7 pantallas) · **mobile `2222:43026` ("Renovar membresía desde acciones rápidas", 6 pantallas)**.
+
+> **Por qué se adelanta.** El alta de cliente (Fase 7) quedó bloqueada porque su diseño no modela el cobro, y **el bloque que le falta es exactamente el que esta fase construye** — "Condiciones y forma de pago" + el resumen con el Total. Haciéndola primero, el alta lo reusa; al revés, se diseña dos veces o se construye el alta incompleta. Ver [decisión abierta #15](#decisiones-abiertas--riesgos).
 
 > ✅ **Hueco resuelto (2026-09-15).** El `Payment Receipt` en mobile **sí existe**: es el `Modal Dialog` de éxito (`2183:43825`), no una pantalla aparte. Ver el detalle del flow abajo.
 >
@@ -1162,6 +1220,14 @@ Ordenadas por impacto. Las que bloquean una fase están marcadas.
 
 14. **Permisos del historial de pagos (Fase 6b).** El tab Pagos del perfil lee `membership_payments`, que es **admin-only a nivel RLS** por decisión deliberada (`20260702120000_finances_admin_only_rls`). Se acordó en conversación que lo viera todo el panel, pero eso requiere revertir una restricción de seguridad, no sólo sacar un guard de app. Entregado degradando honestamente para no-admin. **Decidir si se abre la RLS** — y si se abre, si es sólo lectura y sólo de los pagos del propio cliente consultado.
 
+15. **⚠️ El alta de cliente no modela el cobro (bloquea Fase 7).** El paso 2 del Figma pide `Forma de pago` pero no monto, no confirmación de cobro, no descuento y no primera asistencia — todo lo que v1 sí captura vía `upsert_customer_membership_with_payment`. Un alta hecha con ese formulario crearía membresía **sin fila en `membership_payments`**: cliente activo, ingreso perdido, sin síntoma visible. Detalle completo en [Fase 7](#fase-7--alta-de-cliente).
+
+    Se necesita una de dos: que el diseño agregue el bloque de cobro (idealmente reusando el de la Fase 8, que ya lo tiene completo), o una decisión explícita de negocio de que **el alta no cobra** y el pago se registra siempre después, por el flow de renovación. Lo segundo es defendible pero cambia la operación del gimnasio, así que es decisión de Ema, no de implementación.
+
+    **Efecto de orden:** hacer la Fase 8 antes que la 7.
+
+16. **Copy y gráficos del mobile de Home (Fase 2, cosmético).** Las capturas del 2026-09-17 mostraron dos divergencias que no son de la Fase 7: el empty state del `Resumen del día` dice *"Aun no hay actividad registrada por el momento."* (sin tilde en "Aún"), y las asistencias semanales se dibujan como **barras horizontales** en mobile contra las verticales del desktop. Avisar al diseñador y decidir si el mobile cambia de gráfico a propósito.
+
 ---
 
 ## Checklist de verificación estándar
@@ -1279,4 +1345,19 @@ Aplica a **toda** fase antes de pedir review. Está pensado para que el otro dev
   - **El dominio ya había nombrado el problema.** "Señal de vida" / "churn silencioso" estaba definido y comentado hacía meses en accounting y en el home. Antes de diseñar un criterio nuevo, buscar si el proyecto ya lo resolvió en otro lado.
   - **Primera vista del proyecto**, con dos requisitos que aplican a toda vista futura: `security_invoker = true` y verificar el embedding de PostgREST contra la API real antes de usarla.
   - **Denormalizar salió gratis** porque ya existía el trigger de `assistance_count`. Relevante para el tier gratuito de Supabase (la base está en 25 MB de 500): el patrón caro habría sido agregar `max(assistance_date)` en cada request.
+  — Ema + Claude.
+- 2026-09-17 — **Fase 7 bloqueada y sesión de destrabado previo.** No se escribió código. Lo que pasó:
+  - **Se cerraron B5, B12 y B13** como decisiones (ver [Fase 7](#fase-7--alta-de-cliente)), y se midieron contra dev **y** prod los datos que condicionan B5 y B13: 8 DNIs duplicados / 16 filas (idéntico en ambos entornos, 0 clientes sin DNI) y 8 clientes sin fila de `customer_membership`.
+  - **B5 salió del alcance de la Fase 7.** Uno de los 8 pares (`Matias`/`Belena Manucci`) **no es un duplicado sino un DNI mal tipeado entre dos personas distintas**, y varios pares tienen historial de asistencias y pagos de los dos lados. Unificar exige reasignar `assistance` y `membership_payments` con criterio caso por caso → PR y ADR propios.
+  - **Las capturas de Ema cerraron el diseño**: 2 pasos en ambos viewports (no 5 vs 2), `SidePanel` en desktop y full-screen en mobile, sin email, submit en "Un momento", y confirmación como alerta verde **inline** en vez de toast global.
+  - **Ema detectó el bloqueante**: el paso 2 no modela el cobro, que en v1 es parte del alta. Ver [decisión abierta #15](#decisiones-abiertas--riesgos). La fase se retoma cuando el diseño lo resuelva; **la 8 pasa a ir primero**.
+  - **Lección operativa.** Las capturas completas no garantizan un diseño completo: seis frames se veían coherentes y aun así faltaba el concepto central del flow. Lo que lo delató no fue mirar el Figma sino **comparar contra lo que v1 ya hacía**. Para las fases que reemplazan un flow existente, listar qué escribe el flow v1 en la DB **antes** de dar el diseño por suficiente.
+  — Ema + Claude.
+- 2026-09-17 — **Cerrados el Defecto C y la brecha B4** (`fix/integridad-escrituras-db`). ADR [20260917120000](../architecture/decisions/20260917120000_integridad-de-escritura-pagos-y-asistencias.md). Se tomaron juntos por ser el mismo tipo de problema — la base aceptaba escrituras que el negocio considera imposibles — y porque ninguno depende del Figma, que es lo que tenía trabado al resto del plan.
+  - **El arreglo obvio del Defecto C habría empeorado el bug.** Este plan lo anotaba como "arreglar el default que viola el CHECK", y la lectura literal produce el cambio equivocado: sacar sólo el `DEFAULT` deja pasar `NULL`, porque un CHECK pasa cuando su expresión no es `FALSE`. Habría convertido un 500 ruidoso en una fila con `NULL` en silencio. Fue `DROP DEFAULT` **+ `SET NOT NULL`**. **Antes de relajar una restricción, verificar qué escritura queda permitida, no sólo cuál deja de fallar.**
+  - **La expresión idiomática de fecha-AR es la indexable y el atajo no.** `(assistance_date AT TIME ZONE 'America/Argentina/Buenos_Aires')::date` se acepta en un índice porque `timezone(text, timestamptz)` es `IMMUTABLE`; `(assistance_date - interval '3 hours')::date` **no**, porque `timestamptz::date` es `STABLE`. Contraintuitivo y verificable en dos minutos contra `pg_proc` — **relevante para cualquier índice o columna generada futura que dependa del día argentino.**
+  - **Apareció una deriva preexistente de `assistance_count`** que nadie estaba buscando: además de los 21 clientes afectados por la limpieza de duplicados, **12 en prod ya tenían el contador mal** (11 de más, 1 de menos). Los de más son borrados que el trigger `AFTER INSERT` nunca descontó. **Toda columna denormalizada mantenida por trigger deriva con el tiempo** — conviene recomputar cada vez que se la toca.
+  - **B5 quedó fuera por lo mismo que B4 entró: medirla.** El conteo mostró que no era comparable — uno de los 8 pares son dos personas distintas con un DNI mal tipeado, y varios tienen historial de los dos lados.
+  - **Nuevo: [`supabase/scripts/audit-integrity.sql`](../../supabase/scripts/audit-integrity.sql)**, de sólo lectura, corre contra cualquier entorno y reporta los cinco indicadores de integridad (pagos sin método, asistencias duplicadas, deriva de `assistance_count`, DNIs duplicados, clientes sin membresía). Nace de una observación de Ema: **una migración de datos tiene dos fechas** — cuándo se mide el entorno y cuándo se aplica a prod — y `db:push-prod` es **manual**, así que pueden separarlas semanas. Correrlo antes de cada push a prod y después para confirmar. Sirve igual para B5.
+  - **Estas dos migraciones no dependen de la v2 y no deberían esperarla:** arreglan defectos de v1 que están en producción hoy. Como la v2 viaja apagada detrás de `v2_access`, pueden ir a prod en el próximo release normal.
   — Ema + Claude.

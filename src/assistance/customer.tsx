@@ -5,6 +5,7 @@ import RegistryBtn from '@/assistance/registry-button'
 import { MEMBERSHIP_TYPE_3_DAYS } from '@/membership/consts'
 import { useMemo, useState } from 'react'
 import { createAssistance } from './api/client'
+import { isDuplicateAssistanceError } from './utils'
 import { toast } from 'sonner'
 import { CustomerComplete } from '@/customer/types'
 import { HOME } from '@/consts/routes'
@@ -38,6 +39,16 @@ export default function CustomerAssistance({ customer }: { customer: CustomerCom
 
     if (error?.code) {
       setIsPending(false)
+      // Mismo criterio que el modal v2: el duplicado ya está prevenido en la UI
+      // (`hasAssistanceToday` deshabilita el botón), así que si el constraint
+      // salta es porque se registró desde otro lado en el medio. Se informa qué
+      // pasó y se refresca, en vez de mostrar el error de Postgres.
+      if (isDuplicateAssistanceError(error)) {
+        toast.warning(t('assistance.alreadyRegisteredToday'))
+        router.refresh()
+
+        return
+      }
       toast.error(t('assistance.errorRegistering'), {
         description: error.message,
       })
