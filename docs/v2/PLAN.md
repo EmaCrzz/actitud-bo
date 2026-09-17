@@ -358,9 +358,20 @@ El logo además necesita un bucket de Supabase Storage con su política de acces
 | B12 | `customer_membership` | `start_date` | El alta pide **"Fecha de inicio"** además de "Fecha de vencimiento". Hoy sólo existe `expiration_date`; el inicio se infiere de `last_payment_date`, que no es lo mismo. | 7 |
 | B13 | `customer_membership` | soportar **"Sin membresía"** | El select de tipo ofrece `Sin membresía`, pero `membership_type` es `NOT NULL` con FK a `types_memberships`. O se agrega un tipo `NONE`, o se permite alta sin fila en `customer_membership`. Ver decisión abierta #6 de [2.3](#23-validaciones-pendientes-de-ema-lista-viva). | 7 |
 
-### C. ~~Defecto latente detectado en el schema actual~~ → ✅ RESUELTO (2026-09-17)
+### C. Defecto latente detectado en el schema actual → ✅ resuelto **en la columna**, ⚠️ **con residuo en el RPC legacy**
 
 > **Cerrado** por la migración `20260917120000` — ADR [20260917120000](../architecture/decisions/20260917120000_integridad-de-escritura-pagos-y-asistencias.md). Se confirmó contra producción que el defecto era real, y **el arreglo obvio habría empeorado el bug**: sacar sólo el `DEFAULT` deja pasar `NULL`, porque un CHECK pasa cuando su expresión no es `FALSE` y `NULL = ANY(ARRAY[...])` devuelve `NULL`. Un pago sin método no rompe nada visible pero descuadra el desglose "Efectivo / Transferencias" de ingresos y del Balance. Se aplicó `DROP DEFAULT` **+ `SET NOT NULL`**, y `payment_method` pasó a requerido en `CreateMembershipPaymentData`. Descripción original abajo, como registro.
+>
+> ⚠️ **Residuo abierto — el mismo literal vive dentro del RPC.** Auditando el impacto del `NOT NULL` (2026-09-17) apareció que en prod **conviven dos overloads** de `upsert_customer_membership_with_payment`:
+>
+> - El **de 14 parámetros** (con descuentos) valida bien: si `p_payment_type` viene nulo o vacío corta con `MISSING_PAYMENT_METHOD` antes de insertar. Lo usa la renovación de membresía.
+> - El **legacy de 10 parámetros** escribe `COALESCE(p_payment_type, 'efectivo')` en sus tres caminos, sin guarda. **Y es el que llama el alta de cliente** ([client.ts](../../src/customer/api/client.ts), paso 2), que pasa sólo los 10 params base.
+>
+> El `NOT NULL` **no cambia nada acá**: `COALESCE` nunca produce `NULL`, produce un método válido o `'efectivo'`, que ya violaba el CHECK antes y lo sigue violando. No hay regresión — pero el camino de falla sigue existiendo: **un alta con "pagó" tildado y forma de pago vacía falla**, hoy y después.
+>
+> Por qué no se arregló en la misma migración: tocar el RPC es "cambiar el comportamiento de una función que el código ya usa", que la taxonomía de [workflow.md](../../workflow.md) marca como peligrosa, y el alta es justamente la **Fase 7** — que además tiene que decidir si sigue usando el overload legacy o migra al de 14 params. Se resuelve ahí, con el flow de cobro que a esa fase ya le falta.
+>
+> Los dos overloads existen **igual en dev y en prod**, así que no es divergencia de entornos ni riesgo del release.
 
 **`membership_payments.payment_method` tenía `DEFAULT 'efectivo'` pero el CHECK sólo admite `'PAYMENT_CASH'` / `'PAYMENT_TRANSFER'`.**
 
