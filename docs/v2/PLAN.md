@@ -25,8 +25,8 @@
 | 5 | Primitivas transversales v2 (DataTable, SidePanel, ConfirmDialog, FilterBar, Stepper) | ✅ completa | Rama `feat/v2-primitivas`. ADR [20260916093140](../architecture/decisions/20260916093140_v2-primitivas-transversales.md). `FormModal` y `DetailModal` colapsaron en un solo `SidePanel`. Sandbox en `/v2/sandbox`. |
 | 6a | Sección Clientes — listado | ✅ completa | Rama `feat/v2-clientes` (PR [#53](https://github.com/EmaCrzz/actitud-bo/pull/53)). ADR [20260916120738](../architecture/decisions/20260916120738_v2-listado-de-clientes.md). Query canónico compartido server/client, filtros en la URL. ~~scroll infinito~~ → **corregido a paginación en 6b**. |
 | 6b | Perfil del cliente + paginación | ✅ completa | Rama `feat/v2-perfil-cliente`. ADR [20260916161500](../architecture/decisions/20260916161500_v2-perfil-de-cliente-y-paginacion.md). Panel de 4 tabs, paginador transversal, filtro de estado a 3 valores, migración B10+B11. **No hay menú de acciones de fila** (el nodo que el plan creía que era, es el filtro `Estado`). Mobile sin verificar. |
-| 7 | Alta de cliente (desde Home y desde Clientes) | ⚠️ **bloqueada** | **El paso 2 del diseño no modela el cobro.** v1 registra el pago en el alta; el Figma sólo pide `Forma de pago`, sin monto, sin confirmación de cobro, sin descuento y sin primera asistencia → el alta crearía membresía sin fila en `membership_payments`. Ver [Fase 7](#fase-7--alta-de-cliente) y [decisión abierta #15](#decisiones-abiertas--riesgos). Las capturas del 2026-09-17 **sí** cerraron el resto del diseño. |
-| 8 | Registrar pago / renovar membresía + comprobante | ⬜ pendiente | Flow más largo del Figma (10 pantallas). **Pasa a ir antes que la 7**: su diseño del cobro está completo y es el que a la 7 le falta. |
+| 7 | Alta de cliente (desde Home y desde Clientes) | ⬜ pendiente — **desbloqueada** | Diseño resolvió el bloque de cobro faltante (Ema, 2026-09-17). **Faltan las capturas del paso 2 nuevo** antes de implementar: las que hay son las de la versión sin cobro. Las tres brechas (B5, B12, B13) ya están decididas — ver [Fase 7](#fase-7--alta-de-cliente). |
+| 8 | Registrar pago / renovar membresía + comprobante | ⬜ pendiente | Flow más largo del Figma (10 pantallas). Era "antes que la 7" porque construía el bloque de cobro que a la 7 le faltaba; al resolverlo diseño, **el orden entre 7 y 8 se decide mirando las capturas nuevas** — ver [Fase 8](#fase-8--registrar-pago--renovar-membresía--comprobante). |
 | 9 | Sección Asistencias | ⬜ pendiente | |
 | 10 | Sección Membresías (planes y precios) | ⬜ pendiente | |
 | 11 | Sección Gastos (crear/editar/eliminar) | ⬜ pendiente | Requiere migración: `payment_method` en `expenses`. |
@@ -34,6 +34,39 @@
 | 13 | Balance | ⬜ pendiente | Depende de 11 y 12. |
 | 14 | Configuración (Negocio / Membresías / Promociones / Usuarios) | ⬜ pendiente | Requiere tabla de settings del negocio. |
 | 15 | Promoción de v2 a default + retiro de v1 | ⬜ pendiente | Fuera del alcance actual; se planifica cuando 3–14 estén cerradas. |
+
+---
+
+## Por dónde seguir
+
+> Última actualización: **2026-09-17**. Esta sección es el arranque de cualquier sesión nueva: decí en qué estado quedó todo y cuál es el siguiente movimiento, sin tener que leer el documento entero.
+
+**Estado de entornos — sincronizados.** Producción está en **v0.11.1** con las 6 migraciones pendientes aplicadas, y dev quedó emparejado. Prod tiene **0 usuarios con `v2_access`**, así que toda la v2 viaja apagada. No hay deuda de migraciones en ningún entorno.
+
+**El siguiente movimiento es la Fase 7 o la 8, y lo decide un insumo que falta:** las capturas del paso 2 rediseñado del alta de cliente. Diseño resolvió el bloque de cobro que faltaba, pero las capturas que documenta este plan son de la versión anterior.
+
+- Si el paso 2 nuevo se parece al bloque "Condiciones y forma de pago" de la Fase 8 → **hacer la 8 primero** y que el alta reuse el componente.
+- Si quedó mucho más simple → **la 7 es más barata** para arrancar.
+
+**Lo que ya está decidido y no hay que volver a discutir** (detalle en [Fase 7](#fase-7--alta-de-cliente)):
+
+| Brecha | Decisión |
+|---|---|
+| **B5** — DNI sin UNIQUE | Índice parcial + pre-check, **en PR aparte**. Bloqueado por 8 pares duplicados que requieren criterio caso por caso — uno son dos personas distintas con un DNI mal tipeado |
+| **B12** — `start_date` | Se agrega nullable, sin backfill, con helper `getMembershipPeriodStart()` para el fallback |
+| **B13** — "Sin membresía" | Se saca del select; toda alta crea membresía. **Divergencia deliberada contra el Figma** |
+| Prefill de fechas | **Sin definir** — pendiente de Ema |
+
+**Alternativa si el insumo tarda:** la **Fase 9** (Asistencias) es mayormente port de UI, sin brechas de DB. Su único pendiente de diseño es si los tabs de desktop desaparecen, como en mobile.
+
+**Reglas operativas vigentes**, que aplican a todo lo que venga:
+
+1. **Todo cambio de v2 debe dejar v1 funcionando**, incluso si hay que modificar v1. El flag `v2_access` gatea la UI, **no el schema**: las migraciones y el código compartido son globales.
+2. **Las migraciones se liberan a prod release a release**, no se acumulan. La brecha de 4 migraciones de septiembre casi rompe la búsqueda de clientes en producción.
+3. **Antes de cada `db:push-prod`:** `./scripts/rehearse-migrations.sh prod` + `supabase/scripts/audit-integrity.sql`. Procedimiento completo en [workflow.md](../workflow.md).
+4. **Pedir la captura antes de definir la pantalla**, y **mirar cada pantalla nueva con data real** antes de cerrarla. Las dos moralejas salieron de fases donde el árbol de nodos y el wireframe alcanzaban para construir algo que igual estaba mal.
+
+**Pendiente con el diseñador:** el copy *"Aun"* sin tilde y las barras horizontales del home mobile ([decisión #16](#decisiones-abiertas--riesgos)), y los typos ya anotados en las fases 7 y 8.
 
 ---
 
@@ -752,32 +785,30 @@ También es el destino del card "Clientes activos del mes" del home (`80` / `4 c
 
 ## Fase 7 — Alta de cliente
 
-**Estado:** ⚠️ **bloqueada** (2026-09-17) — el diseño no modela el cobro. Todo lo demás está verificado y listo para construir.
+**Estado:** ⬜ pendiente — **desbloqueada el 2026-09-17**. Falta un solo insumo: las capturas del paso 2 rediseñado.
 **Figma:** desktop `2166:22897` ("Desde el home", 7 pantallas) + `2167:22903` ("Desde Clientes", 4 pantallas) · **mobile `2222:43030` (3 pantallas, un solo flow)**.
 
-> ### ⚠️ Bloqueante — el paso 2 no modela el cobro
+> ### ✅ Bloqueante resuelto — pero hace falta la captura nueva
 >
-> Detectado por Ema el 2026-09-17, al revisar las capturas ya completas. **El alta de v1 registra el pago; la del Figma no.**
+> **Diseño incorporó el bloque de cobro al paso 2** (avisado por Ema el 2026-09-17, mismo día que se detectó). La fase deja de estar bloqueada.
 >
-> `createCustomerWithMembership` ([customer/api/client.ts](../../src/customer/api/client.ts)) delega en el RPC `upsert_customer_membership_with_payment` con catorce parámetros. El paso 2 del diseño cubre **uno**:
+> ⚠️ **Las capturas que documenta este plan son las de la versión vieja, sin cobro.** Antes de implementar el paso 2 hay que pedir las nuevas — el resto del formulario (paso 1, stepper, `SidePanel`, estados de submit, confirmación inline) sigue verificado y vale tal cual, ver abajo.
 >
-> | Dato que v1 captura en el alta | Parámetro del RPC | ¿Está en el Figma? |
+> **Qué mirar en la captura nueva**, que es lo que motivó el bloqueo:
+>
+> | Dato que v1 captura en el alta | Parámetro del RPC | Verificar que esté |
 > |---|---|---|
-> | Confirmación de cobro (checkbox "pagó") | `p_is_paid` | ❌ |
-> | Monto | `p_gross_amount` | ❌ |
-> | Descuento + regla + nota | `p_discount_amount`, `p_discount_rule_id`, `p_discount_note` | ❌ |
-> | Primera asistencia | `p_register_assistance` | ❌ |
-> | Forma de pago | `p_payment_type` | ✅ |
+> | Confirmación de cobro (checkbox "pagó") | `p_is_paid` | ☐ |
+> | Monto | `p_gross_amount` | ☐ |
+> | Descuento + regla + nota | `p_discount_amount`, `p_discount_rule_id`, `p_discount_note` | ☐ |
+> | Primera asistencia | `p_register_assistance` | ☐ |
+> | Forma de pago | `p_payment_type` | ✅ ya estaba |
 >
-> **Consecuencia:** el formulario crearía la membresía **sin fila en `membership_payments`**. El cliente queda con membresía vigente y el ingreso nunca entra en la contabilidad del mes. No rompe nada visible — sólo falta plata en el balance. Es el mismo perfil de falla silenciosa que el bug de fechas del ADR [20260709153000](../architecture/decisions/20260709153000_representacion-canonica-de-fechas-ar.md).
+> Si el diseño nuevo cubre esos cinco, el alta puede registrar el pago igual que v1 y la fase queda lista para codear. Si falta alguno, **decidir explícitamente** si el alta no cobra (y el pago se registra siempre después, por el flow de renovación) en vez de construirlo a medias.
 >
-> **Incoherencia interna que lo confirma como olvido, no como simplificación:** el paso 2 pide `Forma de pago` **sin nada que pagar**. `payment_method` sólo existe como columna dentro de una fila de `membership_payments`; sin monto ni confirmación de cobro no hay dónde guardarlo.
+> **Contexto original del bloqueo, como registro:** el paso 2 pedía `Forma de pago` sin monto ni confirmación de cobro, así que el formulario habría creado la membresía **sin fila en `membership_payments`** — cliente activo, ingreso perdido, sin síntoma visible. Mismo perfil de falla silenciosa que el bug de fechas del ADR [20260709153000](../architecture/decisions/20260709153000_representacion-canonica-de-fechas-ar.md). Lo delató comparar el diseño contra lo que v1 ya escribía en la DB, no mirar el Figma.
 >
-> **Y el diseño sí sabe modelar el cobro** — lo hace completo en la [Fase 8](#fase-8--registrar-pago--renovar-membresía--comprobante): sección *"Condiciones y forma de pago"* con `Promociones` · `Descuento` · `Recargo` · `Forma de pago`, más la tabla de Resumen con el Total. Nunca lo trajo al alta.
->
-> **Qué pedirle al diseñador:** agregar al paso 2 la confirmación de cobro, el monto, el descuento y la primera asistencia — o directamente reusar el bloque "Condiciones y forma de pago" del flow de renovación.
->
-> **Consecuencia de orden:** conviene **hacer la Fase 8 antes que la 7**. La 8 tiene el diseño completo y construye el bloque de cobro que a la 7 le falta; después el alta lo reusa. Al revés, o se construye el alta incompleta o se diseña el bloque de cobro dos veces.
+> **Dónde mirar el cobro ya modelado:** la [Fase 8](#fase-8--registrar-pago--renovar-membresía--comprobante) lo tiene completo — sección *"Condiciones y forma de pago"* con `Promociones` · `Descuento` · `Recargo` · `Forma de pago`, más la tabla de Resumen con el Total. Si el paso 2 nuevo se parece a eso, **conviene construir la 8 primero y que el alta reuse el componente** en vez de escribirlo dos veces. Decidirlo al ver las capturas.
 
 ### Contenido del formulario (confirmado en capturas del 2026-09-15 y del 2026-09-17)
 
@@ -860,7 +891,7 @@ Mismo formulario, **dos puntos de entrada**: el botón "Nuevo cliente" de Accion
 **Riesgo timezone:** alto si el paso de membresía crea un pago. `last_payment_date`, `expiration_date` y `renewal_date` van a la DB — **todas por `parseAppTzDateString`**.
 
 **Definición de hecho:**
-- [ ] **Desbloqueada:** el diseño del paso 2 modela el cobro (o se decide construirlo sin él, asumiendo explícitamente que el alta no registra ingreso)
+- [ ] **Capturas nuevas del paso 2 pedidas y verificadas** contra la checklist de cinco campos de arriba (el bloqueo de diseño ya está resuelto; falta el insumo)
 - [ ] Alta completa desde ambas entradas
 - [ ] **El alta cobrada crea fila en `membership_payments`** y el ingreso aparece en la contabilidad del mes
 - [ ] Validaciones idénticas a v1 (el pre-check de DNI queda como está; el índice UNIQUE es otro PR)
@@ -874,10 +905,12 @@ Mismo formulario, **dos puntos de entrada**: el botón "Nuevo cliente" de Accion
 
 ## Fase 8 — Registrar pago / renovar membresía + comprobante
 
-**Estado:** ⬜ pendiente — **pasa a ir antes que la Fase 7** (2026-09-17).
+**Estado:** ⬜ pendiente
 **Figma:** desktop `2166:22898` ("Desde el home", 10 pantallas — el flow más largo) + `2167:22902` ("Desde Cliente/Perfil", 7 pantallas) · **mobile `2222:43026` ("Renovar membresía desde acciones rápidas", 6 pantallas)**.
 
-> **Por qué se adelanta.** El alta de cliente (Fase 7) quedó bloqueada porque su diseño no modela el cobro, y **el bloque que le falta es exactamente el que esta fase construye** — "Condiciones y forma de pago" + el resumen con el Total. Haciéndola primero, el alta lo reusa; al revés, se diseña dos veces o se construye el alta incompleta. Ver [decisión abierta #15](#decisiones-abiertas--riesgos).
+> **Orden respecto de la Fase 7 — decidir al ver las capturas nuevas del alta.** Esta fase estuvo marcada como "va antes que la 7" mientras el alta no modelaba el cobro, porque el bloque que le faltaba es el que acá se construye. Diseño ya resolvió ese hueco (2026-09-17), así que el argumento cambia de "la 7 no se puede hacer" a **"conviene no escribir el bloque de cobro dos veces"**.
+>
+> Si el paso 2 rediseñado del alta se parece a "Condiciones y forma de pago" + Resumen, **hacer la 8 primero y que la 7 reuse el componente**. Si resultó mucho más simple, la 7 es más barata para arrancar y el componente compartido puede esperar. Ver [Fase 7](#fase-7--alta-de-cliente).
 
 > ✅ **Hueco resuelto (2026-09-15).** El `Payment Receipt` en mobile **sí existe**: es el `Modal Dialog` de éxito (`2183:43825`), no una pantalla aparte. Ver el detalle del flow abajo.
 >
@@ -1231,11 +1264,11 @@ Ordenadas por impacto. Las que bloquean una fase están marcadas.
 
 14. **Permisos del historial de pagos (Fase 6b).** El tab Pagos del perfil lee `membership_payments`, que es **admin-only a nivel RLS** por decisión deliberada (`20260702120000_finances_admin_only_rls`). Se acordó en conversación que lo viera todo el panel, pero eso requiere revertir una restricción de seguridad, no sólo sacar un guard de app. Entregado degradando honestamente para no-admin. **Decidir si se abre la RLS** — y si se abre, si es sólo lectura y sólo de los pagos del propio cliente consultado.
 
-15. **⚠️ El alta de cliente no modela el cobro (bloquea Fase 7).** El paso 2 del Figma pide `Forma de pago` pero no monto, no confirmación de cobro, no descuento y no primera asistencia — todo lo que v1 sí captura vía `upsert_customer_membership_with_payment`. Un alta hecha con ese formulario crearía membresía **sin fila en `membership_payments`**: cliente activo, ingreso perdido, sin síntoma visible. Detalle completo en [Fase 7](#fase-7--alta-de-cliente).
+15. **~~El alta de cliente no modela el cobro~~ → RESUELTO (2026-09-17).** El paso 2 del Figma pedía `Forma de pago` sin monto, sin confirmación de cobro, sin descuento y sin primera asistencia — todo lo que v1 sí captura vía `upsert_customer_membership_with_payment` — así que el alta habría creado membresía **sin fila en `membership_payments`**: cliente activo, ingreso perdido, sin síntoma visible.
 
-    Se necesita una de dos: que el diseño agregue el bloque de cobro (idealmente reusando el de la Fase 8, que ya lo tiene completo), o una decisión explícita de negocio de que **el alta no cobra** y el pago se registra siempre después, por el flow de renovación. Lo segundo es defendible pero cambia la operación del gimnasio, así que es decisión de Ema, no de implementación.
+    **Diseño incorporó el bloque de cobro el mismo día.** Queda un paso mecánico antes de implementar: **pedir las capturas nuevas del paso 2** y verificar contra la checklist de cinco campos de [Fase 7](#fase-7--alta-de-cliente). Las capturas que documenta este plan son de la versión anterior.
 
-    **Efecto de orden:** hacer la Fase 8 antes que la 7.
+    **Lo que deja como método:** el hueco no se vio mirando el Figma —seis frames coherentes— sino **comparando el diseño contra lo que el flow v1 ya escribía en la DB**. Para toda fase que reemplaza un flow existente, listar qué escribe v1 antes de dar el diseño por suficiente.
 
 16. **Copy y gráficos del mobile de Home (Fase 2, cosmético).** Las capturas del 2026-09-17 mostraron dos divergencias que no son de la Fase 7: el empty state del `Resumen del día` dice *"Aun no hay actividad registrada por el momento."* (sin tilde en "Aún"), y las asistencias semanales se dibujan como **barras horizontales** en mobile contra las verticales del desktop. Avisar al diseñador y decidir si el mobile cambia de gráfico a propósito.
 
@@ -1372,3 +1405,13 @@ Aplica a **toda** fase antes de pedir review. Está pensado para que el otro dev
   - **Nuevo: [`supabase/scripts/audit-integrity.sql`](../../supabase/scripts/audit-integrity.sql)**, de sólo lectura, corre contra cualquier entorno y reporta los cinco indicadores de integridad (pagos sin método, asistencias duplicadas, deriva de `assistance_count`, DNIs duplicados, clientes sin membresía). Nace de una observación de Ema: **una migración de datos tiene dos fechas** — cuándo se mide el entorno y cuándo se aplica a prod — y `db:push-prod` es **manual**, así que pueden separarlas semanas. Correrlo antes de cada push a prod y después para confirmar. Sirve igual para B5.
   - **Estas dos migraciones no dependen de la v2 y no deberían esperarla:** arreglan defectos de v1 que están en producción hoy. Como la v2 viaja apagada detrás de `v2_access`, pueden ir a prod en el próximo release normal.
   — Ema + Claude.
+- 2026-09-17 — **Sincronización de prod y release v0.11.1.** ADR [20260917160000](../architecture/decisions/20260917160000_sincronizar-migraciones-de-prod-y-ensayo-transaccional.md). Prod estaba **4 migraciones atrás** y en esa brecha se había acumulado una incompatibilidad invisible.
+  - **`develop` no era deployable.** El listado y la búsqueda de clientes de **v1** ya leían la vista `customers_listing` y la columna `customers.full_name_search`, que en prod no existían. Un release sin migraciones habría roto **la búsqueda para registrar asistencia** — el flujo más usado del gimnasio — y dejado el listado de clientes **vacío en silencio**, porque `searchAllCustomers` atrapa el error y degrada a lista vacía.
+  - **Un gate de UI no es un gate de schema.** Era tentador razonar "nadie tiene `v2_access` en prod, la v2 no puede romper nada". El flag protege las pantallas; las migraciones y el código compartido son globales. De ahí salió la regla operativa #1 de [Por dónde seguir](#por-dónde-seguir).
+  - **La falla más peligrosa era la que no fallaba.** El `catch` que degrada a lista vacía —pensado para que un fallo de Supabase no tire la página— habría convertido "falta una vista" en "no hay clientes", sin pantalla de error.
+  - **Nuevo: [`scripts/rehearse-migrations.sh`](../../scripts/rehearse-migrations.sh).** DDL en Postgres es transaccional, así que las migraciones pendientes se corren contra el entorno real dentro de `BEGIN … ROLLBACK`: sentencias exactas, datos reales, cero persistencia. Pasa a ser paso obligatorio antes de `db:push-prod` y quedó documentado en [workflow.md](../workflow.md), que ahora describe un release de 5 pasos.
+  - **El orden de deploy se clasifica, no se recuerda.** "Código primero" es correcto para migraciones que **rechazan lo que el código viejo escribe**; el default documentado del proyecto para migraciones **aditivas** es al revés. Aplicar la costumbre equivocada acá habría causado el corte.
+  - **Diffear relaciones y columnas no alcanzaba:** faltaban las funciones. Se completó al comparar también `pg_proc`. **Un diff de schema que omite funciones, triggers o policies no es un diff de schema.**
+  - **Resultado en prod:** 6 migraciones aplicadas, 28 asistencias duplicadas eliminadas, 12 contadores corregidos, `payment_method` obligatorio, v0.11.1 desplegado y validado. **0 usuarios con `v2_access`** — la tabla se creó vacía.
+  — Ema + Claude.
+- 2026-09-17 — **Fase 7 desbloqueada.** Diseño incorporó el bloque de cobro al paso 2 del alta, el mismo día en que se detectó el hueco. Queda pedir las capturas nuevas y verificarlas contra la checklist de cinco campos. **Cierra la decisión abierta #15** — Ema.
