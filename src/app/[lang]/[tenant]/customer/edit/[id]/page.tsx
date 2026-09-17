@@ -1,16 +1,10 @@
 import { searchCustomersById } from '@/customer/api/server'
 import CustomerForm from '@/customer/form'
-import api from '@/lib/i18n/api'
-import { type Language } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
+import { getServerT } from '@/lib/i18n/server'
 
-export default async function EditCustomerPage({
-  params,
-}: {
-  params: Promise<{ id: string; lang: Language; tenant: TenantsType }>
-}) {
-  const { id, lang, tenant } = await params
-  const { t } = await api.fetch(lang, tenant)
+export default async function EditCustomerPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const { t } = await getServerT()
   const customer = await searchCustomersById(id)
 
   if (!customer) {

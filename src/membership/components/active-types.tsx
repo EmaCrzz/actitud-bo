@@ -8,9 +8,7 @@ import {
   MembershipTranslation,
 } from '@/membership/consts'
 import { Skeleton } from '@/components/ui/skeleton'
-import api from '@/lib/i18n/api'
-import { type Language } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
+import { getServerT } from '@/lib/i18n/server'
 
 function Progress({ value, className = '' }: { value: number; className?: string }) {
   return (
@@ -23,18 +21,12 @@ function Progress({ value, className = '' }: { value: number; className?: string
   )
 }
 
-export default async function ActiveTypes({
-  lang,
-  tenant,
-}: {
-  lang: Language
-  tenant: TenantsType
-}) {
+export default async function ActiveTypes() {
   const { data, error } = await getActiveMemberships()
   // getDailyMembershipsThisMonth incluye a los clientes que podrian tener una membresia diaria que su
   // expiration_date sea en el mes actual y esas getActiveMemberships no las contempla
   const { data: dataDaily = [] } = await getDailyMembershipsThisMonth()
-  const { t } = await api.fetch(lang, tenant)
+  const { t } = await getServerT()
 
   if (!data || error) return null
 
@@ -121,14 +113,8 @@ export default async function ActiveTypes({
   )
 }
 
-export const ActiveTypesSkeleton = async ({
-  lang,
-  tenant,
-}: {
-  lang: Language
-  tenant: TenantsType
-}) => {
-  const { t } = await api.fetch(lang, tenant)
+export const ActiveTypesSkeleton = async () => {
+  const { t } = await getServerT()
 
   return (
     <Card className='py-3 sm:py-6'>

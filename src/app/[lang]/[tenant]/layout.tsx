@@ -9,8 +9,8 @@ import { getTenantFontVariables } from '@/lib/themes/fonts'
 import { TENANT } from '@/lib/envs'
 import type { TenantsType } from '@/lib/tenants'
 import { generateThemeStyles } from '@/lib/themes'
+import { getServerT } from '@/lib/i18n/server'
 import { I18nServerProvider } from '@/lib/i18n/server-provider'
-import { type Language } from '@/lib/i18n/types'
 import { QueryProvider } from '@/lib/query-client'
 
 export const metadata: Metadata = {
@@ -50,12 +50,13 @@ const tenantFontVariables = getTenantFontVariables(TENANT as TenantsType)
 
 export default async function RootLayout({
   children,
-  params,
 }: Readonly<{
   children: React.ReactNode
-  params: Promise<{ lang: string; tenant: string }>
 }>) {
-  const { tenant, lang } = await params
+  // El <html lang> sale de env y no de params: es la fuente de verdad real
+  // (el rewrite de next.config.ts deriva los segmentos de URL de estas vars),
+  // y evita castear input de URL sin validar.
+  const { lang } = await getServerT()
   // Cuando el banner de env está visible (no-prod), reservamos su alto (h-7)
   // en el body para que no tape el header ni descoloque los cálculos de h-dvh
   // de las páginas hijas.
@@ -263,7 +264,7 @@ export default async function RootLayout({
       >
         <EnvBanner />
         <QueryProvider>
-          <I18nServerProvider lang={lang as Language} tenant={tenant as TenantsType}>
+          <I18nServerProvider>
             {children}
             <PWAInstaller />
             <SWUpdateManager />

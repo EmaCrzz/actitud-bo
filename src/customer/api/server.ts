@@ -1,44 +1,33 @@
-import { CUSTOMERS_PAGE_SIZE, SEARCH_CUSTOMER } from '@/customer/consts'
-import {
-  Customer,
-  CustomerComplete,
-  CustomerMembership,
-  CustomerWithMembership,
-} from '@/customer/types'
+import { Customer, CustomerComplete, CustomerMembership } from '@/customer/types'
 import { createClient } from '@/lib/supabase/server'
 import { getWeekRange } from '@/lib/week'
-import { mapCustomerRow } from '@/customer/utils'
 import { getApplicableDiscountForCustomer, getGroupsByCustomer } from '@/group/api/server'
+import {
+  fetchCustomersPageWith,
+  type CustomersPage,
+  type FetchCustomersPageOptions,
+} from '@/customer/api/customers-query'
 
-interface SearchAllCustomersOptions {
-  query?: string
-  page?: number
-  pageSize?: number
-}
-
-export const searchAllCustomers = async ({
-  query,
-  page = 0,
-  pageSize = CUSTOMERS_PAGE_SIZE,
-}: SearchAllCustomersOptions = {}): Promise<CustomerWithMembership[]> => {
+// Primera página del listado, renderizada en el server. El query vive en
+// `customers-query.ts` y lo comparte con `fetchCustomersPage` del cliente.
+//
+// Degrada a lista vacía en vez de propagar el error: es el comportamiento que ya
+// tenía la v1 y evita que un fallo de Supabase tire la página entera. En la v2 el
+// listado re-consulta desde el cliente ante cualquier cambio de filtro, y ahí sí
+// el error se muestra.
+export const searchAllCustomers = async (
+  options: FetchCustomersPageOptions = {}
+): Promise<CustomersPage> => {
   const supabase = await createClient()
-  const from = page * pageSize
-  const to = from + pageSize - 1
 
-  let request = supabase
-    .from('customers')
-    .select(SEARCH_CUSTOMER)
-    .order('first_name', { ascending: true })
-    .order('id', { ascending: true })
-    .range(from, to)
+  try {
+    return await fetchCustomersPageWith(supabase, options)
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error fetching customers:', error)
 
-  if (query) {
-    request = request.ilike('first_name', `%${query}%`)
+    return { customers: [], total: 0 }
   }
-
-  const { data } = await request
-
-  return (data ?? []).map(mapCustomerRow)
 }
 
 export const searchCustomersById = async (id: string): Promise<CustomerComplete | null> => {

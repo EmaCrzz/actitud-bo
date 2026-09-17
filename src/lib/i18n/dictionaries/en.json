@@ -32,7 +32,9 @@
     "understood": "Understood",
     "version": "Version",
     "viewCustomer": "View customer",
-    "yes": "Yes"
+    "yes": "Yes",
+    "pagination": "Pagination",
+    "pageOf": "Page {current} of {total}"
   },
   "buttons": {
     "addNew": "Add New",
@@ -280,8 +282,21 @@
           "line1": "VIP",
           "line2": "VIP"
         }
-
       }
+    },
+    "typesWeekly": {
+      "5_days": "5 days a week",
+      "3_days": "3 days a week",
+      "2_days": "2 days a week",
+      "daily": "Daily pass",
+      "vip": "VIP"
+    },
+    "typesShort": {
+      "5_days": "5 days",
+      "3_days": "3 days",
+      "2_days": "2 days",
+      "daily": "Day pass",
+      "vip": "VIP"
     }
   },
   "auth": {
@@ -598,5 +613,213 @@
     "summarySurcharge": "Late fee",
     "summaryDiscount": "Discount applied",
     "summaryTotal": "Total"
+  },
+  "v2": {
+    "roles": {
+      "admin": "Administrator",
+      "userFallback": "User"
+    },
+    "header": {
+      "greeting": "Hi, {name}!",
+      "todayIs": "Today is {date}",
+      "openMenu": "Open menu"
+    },
+    "sidebar": {
+      "brandName": "Actitud Gym",
+      "brandTagline": "Management system",
+      "menuTitle": "Menu",
+      "closeMenu": "Close menu",
+      "expandSidebar": "Expand sidebar",
+      "collapseSidebar": "Collapse sidebar",
+      "logout": "Log out",
+      "envTooltip": "Environment: {env}",
+      "envBadge": {
+        "dev": "DEV",
+        "preview": "PREVIEW"
+      },
+      "menu": {
+        "home": "Home",
+        "customers": "Customers",
+        "attendance": "Attendance",
+        "memberships": "Memberships",
+        "sales": "Sales",
+        "expenses": "Expenses",
+        "balance": "Balance",
+        "settings": "Settings",
+        "settingsSubmenu": {
+          "business": "Business",
+          "memberships": "Memberships",
+          "promotions": "Promotions",
+          "users": "Users"
+        }
+      }
+    },
+    "home": {
+      "attendanceSearch": {
+        "placeholder": "Who do you want to register?",
+        "cta": "Log attendance",
+        "searching": "Searching...",
+        "noResults": "No clients found for \"{query}\"",
+        "createNewCustomer": "Create new client",
+        "toastComingSoon": "Coming soon",
+        "toastComingSoonDescription": "Logging attendance from the home screen ships in the next release."
+      },
+      "attendanceModal": {
+        "membershipSection": "Active membership",
+        "attendanceSection": "Attendance",
+        "dayLabel": "DAY {n}",
+        "registeredAtTime": "Logged at {time}",
+        "expiredNotice": {
+          "title": "Membership expired",
+          "description": "You can still log the attendance. To renew it, go to the client's profile."
+        },
+        "confirmCta": "Confirm attendance",
+        "viewProfile": "View profile",
+        "badge": {
+          "active": "Active",
+          "expired": "Expired",
+          "none": "No membership"
+        }
+      },
+      "metrics": {
+        "todayAttendances": "Today's attendance",
+        "noAttendancesRegistered": "No attendance recorded",
+        "activeClientsMonth": "Active clients this month",
+        "expiredMembershipsCount": "{count} clients with expired membership",
+        "upcomingExpirations": "{count} upcoming expirations",
+        "allUpToDate": "All up to date",
+        "attendanceDelta": {
+          "positive": "+{count} vs. last week",
+          "negative": "{count} vs. last week",
+          "equal": "Same as last week"
+        }
+      },
+      "quickActions": {
+        "title": "Quick actions",
+        "newCustomer": "New client",
+        "registerPayment": "Log payment"
+      },
+      "dailySummary": {
+        "title": "Daily summary",
+        "empty": "No activity recorded yet.",
+        "attendancesWithExpiredMembership": "Attendances with expired membership",
+        "paymentsRegistered": "Payment records",
+        "newCustomers": "New clients created",
+        "groupsCreated": "Groups created"
+      },
+      "weeklyAttendance": {
+        "title": "Weekly attendance",
+        "days": {
+          "mon": "Mon",
+          "tue": "Tue",
+          "wed": "Wed",
+          "thu": "Thu",
+          "fri": "Fri"
+        }
+      }
+    },
+    "comingSoon": {
+      "title": "Coming soon",
+      "description": "This action ships in the next release."
+    },
+    "underConstruction": {
+      "title": "Under construction",
+      "description": "This section isn't available yet. It's planned in the redesign and ships in an upcoming release."
+    },
+    "customers": {
+      "title": "Customers",
+      "subtitle": "Manage the gym's customers and the status of their memberships.",
+      "searchPlaceholder": "Search by first or last name",
+      "newCustomer": "New customer",
+      "filters": {
+        "statusLabel": "Status",
+        "statusAll": "All statuses",
+        "typeLabel": "Memberships",
+        "typeAll": "All memberships",
+        "statusInactive": "Inactive",
+        "statusUnsubscribed": "Unsubscribed",
+        "statusUnavailable": "Not available yet"
+      },
+      "status": {
+        "active": "Active",
+        "expired": "Expired",
+        "none": "No membership",
+        "expiring": "Expiring soon"
+      },
+      "columns": {
+        "name": "Name",
+        "membership": "Membership",
+        "status": "Status",
+        "expiration": "Expiration",
+        "attendances": "Attendances"
+      },
+      "row": {
+        "noMembership": "No membership"
+      },
+      "empty": {
+        "title": "No customers yet",
+        "description": "Once you register the first customer they'll show up in this list."
+      },
+      "noResults": {
+        "title": "No results",
+        "description": "No customer matches the current search or filters.",
+        "clearFilters": "Clear filters"
+      },
+      "error": {
+        "title": "We couldn't load the customers",
+        "description": "Check your connection and try again.",
+        "retry": "Retry"
+      },
+      "loadingMore": "Loading more customers...",
+      "countLabel": "{count} customers",
+      "totalLabel": "{total} Total customers",
+      "profile": {
+        "title": "Customer profile",
+        "renew": "Renew",
+        "loadError": "We could not load the customer profile.",
+        "tabs": {
+          "membership": "Membership",
+          "payments": "Payments",
+          "assistances": "Attendance",
+          "info": "Info"
+        },
+        "membership": {
+          "current": "Current membership",
+          "none": "This customer has no membership on record.",
+          "progress": "Period progress",
+          "daysRemaining": "{days} days remaining",
+          "lastDay": "Last day",
+          "expiredSince": "Expired {days} days ago",
+          "price": "Price",
+          "expires": "Expires",
+          "assistances": "Attendance"
+        },
+        "payments": {
+          "date": "Payment:",
+          "paid": "Paid",
+          "empty": "No payments on record yet.",
+          "forbidden": "Only an administrator can view the payment history.",
+          "error": "We could not load the payments."
+        },
+        "assistances": {
+          "date": "Date:",
+          "total": "Total: {total}",
+          "currentMonth": "This month: {total}",
+          "empty": "No attendance on record yet.",
+          "error": "We could not load the attendance history.",
+          "loadMore": "Show more"
+        },
+        "info": {
+          "personalData": "Personal data",
+          "fullName": "Full name",
+          "personId": "ID number",
+          "birthDate": "Date of birth",
+          "phone": "Phone",
+          "notes": "Notes",
+          "noNotes": "No notes.",
+          "empty": "—"
+        }
+      }
+    }
   }
 }

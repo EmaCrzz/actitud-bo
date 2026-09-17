@@ -9,19 +9,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-import api from '@/lib/i18n/api'
-import { type Language } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
+import { getServerT } from '@/lib/i18n/server'
 import { daysUntilInAppTz } from '@/lib/timezone'
-export default async function ActivesMembership({
-  lang,
-  tenant,
-}: {
-  lang: Language
-  tenant: TenantsType
-}) {
+export default async function ActivesMembership() {
   const { data, error } = await getActiveMemberships()
-  const { t } = await api.fetch(lang, tenant)
+  const { t } = await getServerT()
 
   if (error) {
     return (
@@ -107,14 +99,8 @@ export default async function ActivesMembership({
   )
 }
 
-export const ActivesMembershipSkeleton = async ({
-  lang,
-  tenant,
-}: {
-  lang: Language
-  tenant: TenantsType
-}) => {
-  const { t } = await api.fetch(lang, tenant)
+export const ActivesMembershipSkeleton = async () => {
+  const { t } = await getServerT()
 
   return (
     <Card className='py-3 sm:py-6'>

@@ -6,18 +6,11 @@ import { HOME } from '@/consts/routes'
 import { searchAllCustomers } from '@/customer/api/server'
 import ListWithTabs from '@/customer/list-with-tabs'
 import Link from 'next/link'
-import api from '@/lib/i18n/api'
-import { type Language } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
+import { getServerT } from '@/lib/i18n/server'
 
-export default async function CustomerListPage({
-  params,
-}: {
-  params: Promise<{ lang: Language; tenant: TenantsType }>
-}) {
-  const { lang, tenant } = await params
-  const { t } = await api.fetch(lang, tenant)
-  const initialCustomers = await searchAllCustomers({ page: 0 })
+export default async function CustomerListPage() {
+  const { t } = await getServerT()
+  const { customers: initialCustomers } = await searchAllCustomers({ page: 0 })
 
   return (
     <>

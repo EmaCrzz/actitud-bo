@@ -49,6 +49,7 @@ next-env.d.ts
 # Docs
 /docs/*
 !/docs/architecture/
+!/docs/v2/
 
 # DB backups (contienen PII)
 /backups/

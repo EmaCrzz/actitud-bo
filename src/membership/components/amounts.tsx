@@ -10,12 +10,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useTranslations } from '@/lib/i18n/context'
 import { useQuery } from '@tanstack/react-query'
 import { getMembershipTypes } from '../api/client'
-import { useParams } from 'next/navigation'
-import { Language } from '@/lib/i18n/types'
 
 export default function MembershipAmounts() {
   const { t } = useTranslations()
-  const params = useParams()
   const { data, isLoading, error } = useQuery({
     queryKey: ['membership-types'],
     queryFn: () => getMembershipTypes(),
@@ -57,9 +54,7 @@ export default function MembershipAmounts() {
               </div>
               <div className='flex justify-between items-center gap-1'>
                 <span className='text-sm font-medium'>
-                  {type === MEMBERSHIP_TYPE_VIP
-                    ? t('payments.free')
-                    : formatCurrency(amount || 0, { lang: params?.lang as Language })}
+                  {type === MEMBERSHIP_TYPE_VIP ? t('payments.free') : formatCurrency(amount || 0)}
                 </span>
                 {type !== MEMBERSHIP_TYPE_VIP && (
                   <Button size={'icon'} variant='icon'>

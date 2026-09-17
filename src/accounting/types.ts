@@ -34,7 +34,14 @@ export interface CreateMembershipPaymentData {
   membership_type: string
   amount: number
   payment_date?: string
-  payment_method?: string
+  /**
+   * Obligatorio desde la migración 20260917120000. Era opcional, y como
+   * `POST /api/accounting/payments` castea el body crudo a este tipo sin
+   * validar en runtime, omitirlo llegaba a la DB: antes reventaba contra el
+   * CHECK (el DEFAULT 'efectivo' era inválido) y ahora lo ataja el NOT NULL.
+   * Marcarlo requerido acá agrega la capa que sí se chequea en compilación.
+   */
+  payment_method: string
   notes?: string
 }
 

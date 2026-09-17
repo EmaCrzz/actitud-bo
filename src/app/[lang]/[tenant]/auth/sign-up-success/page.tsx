@@ -1,15 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import api from '@/lib/i18n/api'
-import type { Language } from '@/lib/i18n/types'
-import type { TenantsType } from '@/lib/tenants'
+import { getServerT } from '@/lib/i18n/server'
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ lang: string; tenant: string }>
-}) {
-  const { lang, tenant } = await params
-  const { t } = await api.fetch(lang as Language, tenant as TenantsType)
+export default async function Page() {
+  const { t } = await getServerT()
 
   return (
     <div className='flex min-h-svh w-full items-center justify-center p-6 md:p-10 pt-4'>

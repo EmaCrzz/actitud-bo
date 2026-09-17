@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button'
-import { type Language } from '@/lib/i18n/types'
 import {
   MembershipTranslation,
   type MembershipTypes,
@@ -7,8 +6,7 @@ import {
   MEMBERSHIP_TYPE_VIP,
 } from '@/membership/consts'
 import { ACCOUNTING, STATS, ACCOUNTING_TAB_MEMBERSHIP } from '@/consts/routes'
-import { type TenantsType } from '@/lib/tenants'
-import api from '@/lib/i18n/api'
+import { getServerT } from '@/lib/i18n/server'
 import ArrowLeftIcon from '@/components/icons/arrow-left'
 import Link from 'next/link'
 import { Label } from '@/components/ui/label'
@@ -19,12 +17,10 @@ export default async function EditMembershipPage({
   params,
 }: {
   params: Promise<{
-    lang: Language
-    tenant: TenantsType
     type: MembershipTypes
   }>
 }) {
-  const { lang, tenant, type } = await params
+  const { type } = await params
 
   if (!MembershipTypeArray.includes(type)) {
     throw new Error('Tipo de membresía no válido')
@@ -34,7 +30,7 @@ export default async function EditMembershipPage({
     throw new Error('No se puede editar la membresía VIP')
   }
 
-  const { t } = await api.fetch(lang, tenant)
+  const { t } = await getServerT()
   const { data, error } = await getMembershipTypes(type)
 
   if (error || data?.length === 0) {

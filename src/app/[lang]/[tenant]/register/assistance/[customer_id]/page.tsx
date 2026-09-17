@@ -7,17 +7,15 @@ import { Button } from '@/components/ui/button'
 import ArrowLeftIcon from '@/components/icons/arrow-left'
 import Link from 'next/link'
 import { HOME } from '@/consts/routes'
-import api from '@/lib/i18n/api'
-import { type Language } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
+import { getServerT } from '@/lib/i18n/server'
 
 export default async function AssintanceRegisterPage({
   params,
 }: {
-  params: Promise<{ customer_id: string; lang: Language; tenant: TenantsType }>
+  params: Promise<{ customer_id: string }>
 }) {
-  const { customer_id, lang, tenant } = await params
-  const { t } = await api.fetch(lang, tenant)
+  const { customer_id } = await params
+  const { t } = await getServerT()
   const customer = await searchCustomersById(customer_id)
 
   if (!customer) {
@@ -67,7 +65,7 @@ export default async function AssintanceRegisterPage({
             </Suspense>
           </TabsContent>
           <TabsContent className='mt-10' value='data'>
-            <InfoResume customer={customer} lang={lang} tenant={tenant} />
+            <InfoResume customer={customer} />
           </TabsContent>
         </Tabs>
       </section>

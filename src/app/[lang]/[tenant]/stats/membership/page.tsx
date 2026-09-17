@@ -3,9 +3,7 @@ import type React from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { STATS } from '@/consts/routes'
-import { type Language } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
-import api from '@/lib/i18n/api'
+import { getServerT } from '@/lib/i18n/server'
 import ArrowLeftIcon from '@/components/icons/arrow-left'
 import MembershipChart from '@/membership/components/chart'
 import MembershipRevenue from '@/membership/components/revenue'
@@ -14,13 +12,9 @@ import { MonthProvider } from '@/membership/context/month-context'
 
 import { tenantThemes } from '@/lib/themes'
 
-export default async function MembershipStatsPage({
-  params,
-}: {
-  params: Promise<{ lang: Language; tenant: TenantsType }>
-}) {
-  const { lang, tenant } = await params
-  const { t } = await api.fetch(lang, tenant)
+export default async function MembershipStatsPage() {
+  // `tenant` se sigue usando acá para resolver los colores del theme.
+  const { t, tenant } = await getServerT()
   const colors = tenantThemes[tenant]?.colors?.primary
 
   return (

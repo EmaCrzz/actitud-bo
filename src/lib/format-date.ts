@@ -82,3 +82,44 @@ export function formatLongDayInAppTz(isoDate: string, locale = 'es-AR'): string 
     month: 'long',
   }).format(date)
 }
+
+// Formatea "hoy" como "lunes 1 de agosto" en la TZ del negocio.
+// Fuente única para los tres headers que mostraban la fecha de hoy con su
+// propio Intl.DateTimeFormat: uno usaba 'es-ES' en vez de 'es-AR' y otro no
+// pasaba timeZone (en Vercel, que corre en UTC, mostraba el día siguiente
+// entre las 21:00 y la medianoche AR).
+// `dayStyle` existe porque v1 muestra "1 de agosto" y v2 "01 de Agosto".
+export function formatTodayLongInAppTz(
+  locale: string,
+  { dayStyle = 'numeric' }: { dayStyle?: 'numeric' | '2-digit' } = {}
+): string {
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: APP_TIMEZONE,
+    weekday: 'long',
+    day: dayStyle,
+    month: 'long',
+  }).format(new Date())
+}
+
+// Formatea un Date como "Lunes 19" (weekday capitalizado + día) en la TZ del negocio.
+export function formatDayLabelInAppTz(date: Date): string {
+  const parts = new Intl.DateTimeFormat('es-AR', {
+    weekday: 'long',
+    day: '2-digit',
+    timeZone: APP_TIMEZONE,
+  }).formatToParts(date)
+  const weekday = parts.find((p) => p.type === 'weekday')?.value ?? ''
+  const day = parts.find((p) => p.type === 'day')?.value ?? ''
+
+  return `${weekday.charAt(0).toUpperCase() + weekday.slice(1)} ${day}`
+}
+
+// Formatea un timestamp UTC como "HH:MM" en la TZ del negocio.
+export function formatTimeInAppTz(utcIso: string): string {
+  return new Intl.DateTimeFormat('es-AR', {
+    timeZone: APP_TIMEZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(utcIso))
+}

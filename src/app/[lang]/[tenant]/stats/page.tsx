@@ -15,9 +15,8 @@ import FooterNavigation from '@/components/nav'
 import TopMonthlyAssintant, {
   TopMonthlyAssintantSkeleton,
 } from '@/assistance/top-monthly-assintant'
-import api from '@/lib/i18n/api'
-import { Language, TranslationKey } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
+import { getServerT } from '@/lib/i18n/server'
+import { TranslationKey } from '@/lib/i18n/types'
 import { ChevronRight } from 'lucide-react'
 import UserCheck from '@/components/icons/user-check'
 import Chart from '@/components/icons/chart'
@@ -34,17 +33,13 @@ const NavegableRowIcon: Record<string, React.ReactElement> = {
 const NavegableRow = async ({
   title,
   href,
-  lang,
-  tenant,
   disabled,
 }: {
   title: TranslationKey
   href: string
-  lang: Language
-  tenant: TenantsType
   disabled?: boolean
 }) => {
-  const { t } = await api.fetch(lang, tenant)
+  const { t } = await getServerT()
 
   return (
     <Link className={disabled ? 'pointer-events-none' : ''} href={disabled ? '#' : href}>
@@ -62,13 +57,8 @@ const NavegableRow = async ({
   )
 }
 
-export default async function DashboardStats({
-  params,
-}: {
-  params: Promise<{ lang: Language; tenant: TenantsType }>
-}) {
-  const { lang, tenant } = await params
-  const { t } = await api.fetch(lang, tenant)
+export default async function DashboardStats() {
+  const { t } = await getServerT()
   const userIsAdmin = await isAdmin()
 
   return (
@@ -85,44 +75,29 @@ export default async function DashboardStats({
       </header>
 
       <section className='mt-6 px-4 max-w-3xl mx-auto w-full pb-4 grid gap-y-4 overflow-auto auto-rows-max'>
-        <NavegableRow
-          href='/stats/customers'
-          lang={lang}
-          tenant={tenant}
-          title='customer.actives'
-        />
-        <NavegableRow
-          href='/stats/membership'
-          lang={lang}
-          tenant={tenant}
-          title='membership.types.title'
-        />
+        <NavegableRow href='/stats/customers' title='customer.actives' />
+        <NavegableRow href='/stats/membership' title='membership.types.title' />
         {userIsAdmin && (
-          <NavegableRow
-            href='/stats/accounting'
-            lang={lang}
-            tenant={tenant}
-            title='accounting.accountingAndFinance.title'
-          />
+          <NavegableRow href='/stats/accounting' title='accounting.accountingAndFinance.title' />
         )}
-        <Suspense fallback={<TopMonthlyAssintantSkeleton lang={lang} tenant={tenant} />}>
-          <TopMonthlyAssintant lang={lang} tenant={tenant} />
+        <Suspense fallback={<TopMonthlyAssintantSkeleton />}>
+          <TopMonthlyAssintant />
         </Suspense>
-        {/* <Suspense fallback={<AssistanceCardTodaySkeleton lang={lang} tenant={tenant} />}>
-          <AssistanceCardToday lang={lang} tenant={tenant} />
+        {/* <Suspense fallback={<AssistanceCardTodaySkeleton />}>
+          <AssistanceCardToday />
         </Suspense>
         <Suspense
           fallback={
             <AssistancesListSkeleton todayAssistancesText={t('assistance.todayAssistances')} />
           }
         >
-          <AssistancesList lang={lang} tenant={tenant} />
+          <AssistancesList />
         </Suspense>
-        <Suspense fallback={<ActivesMembershipSkeleton lang={lang} tenant={tenant} />}>
-          <ActivesMembership lang={lang} tenant={tenant} />
+        <Suspense fallback={<ActivesMembershipSkeleton />}>
+          <ActivesMembership />
         </Suspense>
-        <Suspense fallback={<ActiveTypesSkeleton lang={lang} tenant={tenant} />}>
-          <ActiveTypes lang={lang} tenant={tenant} />
+        <Suspense fallback={<ActiveTypesSkeleton />}>
+          <ActiveTypes />
         </Suspense> */}
       </section>
       <FooterNavigation />

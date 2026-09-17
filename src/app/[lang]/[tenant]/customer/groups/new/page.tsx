@@ -3,17 +3,10 @@ import ArrowLeftIcon from '@/components/icons/arrow-left'
 import { Button } from '@/components/ui/button'
 import { CUSTOMER_LIST_GROUPS } from '@/consts/routes'
 import CreateGroupForm from '@/group/components/create-form'
-import api from '@/lib/i18n/api'
-import { type Language } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
+import { getServerT } from '@/lib/i18n/server'
 
-export default async function NewGroupPage({
-  params,
-}: {
-  params: Promise<{ lang: Language; tenant: TenantsType }>
-}) {
-  const { lang, tenant } = await params
-  const { t } = await api.fetch(lang, tenant)
+export default async function NewGroupPage() {
+  const { t } = await getServerT()
 
   return (
     <>

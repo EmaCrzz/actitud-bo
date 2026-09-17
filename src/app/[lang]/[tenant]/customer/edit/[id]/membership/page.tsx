@@ -1,17 +1,15 @@
 import { REGISTER_ASSISTANCE } from '@/consts/routes'
 import { searchCustomersById } from '@/customer/api/server'
 import MembershipForm from '@/customer/membership-form'
-import api from '@/lib/i18n/api'
-import { type Language } from '@/lib/i18n/types'
-import { type TenantsType } from '@/lib/tenants'
+import { getServerT } from '@/lib/i18n/server'
 
 export default async function EditCustomerMembershipPage({
   params,
 }: {
-  params: Promise<{ id: string; lang: Language; tenant: TenantsType }>
+  params: Promise<{ id: string }>
 }) {
-  const { id, lang, tenant } = await params
-  const { t } = await api.fetch(lang, tenant)
+  const { id } = await params
+  const { t } = await getServerT()
   const customer = await searchCustomersById(id)
 
   if (!customer) {
