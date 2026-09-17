@@ -80,14 +80,29 @@ git push origin develop
 **No se mergea a `main` manualmente.** El único camino a producción es el script de release, que hace bump de versión + merge + tag + push de forma atómica.
 
 ```bash
-# 1. Si hay migraciones nuevas, aplicarlas a producción PRIMERO
+# 1. Ensayar las migraciones pendientes contra prod, sin persistir nada
+./scripts/rehearse-migrations.sh prod
+
+# 2. Registrar el estado previo de los datos
+psql "$SUPABASE_DB_URL_PROD" -f supabase/scripts/audit-integrity.sql
+
+# 3. Aplicar las migraciones a producción PRIMERO
 npm run db:push-prod    # ⚠️ Con confirmación obligatoria
 
-# 2. Correr el script de release desde develop
+# 4. Correr el script de release desde develop
 ./scripts/release.sh patch   # o minor / major
+
+# 5. Confirmar que quedó como se esperaba
+psql "$SUPABASE_DB_URL_PROD" -f supabase/scripts/audit-integrity.sql
 ```
 
 El orden importa: migraciones **antes** que el deploy de código. Ver [Disciplina de Migrations](#-disciplina-de-migrations-expand-and-contract) para entender por qué (y qué migrations son seguras hacer así).
+
+**No saltearse el paso 1.** `db:push-prod` que falla a mitad deja producción en un estado intermedio. El ensayo corre las migraciones pendientes dentro de `BEGIN … ROLLBACK` — sentencias exactas, schema y datos reales, cero persistencia — así que cualquier falla aparece antes y sin consecuencias. Toma segundos.
+
+> **Por qué se agregó** (2026-09-17): prod había quedado 4 migraciones atrás, y en esa brecha `develop` empezó a tener código de **v1** leyendo una vista y una columna que en producción no existían. Un release sin las migraciones habría roto la búsqueda para registrar asistencia y dejado el listado de clientes vacío **en silencio**. Ver [ADR 20260917160000](architecture/decisions/20260917160000_sincronizar-migraciones-de-prod-y-ensayo-transaccional.md).
+>
+> La moraleja operativa: **no dejar que prod acumule migraciones pendientes.** Cuanto más grande la brecha, más difícil es razonar sobre ella.
 
 Detalles de cada paso: ver [Protección de `main`](#-protección-de-main) y [Script de Release Automatizado](#-script-de-release-automatizado).
 
