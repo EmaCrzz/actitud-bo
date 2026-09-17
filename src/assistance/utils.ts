@@ -35,3 +35,24 @@ export function buildWeekSlots(count: number, assistances: WeekAssistance[]): We
     overQuota: i >= count,
   }))
 }
+
+/** Código de violación de constraint UNIQUE de Postgres. */
+const POSTGRES_UNIQUE_VIOLATION = '23505'
+
+/**
+ * True si el error viene de intentar registrar una segunda asistencia del mismo
+ * cliente el mismo día calendario argentino.
+ *
+ * El índice `assistance_one_per_customer_per_day_ar` (migración 20260917120100)
+ * es la única garantía real contra el duplicado: las dos UIs deshabilitan el
+ * botón cuando ya hay asistencia hoy, pero eso es un check-then-insert y dos
+ * requests concurrentes lo atraviesan.
+ *
+ * Vive acá y no en `api/client.ts` para que la traducción del mensaje quede en
+ * la UI: la capa de API no conoce el diccionario de i18n. Los dos consumidores
+ * — el modal v2 y la pantalla v1 — eligen entre `alreadyRegisteredToday` y
+ * `errorRegistering` con esto.
+ */
+export function isDuplicateAssistanceError(error: { code?: string } | null): boolean {
+  return error?.code === POSTGRES_UNIQUE_VIOLATION
+}
