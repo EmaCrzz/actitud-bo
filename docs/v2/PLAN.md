@@ -41,22 +41,15 @@
 
 > Última actualización: **2026-09-18**. Esta sección es el arranque de cualquier sesión nueva: decí en qué estado quedó todo y cuál es el siguiente movimiento, sin tener que leer el documento entero.
 
-**⚠️ Lo primero: el alta de cliente de v1 está rota en producción desde el 2026-07-22, y las migraciones de la Fase 7 la arreglan.**
+**Estado de entornos — todo desplegado y sin deuda.** Producción corre **v0.12.0** con las dos migraciones de la Fase 7 aplicadas; dev está emparejado. Prod sigue con **0 usuarios con `v2_access`**, así que toda la v2 viaja apagada. No hay migraciones pendientes en ningún entorno.
 
-Conviven dos overloads de `upsert_customer_membership_with_payment` (10 y 14 params) y los 4 params extra del segundo tienen DEFAULT, así que **una llamada de 10 argumentos matchea a los dos y PostgREST devuelve `PGRST203`**. El único caller con 10 args es el paso 2 del alta. Resultado: con "pagó" tildado se crea el cliente y la membresía pero **no el pago**, con el mensaje "Cliente creado, pero falló el registro del pago/asistencia".
+**Lo que este release arregló en producción, además de traer la Fase 7:**
 
-Evidencia en prod: de los 15 clientes creados desde el 22-07 que tienen algún pago, **cero** lo tienen registrado junto al alta — todos llegaron después por el form de renovación. Y las 2 altas de pase diario del período no tienen pago ninguna, que es el caso limpio porque para DAILY v1 fuerza `payment='on'`.
+*El alta de cliente de v1 estaba rota desde el 2026-07-22.* Convivían dos overloads de `upsert_customer_membership_with_payment` (10 y 14 params); como los 4 params extra del segundo tienen DEFAULT, una llamada de 10 argumentos matcheaba a los dos y PostgREST devolvía `PGRST203`. El único caller con 10 args era el paso 2 del alta: con "pagó" tildado se creaba el cliente y la membresía pero **no el pago**.
 
-**Las dos migraciones van juntas, antes del release:**
+La evidencia que lo confirmó: de los 15 clientes creados desde el 22-07 con algún pago, **cero** lo tenían registrado junto al alta — todos llegaron después por el form de renovación. Y las 2 altas de pase diario del período no tenían pago ninguna, el caso limpio porque para DAILY v1 fuerza `payment='on'`. Verificado contra el PostgREST de prod después de migrar: el payload de 10 campos ya resuelve.
 
-| Migración | Qué hace | Estado |
-|---|---|---|
-| `20260918120000_customer_membership_start_date` | `start_date` (B12) + el RPC del alta acepta `birth_date`/`notes`/`start_date` + restaura la canonicalización de DAILY | ✅ dev · ⬜ **prod** |
-| `20260918120100_drop_legacy_payment_rpc_overload` | Borra el overload de 10 y con él la ambigüedad | ✅ dev · ⬜ **prod** |
-
-**La B no es destructiva: es la reparación.** Al quedar un solo candidato, PostgREST resuelve el payload viejo de 10 campos contra el de 14 y los defaults producen exactamente el pago correcto (`gross = amount`, `discount = 0`). Verificado en dev: `success=true`, fila `amount=25000 gross=25000 desc=0 metodo=PAYMENT_CASH`. O sea que **arregla el alta de v1 sin deployar código**. Como el camino viejo hoy está 100% roto, aplicarla antes del release no puede empeorar nada.
-
-**Estado de entornos.** Producción está en **v0.11.1**. Prod tiene **0 usuarios con `v2_access`**, así que toda la v2 viaja apagada. Fuera de las dos migraciones de arriba, no hay deuda.
+*Las diarias no se contaban en las métricas el día que se vendían.* El overload de 14 había perdido la canonicalización de `expiration_date` para DAILY; `get_membership_stats` filtra con `> NOW()`, así que un pase que vence a las 00:00 AR quedaba fuera todo el día. Restaurada. Las 8 filas afectadas (desde el 2026-07-29) no se backfillearon: son pases vencidos y las stats de meses pasados van por `created_at`.
 
 **El siguiente movimiento es la Fase 8** (registrar pago / renovar membresía). El orden contra la 7 ya se resolvió: las capturas del paso 2 del alta mostraron que **no** es el bloque "Condiciones y forma de pago" de la 8 — el único campo que agregó es "Modalidad de cobro", que resultó ser el `charge_mode` que v1 ya tenía. Así que la 7 se hizo primero y no dejó ningún componente compartido pendiente. Lo que la 8 sí hereda:
 
@@ -862,7 +855,9 @@ Además, el Figma escribe **"Tipo de mebresia"** (sin `s` y sin tilde): implemen
 | Migración | Qué hace | Cuándo |
 |---|---|---|
 | `20260918120000_customer_membership_start_date` | `start_date` (B12) + `upsert_customer_with_membership` acepta `birth_date`/`notes`/`start_date` + el RPC de pago escribe `start_date` **y recupera la canonicalización de DAILY** | **Antes** del release. Aditiva |
-| `20260918120100_drop_legacy_payment_rpc_overload` | Borra el overload de 10 params y con él la ambigüedad `PGRST203` que tiene rota el alta de v1 | **Antes** del release, junto con la A. No es destructiva: repara |
+| `20260918120100_drop_legacy_payment_rpc_overload` | Borra el overload de 10 params y con él la ambigüedad `PGRST203` que tenía rota el alta de v1 | **Antes** del release, junto con la A. No es destructiva: repara |
+
+Las dos se aplicaron a producción el 2026-09-18, antes del release v0.12.0, y se verificó contra el PostgREST de prod que los payloads viejos (9 y 10 params) resuelven bien contra las firmas nuevas.
 
 Tres cosas que no eran obvias y quedaron resueltas:
 
