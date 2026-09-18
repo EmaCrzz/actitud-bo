@@ -13,7 +13,12 @@ export default async function V2HomePage() {
   ])
 
   return (
-    <div className='h-full p-2.5 lg:p-5 rounded-xl border flex flex-col gap-3 lg:gap-6'>
+    // `min-h-full` y no `h-full`: el card tiene que ocupar al menos el alto
+    // disponible (para que el borde llegue abajo cuando hay poco contenido) pero
+    // poder crecer cuando no entra. Con `h-full` el contenido desbordaba el
+    // borde y se dibujaba sobre el fondo del tenant v1. El scroll lo pone el
+    // `<main>` del AppShell.
+    <div className='min-h-full p-2.5 lg:p-5 rounded-xl border flex flex-col gap-3 lg:gap-6'>
       <AttendanceSearchCard />
       <MetricsRow metrics={metrics} />
       <QuickActionsSection />

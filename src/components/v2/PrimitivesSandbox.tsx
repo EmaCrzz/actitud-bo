@@ -66,7 +66,7 @@ export default function PrimitivesSandbox() {
   ]
 
   return (
-    <div className='flex h-full flex-col gap-8 overflow-y-auto rounded-lg border p-5'>
+    <div className='flex min-h-full flex-col gap-8 rounded-lg border p-5'>
       <PageHeader
         action={
           <Button onClick={() => setPanelOpen(true)}>

@@ -25,7 +25,12 @@ export default async function V2CustomersPage({ searchParams }: V2CustomersPageP
   ])
 
   return (
-    <div className='flex h-full min-h-0 flex-col rounded-lg border p-2.5 lg:p-5'>
+    // Mobile (`min-h-full`): el card crece con el contenido y scrollea el
+    // `<main>` del AppShell — la tabla en mobile son cards apiladas y encerrarlas
+    // en una ventanita de 200px era ilegible.
+    // Desktop (`md:h-full`): altura fija, y la tabla scrollea adentro dejando
+    // filtros y paginador anclados (ver CustomersSection).
+    <div className='flex min-h-full flex-col rounded-lg border p-2.5 md:h-full lg:p-5'>
       <CustomersSection
         canReadPayments={canReadPayments}
         initialFilters={filters}
