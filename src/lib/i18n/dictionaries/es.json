@@ -818,6 +818,31 @@
           "noNotes": "Sin observaciones.",
           "empty": "—"
         }
+      },
+      "form": {
+        "title": "Nuevo cliente",
+        "subtitle": "Complete los datos para registrar un cliente.",
+        "stepPersonal": "Datos personales",
+        "stepMembership": "Membresía inicial",
+        "firstName": "Nombre",
+        "lastName": "Apellido",
+        "personId": "DNI",
+        "birthDate": "Fecha de nacimiento",
+        "phone": "Contacto",
+        "membershipType": "Tipo de membresía",
+        "chargeMode": "Modalidad de cobro",
+        "startDate": "Fecha de inicio",
+        "endDate": "Fecha de vencimiento",
+        "dailyPeriodNotice": "Pase válido sólo por hoy, {date}. El pase diario no elige fechas.",
+        "paymentType": "Forma de pago",
+        "observations": "Observaciones",
+        "notes": "Notas internas",
+        "notesPlaceholder": "Información adicional...",
+        "selectPlaceholder": "Selecciona una opción",
+        "datePlaceholder": "dd/mm/aaaa",
+        "submit": "Guardar cliente",
+        "submitting": "Un momento",
+        "successMessage": "Nuevo cliente creado correctamente"
       }
     }
   }

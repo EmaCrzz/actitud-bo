@@ -66,5 +66,5 @@ export const CUSTOMER_PROFILE = `
   notes,
   assistance_count,
   created_at,
-  customer_membership (membership_type, expiration_date, last_payment_date)
+  customer_membership (membership_type, expiration_date, last_payment_date, start_date)
 ` as const
