@@ -37,10 +37,16 @@ import { InputCurrency } from '@/components/ui/input-currency'
 import MoneyIcon from '@/components/icons/money'
 import { usePermissions } from '@/auth/hooks/use-permissions'
 import { ApplicableDiscount } from '@/group/types'
+import {
+  getChargeAmount,
+  getChargeModeOptions,
+  type ChargeMode,
+} from '@/membership/charge-mode'
 
 // Los tres precios de `types_memberships` son conceptos de cobro mutuamente
-// excluyentes: no existe "medio mes con recargo".
-type ChargeMode = 'full' | 'half' | 'surcharge'
+// excluyentes: no existe "medio mes con recargo". El catálogo de opciones y sus
+// precios viven en `@/membership/charge-mode` — este form y el alta v2 los leen
+// del mismo lugar para no poder cobrar distinto por el mismo plan.
 
 interface Props {
   pathBack?: string
@@ -244,54 +250,21 @@ export default function MembershipForm({
   const noteRequired =
     discountEnabled === true && discountAmountNumeric > 0 && !discountRuleIdForSubmit
 
-  const chargeModeOptions = useMemo(() => {
-    if (!membershipSelected || isVIPMembership || isDailyMembership) return []
-
-    const options: { mode: ChargeMode; label: string; amount: number }[] = []
-
-    if (membershipSelected.amount !== null) {
-      options.push({
-        mode: 'full',
-        label: t('membership.chargeModeFull'),
-        amount: membershipSelected.amount,
-      })
-    }
-
-    if (membershipSelected.middle_amount !== null) {
-      options.push({
-        mode: 'half',
-        label: t('membership.chargeModeHalf'),
-        amount: membershipSelected.middle_amount,
-      })
-    }
-
-    if (membershipSelected.amount_surcharge !== null) {
-      options.push({
-        mode: 'surcharge',
-        label: t('membership.chargeModeSurcharge'),
-        amount: membershipSelected.amount_surcharge,
-      })
-    }
-
-    return options
-  }, [membershipSelected, isVIPMembership, isDailyMembership, t])
+  const chargeModeOptions = useMemo(
+    () =>
+      getChargeModeOptions(membershipSelected).map((option) => ({
+        ...option,
+        label: t(option.labelKey),
+      })),
+    [membershipSelected, t]
+  )
 
   // Fuente única del monto: el input visible y el hidden leen de acá, así no
   // pueden divergir.
-  const chargeAmount = useMemo(() => {
-    if (!membershipSelected) return 0
-
-    const {
-      amount,
-      middle_amount: middleAmount,
-      amount_surcharge: amountSurcharge,
-    } = membershipSelected
-
-    if (chargeMode === 'half' && middleAmount !== null) return middleAmount
-    if (chargeMode === 'surcharge' && amountSurcharge !== null) return amountSurcharge
-
-    return amount ?? 0
-  }, [membershipSelected, chargeMode])
+  const chargeAmount = useMemo(
+    () => getChargeAmount(membershipSelected, chargeMode),
+    [membershipSelected, chargeMode]
+  )
 
   // Precio base para el resumen: en 'half' es el medio, en 'full'/'surcharge'
   // es el completo. En 'surcharge' el recargo se separa como línea aparte.

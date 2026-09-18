@@ -44,14 +44,21 @@ export interface CustomerProfile {
   membership_type: MembershipTypes | null
   expiration_date: string | null
   /**
-   * Inicio del período vigente, usado como referencia de la barra de progreso.
-   *
-   * No es realmente la fecha de inicio: `customer_membership` no tiene
-   * `start_date` (brecha B12 del plan v2) y el inicio se infiere del último
-   * pago. Es la mejor aproximación disponible, y es null para membresías que
-   * nunca registraron un pago (VIP), donde la barra no se dibuja.
+   * Cuándo se cobró el período vigente. **No** es el inicio del período: para
+   * eso está `start_date`, y el origen correcto lo resuelve
+   * `getMembershipPeriodStart()` ([src/membership/period.ts]). Null para
+   * membresías que nunca registraron un pago (VIP).
    */
   last_payment_date: string | null
+  /**
+   * Inicio del período vigente (brecha B12, migración 20260918120000).
+   *
+   * Null en todo el histórico anterior a esa migración: se agregó sin backfill
+   * a propósito. Leerlo directo da un hueco para la mayoría de los clientes —
+   * usar `getMembershipPeriodStart()`, que aplica el fallback a
+   * `last_payment_date`.
+   */
+  start_date: string | null
   /** Precio de lista del plan (`types_memberships.amount`). Null si no tiene plan. */
   membership_amount: number | null
 }

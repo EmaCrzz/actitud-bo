@@ -8,7 +8,6 @@ import DataTablePagination from '@/components/v2/DataTablePagination'
 import FilterBar from '@/components/v2/FilterBar'
 import PageHeader from '@/components/v2/PageHeader'
 import Button from '@/components/v2/ui/Button'
-import { useComingSoonToast } from '@/components/v2/use-coming-soon-toast'
 import { fetchCustomersPage } from '@/customer/api/client'
 import type { CustomersPage } from '@/customer/api/customers-query'
 import { CUSTOMERS_PAGE_SIZE } from '@/customer/consts'
@@ -23,6 +22,7 @@ import type { CustomerWithMembership } from '@/customer/types'
 import { useTranslations } from '@/lib/i18n/context'
 import type { MembershipTypes } from '@/membership/consts'
 import CustomerFilters from './CustomerFilters'
+import CustomerFormPanel from './CustomerFormPanel'
 import CustomerProfilePanel from './CustomerProfilePanel'
 import CustomersTable from './CustomersTable'
 
@@ -46,8 +46,8 @@ export default function CustomersSection({
   canReadPayments,
 }: CustomersSectionProps) {
   const { t } = useTranslations()
-  const notifyComingSoon = useComingSoonToast()
 
+  const [isFormOpen, setIsFormOpen] = useState(false)
   const [queryInput, setQueryInput] = useState(initialFilters.query)
   const [status, setStatus] = useState<MembershipStatusFilter | null>(initialFilters.status)
   const [membershipType, setMembershipType] = useState<MembershipTypes | null>(
@@ -139,7 +139,11 @@ export default function CustomersSection({
   }, [filters, page])
 
   return (
-    <div className='flex min-h-0 flex-1 flex-col gap-4 lg:gap-6'>
+    // `md:min-h-0` y no `min-h-0`: en mobile el default `min-height: auto` es lo
+    // que impide que esta columna se encoja por debajo de su contenido y lo deje
+    // desbordando fuera del card. En desktop sí se encoge, porque ahí el scroll
+    // es interno (ver el wrapper de la tabla más abajo).
+    <div className='flex flex-1 flex-col gap-4 md:min-h-0 lg:gap-6'>
       <PageHeader subtitle={t('v2.customers.subtitle')} title={t('v2.customers.title')} />
 
       <FilterBar
@@ -151,7 +155,7 @@ export default function CustomersSection({
             aria-label={t('v2.customers.newCustomer')}
             className='w-9 px-0 sm:w-auto sm:px-4'
             type='button'
-            onClick={notifyComingSoon}
+            onClick={() => setIsFormOpen(true)}
           >
             <Plus aria-hidden className='size-4' />
             <span className='hidden sm:inline'>{t('v2.customers.newCustomer')}</span>
@@ -173,7 +177,10 @@ export default function CustomersSection({
         />
       </FilterBar>
 
-      <div className='min-h-0 flex-1 overflow-y-auto'>
+      {/* Desktop: ventana de scroll propia, con FilterBar y paginador fijos.
+       * Mobile: sin `min-h-0` ni `overflow`, así la lista empuja el card y
+       * scrollea el `<main>` del AppShell de una sola vez. */}
+      <div className='flex-1 md:min-h-0 md:overflow-y-auto'>
         <CustomersTable
           customers={customers}
           isError={isError}
@@ -194,6 +201,18 @@ export default function CustomersSection({
           onPageChange={setPage}
         />
       )}
+
+      <CustomerFormPanel
+        open={isFormOpen}
+        onCreated={() => {
+          // El alta puede caer en cualquier página del listado según el orden y
+          // los filtros activos, así que se vuelve a la primera y se refetchea
+          // en vez de intentar insertar la fila nueva en la página en pantalla.
+          resetToFirstPage()
+          refetch()
+        }}
+        onOpenChange={setIsFormOpen}
+      />
 
       <CustomerProfilePanel
         canReadPayments={canReadPayments}
