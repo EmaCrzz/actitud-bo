@@ -1,22 +1,24 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Search, LoaderCircle, UserPlus, X } from 'lucide-react'
-import Link from 'next/link'
 import { useCustomerSearch } from '@/customer/hooks/use-customer-search'
 import { useTranslations } from '@/lib/i18n/context'
 import Button from '@/components/v2/ui/Button'
+import CustomerFormPanel from '@/customer/components/v2/CustomerFormPanel'
 import type { Customer } from '@/customer/types'
-import { CUSTOMER_NEW } from '@/consts/routes'
 import AssistanceModal from './AssistanceModal'
 
 const MAX_RESULTS_TO_DISPLAY = 5
 
 export default function AttendanceSearchCard() {
   const { t } = useTranslations()
+  const router = useRouter()
   const { query, setQuery, debouncedQuery, results, loading } = useCustomerSearch()
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const [newCustomerOpen, setNewCustomerOpen] = useState(false)
 
   const hasQuery = query.trim().length > 0
   const showDropdown = hasQuery && debouncedQuery.trim().length > 0
@@ -34,6 +36,20 @@ export default function AttendanceSearchCard() {
   const handleOpenModal = () => {
     if (!selectedCustomer) return
     setModalOpen(true)
+  }
+
+  // El alta acá es un desvío: el operador vino a registrar una asistencia y el
+  // cliente no estaba. Al volver queda seleccionado, así el siguiente click es
+  // el CTA de asistencia y no volver a tipear el nombre.
+  //
+  // El refresh es por lo mismo que en `QuickActionsSection`: el alta mueve las
+  // métricas del home, que se resuelven en server components.
+  const handleCustomerCreated = (customer?: Customer) => {
+    if (customer) {
+      setSelectedCustomer(customer)
+      setQuery('')
+    }
+    router.refresh()
   }
 
   return (
@@ -59,6 +75,7 @@ export default function AttendanceSearchCard() {
                 debouncedQuery={debouncedQuery}
                 loading={loading}
                 results={displayedResults}
+                onCreateNew={() => setNewCustomerOpen(true)}
                 onSelect={handleSelectCustomer}
               />
             </div>
@@ -82,6 +99,12 @@ export default function AttendanceSearchCard() {
           setModalOpen(open)
           if (!open) setSelectedCustomer(null)
         }}
+      />
+
+      <CustomerFormPanel
+        open={newCustomerOpen}
+        onCreated={handleCustomerCreated}
+        onOpenChange={setNewCustomerOpen}
       />
     </>
   )
@@ -150,9 +173,16 @@ interface SearchResultsProps {
   debouncedQuery: string
   loading: boolean
   onSelect: (customer: Customer) => void
+  onCreateNew: () => void
 }
 
-function SearchResults({ results, debouncedQuery, loading, onSelect }: SearchResultsProps) {
+function SearchResults({
+  results,
+  debouncedQuery,
+  loading,
+  onSelect,
+  onCreateNew,
+}: SearchResultsProps) {
   const { t } = useTranslations()
 
   return (
@@ -182,15 +212,20 @@ function SearchResults({ results, debouncedQuery, loading, onSelect }: SearchRes
             </button>
           </li>
         ))}
-      {/* Crear nuevo cliente — siempre al pie del dropdown */}
+      {/* Crear nuevo cliente — siempre al pie del dropdown.
+          Abre el panel de alta de la v2 (Fase 7) en vez de navegar al form de
+          v1: el alta desde el home es un desvío dentro del flow de asistencia,
+          y sacar al operador de la v2 a mitad de camino lo obligaba a volver
+          atrás y rehacer la búsqueda. */}
       <li>
-        <Link
+        <button
           className='w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-muted transition-colors'
-          href={CUSTOMER_NEW}
+          type='button'
+          onClick={onCreateNew}
         >
           <UserPlus aria-hidden='true' className='size-4 shrink-0' />
           {t('v2.home.attendanceSearch.createNewCustomer')}
-        </Link>
+        </button>
       </li>
     </ul>
   )

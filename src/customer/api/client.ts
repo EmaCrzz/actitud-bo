@@ -116,6 +116,7 @@ export async function fetchCustomerProfile(customerId: string): Promise<Customer
     membership_type: membershipType,
     expiration_date: membership?.expiration_date ?? null,
     last_payment_date: membership?.last_payment_date ?? null,
+    start_date: membership?.start_date ?? null,
     membership_amount:
       types?.find((type) => type.type === membershipType)?.amount ?? null,
   }
@@ -267,6 +268,10 @@ async function _upsertCustomer({
   const personId = formDataCustomer.get('person_id') as string
   const phone = formDataCustomer.get('phone') as string
   const email = formDataCustomer.get('email') as string
+  // `birth_date` y `notes` sólo las manda el alta v2 (Fase 7). El form de v1 no
+  // tiene esos campos, así que llegan como null y el RPC los ignora vía COALESCE.
+  const birthDate = formDataCustomer.get('birth_date') as string | null
+  const notes = formDataMembership.get('notes') as string | null
   const membershipType = formDataMembership.get('membership_type') as string
   const firstAssistance = formDataMembership.get('first_assistance') as 'on' | null
   const startDate = formDataMembership.get('start_date') as string
@@ -279,11 +284,30 @@ async function _upsertCustomer({
   const isPaid = payment === 'on'
   const amount = isPaid ? parseCurrency(membershipAmount) : 0
 
+  // Cuando hay cobro, la membresía la crea el paso 2 — no el paso 1.
+  //
+  // Los dos RPC son transacciones separadas: si el paso 1 crea la membresía y
+  // el paso 2 falla, queda un cliente **con membresía activa y sin pago
+  // registrado**. Nadie lo ve (el listado lo muestra al día) y el ingreso no
+  // existe. Es el mismo perfil de falla silenciosa que las fechas sin
+  // canonicalizar, y es justo el riesgo que la Fase 7 tenía que resolver.
+  //
+  // Difiriendo la membresía al paso 2 — que la crea igual, con su propio
+  // INSERT ... ON CONFLICT — un fallo deja un cliente **sin membresía**: un
+  // estado visible ("Sin membresía" en el listado), sin plata perdida y
+  // arreglable desde la UI.
+  //
+  // Sólo aplica al camino con cobro. En el de "sólo primera asistencia"
+  // (`first_assistance` sin `payment`) el paso 2 insertaría la membresía con
+  // fechas nulas, porque no toma p_start_date/p_end_date cuando p_is_paid es
+  // false — ahí el paso 1 tiene que seguir creándola.
+  const deferMembershipToPaymentRpc = isPaid
+
   const supabase = createClient()
 
-  // Paso 1: crear/actualizar customer + inicializar customer_membership (sin pago).
-  // El RPC `upsert_customer_with_membership` no registra ingresos ni canonicaliza
-  // fechas — esa es tarea del paso 2 (`upsert_customer_membership_with_payment`).
+  // Paso 1: crear/actualizar customer y, si no hay cobro, inicializar también
+  // customer_membership. El RPC `upsert_customer_with_membership` no registra
+  // ingresos — esa es tarea del paso 2 (`upsert_customer_membership_with_payment`).
   const { data, error } = await supabase.rpc('upsert_customer_with_membership', {
     p_customer_id: customerId || null,
     p_first_name: firstName || null,
@@ -291,9 +315,17 @@ async function _upsertCustomer({
     p_person_id: removeFormatPersonId(personId) || null,
     p_phone: phone || null,
     p_email: email || null,
-    p_membership_type: membershipType,
-    p_last_payment_date: startDateArTz,
-    p_expiration_date: endDateArTz,
+    // `birth_date` es una columna `date`, no `timestamptz`: se manda el
+    // "YYYY-MM-DD" crudo a propósito. Canonicalizarlo con parseAppTzDateString
+    // lo convertiría en un instante, y al castearlo de vuelta a `date` no
+    // aportaría nada. La regla de timezone aplica a los timestamps del período
+    // y del pago, que es donde el desfase de 3 horas cambia el mes contable.
+    p_birth_date: birthDate || null,
+    p_notes: notes || null,
+    p_membership_type: deferMembershipToPaymentRpc ? null : membershipType,
+    p_last_payment_date: deferMembershipToPaymentRpc ? null : startDateArTz,
+    p_expiration_date: deferMembershipToPaymentRpc ? null : endDateArTz,
+    p_start_date: deferMembershipToPaymentRpc ? null : startDateArTz,
   })
 
   if (error) {
@@ -318,6 +350,16 @@ async function _upsertCustomer({
   // canonicalice expiration_date de daily como fin de día AR, y opcionalmente
   // registre la primera asistencia. Es el mismo RPC que usa el form de
   // "gestión de membresía" — así ambos flujos comparten la misma lógica.
+  //
+  // Los cuatro parámetros de descuento van explícitos aunque el alta no aplique
+  // descuentos: son los que **seleccionan el overload de 14 parámetros**. Hasta
+  // la Fase 7 esta llamada mandaba sólo los 10 base y caía en el overload
+  // legacy, que escribía `COALESCE(p_payment_type, 'efectivo')` sin guarda —
+  // y 'efectivo' viola el CHECK de membership_payments.payment_method, así que
+  // un alta con cobro y forma de pago vacía reventaba con un 23514 críptico.
+  // El overload de 14 corta antes con MISSING_PAYMENT_METHOD, que la UI sí sabe
+  // traducir. El legacy queda sin llamadores y lo borra la migración
+  // 20260918120100.
   const needsPaymentRpc = !!newCustomerId && (isPaid || firstAssistance === 'on')
 
   if (needsPaymentRpc) {
@@ -334,6 +376,14 @@ async function _upsertCustomer({
         p_register_assistance: firstAssistance === 'on',
         p_type_change_action: null,
         p_adjustment_amount: null,
+        // Bruto = neto: el alta cobra el precio de lista del plan según la
+        // modalidad elegida, sin descuentos. El descuento por grupo familiar no
+        // aplica acá — un cliente recién creado todavía no pertenece a ningún
+        // grupo — y se registra después, en la renovación.
+        p_gross_amount: isPaid ? amount : null,
+        p_discount_amount: 0,
+        p_discount_rule_id: null,
+        p_discount_note: null,
       }
     )
 

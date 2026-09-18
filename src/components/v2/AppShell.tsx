@@ -70,7 +70,21 @@ function AppShellInner({ user, todayLabel, children }: AppShellProps) {
        * de la fase 1.5 para el ancho. */}
       <div className='flex flex-1 flex-col min-h-0 min-w-0 pl-0 md:pl-6 lg:pl-12'>
         <Header todayLabel={todayLabel} user={user} onOpenMobileNav={() => setMobileOpen(true)} />
-        <main className='flex-1 min-h-0 pt-4 lg:pt-6'>{children}</main>
+        {/* `main` es EL contenedor de scroll de la v2.
+         *
+         * `min-h-0` solo le permite encogerse; no evita que el contenido se
+         * dibuje fuera. Sin `overflow-y-auto` cualquier página más alta que el
+         * `h-dvh` del wrapper `[data-v2]` pinta el sobrante sobre el fondo
+         * negro del tenant v1 (visible sobre todo en mobile, donde el viewport
+         * es corto). Con el scroll acá, ninguna página nueva puede reintroducir
+         * el bug: las páginas sólo tienen que usar `min-h-full` en su contenedor
+         * raíz para que el borde del card crezca con el contenido.
+         *
+         * `overscroll-contain` evita que el scroll encadene al body cuando se
+         * llega a los extremos (pull-to-refresh accidental en mobile). */}
+        <main className='flex-1 min-h-0 overflow-y-auto overscroll-contain pt-4 lg:pt-6'>
+          {children}
+        </main>
       </div>
 
       {/* Mobile drawer — siempre montado; Radix Portal no renderiza DOM cuando

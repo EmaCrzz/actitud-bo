@@ -164,6 +164,26 @@ export function getTodayIsoDateInAppTz(now: Date = new Date()): string {
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
 
+// "YYYY-MM-DD" del último día del mes calendario que contiene al instante dado,
+// en APP_TIMEZONE.
+//
+// Lo usa el prefill de "Fecha de vencimiento" del alta de cliente (Fase 7 de la
+// v2). La regla es fin de mes y no "+30 días" porque el ciclo de cobro de
+// Actitud es día-de-mes fijo (ACTITUD_BILLING_POLICY: 1–15 monto normal, 16+
+// recargo): si cada cliente venciera 30 días después de su alta, los
+// vencimientos se desparramarían por todo el calendario y el recargo por mora
+// dejaría de tener sentido contra el día del mes.
+//
+// Se calcula como "día 1 del mes siguiente, menos un día" en vez de con una
+// tabla de días por mes: así los años bisiestos salen gratis.
+export function getEndOfMonthIsoDateInAppTz(now: Date = new Date()): string {
+  const { year, month } = getAppTzDateParts(now)
+  const firstOfNextMonth = utcInstantAtAppTzWallClock(year, month + 1, 1, 0, 0, 0)
+  const parts = getAppTzDateParts(new Date(firstOfNextMonth.getTime() - 1))
+
+  return `${parts.year}-${String(parts.month).padStart(2, '0')}-${String(parts.day).padStart(2, '0')}`
+}
+
 // Parsea un string "YYYY-MM-DD" como medianoche 00:00 en APP_TIMEZONE.
 // Reemplaza `new Date("YYYY-MM-DD")`, que Node/browsers interpretan como
 // medianoche UTC → en AR eso es 21:00 del día anterior, corriendo las

@@ -819,6 +819,31 @@
           "noNotes": "No notes.",
           "empty": "—"
         }
+      },
+      "form": {
+        "title": "New customer",
+        "subtitle": "Fill in the details to register a customer.",
+        "stepPersonal": "Personal details",
+        "stepMembership": "Initial membership",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "personId": "ID number",
+        "birthDate": "Date of birth",
+        "phone": "Contact",
+        "membershipType": "Membership type",
+        "chargeMode": "Billing mode",
+        "startDate": "Start date",
+        "endDate": "Expiration date",
+        "dailyPeriodNotice": "Pass valid for today only, {date}. Day passes have no date range.",
+        "paymentType": "Payment method",
+        "observations": "Notes",
+        "notes": "Internal notes",
+        "notesPlaceholder": "Additional information...",
+        "selectPlaceholder": "Select an option",
+        "datePlaceholder": "dd/mm/yyyy",
+        "submit": "Save customer",
+        "submitting": "One moment",
+        "successMessage": "Customer created successfully"
       }
     }
   }

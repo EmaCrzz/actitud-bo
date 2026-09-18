@@ -31,10 +31,15 @@ CREATE TABLE public.customer_membership (
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   customer_id uuid NOT NULL UNIQUE,
   membership_type character varying NOT NULL,
+  -- Cuándo se cobró. NO es el inicio del período: para eso está start_date, y
+  -- el origen correcto lo resuelve getMembershipPeriodStart().
   last_payment_date timestamp with time zone,
   expiration_date timestamp with time zone,
   renewal_date timestamp with time zone,
   current_payment_id uuid,
+  -- Inicio del período vigente (migración 20260918120000). NULL en todo el
+  -- histórico anterior: se agregó sin backfill a propósito.
+  start_date timestamp with time zone,
   CONSTRAINT customer_membership_pkey PRIMARY KEY (id),
   CONSTRAINT customer_membership_current_payment_id_fkey FOREIGN KEY (current_payment_id) REFERENCES public.membership_payments(id),
   CONSTRAINT customer_membership_customer_id_fkey FOREIGN KEY (customer_id) REFERENCES public.customers(id),
@@ -84,7 +89,7 @@ CREATE TABLE public.membership_payments (
   membership_type character varying NOT NULL,
   amount real NOT NULL CHECK (amount > 0::double precision),
   payment_date timestamp with time zone NOT NULL DEFAULT now(),
-  payment_method character varying DEFAULT 'efectivo'::character varying CHECK (payment_method::text = ANY (ARRAY['PAYMENT_CASH'::character varying::text, 'PAYMENT_TRANSFER'::character varying::text])),
+  payment_method character varying NOT NULL CHECK (payment_method::text = ANY (ARRAY['PAYMENT_CASH'::character varying::text, 'PAYMENT_TRANSFER'::character varying::text])),
   notes text,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   gross_amount real NOT NULL CHECK (gross_amount > 0::double precision),

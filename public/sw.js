@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 // 🤖 GENERADO AUTOMÁTICAMENTE - NO EDITAR MANUALMENTE
-const CACHE_VERSION = "v1789654665561-aj0evd"
+const CACHE_VERSION = "v1789744876616-mi7tpw"
 const STATIC_CACHE = `actitud-static-${CACHE_VERSION}`
 const DYNAMIC_CACHE = `actitud-dynamic-${CACHE_VERSION}`
 const RUNTIME_CACHE = `actitud-runtime-${CACHE_VERSION}`

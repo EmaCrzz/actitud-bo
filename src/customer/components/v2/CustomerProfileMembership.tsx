@@ -8,6 +8,7 @@ import { formatDate } from '@/lib/format-date'
 import { useTranslations } from '@/lib/i18n/context'
 import { daysUntilInAppTz } from '@/lib/timezone'
 import { MembershipTranslationShort } from '@/membership/consts'
+import { getMembershipPeriodStart } from '@/membership/period'
 import { CUSTOMER_STATUS_LABEL, CUSTOMER_STATUS_TONE } from './customer-status'
 
 /**
@@ -115,20 +116,22 @@ interface PeriodProgress {
 /**
  * Progreso del período de la membresía.
  *
- * El inicio del período se toma de `last_payment_date` porque
- * `customer_membership` **no tiene `start_date`** (brecha B12 del plan v2). Es
- * una aproximación: coincide con el inicio real siempre que la membresía se haya
- * activado al cobrarla, que es el flujo normal. Cuando la brecha se cierre en la
- * Fase 7, acá se cambia el origen y nada más.
+ * El inicio del período sale de `getMembershipPeriodStart()`, que prefiere
+ * `start_date` (brecha B12, cerrada en la Fase 7) y cae a `last_payment_date`
+ * para el histórico anterior, que se migró sin backfill. El fallback es una
+ * aproximación: coincide con el inicio real siempre que la membresía se haya
+ * activado al cobrarla, que es el flujo normal.
  *
  * Devuelve `null` cuando no hay con qué dibujar la barra — sin vencimiento, o
- * sin pago previo (VIP) — en vez de inventar un período de largo arbitrario.
+ * sin ninguno de los dos orígenes (VIP) — en vez de inventar un período de largo
+ * arbitrario.
  */
 function getPeriodProgress(
   profile: CustomerProfile,
   t: ReturnType<typeof useTranslations>['t']
 ): PeriodProgress | null {
-  const { expiration_date: expiration, last_payment_date: start } = profile
+  const { expiration_date: expiration } = profile
+  const start = getMembershipPeriodStart(profile)
 
   if (!expiration) return null
 
@@ -146,8 +149,8 @@ function getPeriodProgress(
       ? t('v2.customers.profile.membership.lastDay')
       : t('v2.customers.profile.membership.daysRemaining', { days: remaining })
 
-  // Sin pago previo (VIP, o alta sin cobro) no hay origen del período: se
-  // muestran los días restantes sin barra llena, en vez de inventar un largo.
+  // Sin origen del período (VIP, o alta sin cobro) se muestran los días
+  // restantes sin barra llena, en vez de inventar un largo.
   if (!start) return { percent: 0, label }
 
   const total = daysUntilInAppTz(expiration, new Date(start))
