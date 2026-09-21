@@ -96,6 +96,19 @@ CREATE TABLE public.membership_payments (
   discount_amount real NOT NULL DEFAULT 0 CHECK (discount_amount >= 0::double precision),
   discount_rule_id uuid,
   discount_note text,
+  -- Recargo por mora cobrado (migración 20260921101140). Es el monto del
+  -- recargo, NO el precio con recargo: el total va en amount. 0 en todo el
+  -- histórico anterior, incluso donde se cobró — ahí quedó dentro de
+  -- gross_amount y no se puede separar.
+  surcharge_amount real NOT NULL DEFAULT 0 CHECK (surcharge_amount >= 0::double precision),
+  surcharge_note text,
+  -- Formato YYYY-NNNNN, lo asigna next_receipt_number(). NULL en los pagos
+  -- previos a 20260921101140: sin backfill a propósito.
+  receipt_number text UNIQUE,
+  -- amount = gross_amount + surcharge_amount - discount_amount
+  -- Igualdad exacta sobre real, y funciona: los montos son pesos enteros. Si
+  -- algún día aparecen centavos, pasar las columnas a numeric.
+  CONSTRAINT membership_payments_amount_matches CHECK (amount = gross_amount + surcharge_amount - discount_amount),
   CONSTRAINT membership_payments_pkey PRIMARY KEY (id),
   CONSTRAINT membership_payments_customer_id_fkey FOREIGN KEY (customer_id) REFERENCES public.customers(id),
   CONSTRAINT membership_payments_discount_rule_id_fkey FOREIGN KEY (discount_rule_id) REFERENCES public.discount_rules(id),
@@ -134,6 +147,16 @@ CREATE TABLE public.user_feature_flags (
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT user_feature_flags_pkey PRIMARY KEY (user_id, flag_name),
   CONSTRAINT user_feature_flags_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profile(id)
+);
+-- Contador de comprobantes por año calendario AR (migración 20260921101140).
+-- RLS habilitada y CERO policies + REVOKE a anon/authenticated: sólo la toca
+-- next_receipt_number(), que es SECURITY DEFINER. Ningún rol de la API puede
+-- leerla ni incrementarla.
+CREATE TABLE public.receipt_counters (
+  year integer NOT NULL,
+  last_number integer NOT NULL DEFAULT 0 CHECK (last_number >= 0),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT receipt_counters_pkey PRIMARY KEY (year)
 );
 -- Vistas
 -- =============================================================================

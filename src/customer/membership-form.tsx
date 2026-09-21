@@ -447,6 +447,17 @@ export default function MembershipForm({
                 </div>
               </div>
             )}
+            {/*
+              Desglose del recargo para la DB. La UI de v1 no cambia: el
+              operador sigue eligiendo "mes con recargo" como una modalidad y
+              viendo un precio único. Lo que cambia es que el pago se guarda con
+              `surcharge_amount` separado de `gross_amount` (migración
+              20260921101140) en vez de con el recargo embebido en el bruto —
+              así v1 y el flow de renovación de v2 registran el mismo hecho
+              económico de la misma forma, y el desglose de ingresos no depende
+              de cuál de las dos pantallas cobró.
+            */}
+            <input name='surcharge_amount' type='hidden' value={surchargeAmount} />
             {chargeModeOptions.length > 1 && (
               <div className='grid gap-y-2 col-span-2'>
                 <Label className='font-light' htmlFor='charge_mode'>
