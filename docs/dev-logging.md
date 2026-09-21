@@ -40,6 +40,24 @@ que además replica cada entrada al stdout del dev server.
 - Aun así: **el log tiene datos de clientes reales** (nombres, DNI, montos). Va
   a un archivo temporal fuera del repo y no se commitea.
 
+## Cómo verificar que está apagada en un deploy
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" -X POST <url>/api/devlog   # 404
+```
+
+**Tiene que ser un POST.** Pegar la URL en la barra del navegador manda un GET,
+y hasta el 2026-09-21 eso devolvía **405** —el router de Next contestando
+"existe pero no con ese verbo", sin llegar a la guarda— lo que parece un gate
+roto y no lo es. Se agregó un handler de GET para que en producción todos los
+métodos den 404 y la ruta no se anuncie.
+
+En el bundle del cliente:
+
+```bash
+grep -rl "__devLoggerOn" .next/static/chunks/    # sin resultados en un build de producción
+```
+
 ## Un par de cosas aprendidas armándolo
 
 - **Las carpetas que empiezan con `_` son privadas en el App Router.** La ruta
