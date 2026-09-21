@@ -8,6 +8,7 @@ import {
 } from '@/lib/timezone'
 import { MEMBERSHIP_TYPE_DAILY, MEMBERSHIP_TYPE_VIP } from '@/membership/consts'
 import { ACTITUD_BILLING_POLICY } from '@/accounting/billing-policy'
+import { devlog } from '@/lib/dev/devlog'
 import type {
   BillingCycleProgress,
   CustomerPaymentsGroup,
@@ -522,6 +523,23 @@ export async function getIncomesSummary(monthKey: string): Promise<IncomesSummar
     getRecentPayments(supabase, 5),
     getLast6MonthsIncome(supabase, monthKey),
   ])
+
+  // Observabilidad de dev (no-op sin DEV_LOG_FILE). El feed de "últimos pagos"
+  // ordena por payment_date, que **no** es el día en que se cobró, así que acá
+  // se registra la diferencia entre ambos para poder verla sin abrir la DB.
+  devlog('incomes.summary', {
+    month: monthKey,
+    cobrado_total: cobrado.total,
+    payments_count: cobrado.payments_count,
+    cycle_day: cycle.current_day_of_month,
+    paid_without_surcharge: cycle.paid_without_surcharge,
+    paid_with_surcharge: cycle.paid_with_surcharge,
+    recent_payments: recent_payments.map((p) => ({
+      cliente: `${p.first_name} ${p.last_name}`.trim(),
+      amount: p.amount,
+      payment_date: p.payment_date,
+    })),
+  })
 
   return {
     month: monthKey,

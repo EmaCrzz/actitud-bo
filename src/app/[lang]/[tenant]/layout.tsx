@@ -12,6 +12,8 @@ import { generateThemeStyles } from '@/lib/themes'
 import { getServerT } from '@/lib/i18n/server'
 import { I18nServerProvider } from '@/lib/i18n/server-provider'
 import { QueryProvider } from '@/lib/query-client'
+// Instrumentación de desarrollo, apagada salvo con DEV_LOG_FILE. Ver docs/dev-logging.md
+import DevLogger from '@/components/dev/DevLogger'
 
 export const metadata: Metadata = {
   title: 'Actitud - Backoffice',
@@ -263,6 +265,7 @@ export default async function RootLayout({
         className={`${tenantFontVariables} h-dvh grid grid-rows-[auto_1fr_auto] ${isProd ? '' : 'pt-7'}`}
       >
         <EnvBanner />
+        {process.env.NODE_ENV === 'development' && <DevLogger />}
         <QueryProvider>
           <I18nServerProvider>
             {children}
