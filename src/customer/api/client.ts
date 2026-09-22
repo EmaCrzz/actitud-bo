@@ -281,8 +281,15 @@ async function _upsertCustomer({
   const payment = formDataMembership.get('payment') as 'on' | null
   const paymentType = formDataMembership.get('payment_type') as string
   const membershipAmount = formDataMembership.get('membership_amount') as string
+  const surchargeAmountRaw = formDataMembership.get('surcharge_amount') as string | null
   const isPaid = payment === 'on'
   const amount = isPaid ? parseCurrency(membershipAmount) : 0
+  // Desglose del recargo (migración 20260921101140). `membership_amount` es el
+  // **total** a cobrar; el recargo viaja aparte para poder restarlo y obtener
+  // el bruto. Si el form no lo manda, el total es todo bruto — que es lo que
+  // pasa con cualquier plan sin recargo.
+  const surchargeAmount =
+    isPaid && surchargeAmountRaw ? Math.min(parseCurrency(surchargeAmountRaw), amount) : 0
 
   // Cuando hay cobro, la membresía la crea el paso 2 — no el paso 1.
   //
@@ -376,14 +383,19 @@ async function _upsertCustomer({
         p_register_assistance: firstAssistance === 'on',
         p_type_change_action: null,
         p_adjustment_amount: null,
-        // Bruto = neto: el alta cobra el precio de lista del plan según la
-        // modalidad elegida, sin descuentos. El descuento por grupo familiar no
-        // aplica acá — un cliente recién creado todavía no pertenece a ningún
-        // grupo — y se registra después, en la renovación.
-        p_gross_amount: isPaid ? amount : null,
+        // Sin descuentos: el descuento por grupo familiar no aplica acá — un
+        // cliente recién creado todavía no pertenece a ningún grupo — y se
+        // registra después, en la renovación.
+        //
+        // El bruto sí se separa del recargo: un alta con modalidad "mes con
+        // recargo" cobra un total que incluye mora, y guardarlo entero como
+        // bruto haría ver el recargo como precio del plan.
+        p_gross_amount: isPaid ? amount - surchargeAmount : null,
         p_discount_amount: 0,
         p_discount_rule_id: null,
         p_discount_note: null,
+        p_surcharge_amount: surchargeAmount,
+        p_surcharge_note: null,
       }
     )
 
@@ -454,12 +466,23 @@ export async function upsertCustomerMembership({
   const discountAmountRaw = formData.get('discount_amount') as string | null
   const discountRuleId = (formData.get('discount_rule_id') as string) || null
   const discountNoteRaw = formData.get('discount_note') as string | null
+  // Recargo: opcional igual que el descuento. Ver migración 20260921101140.
+  const surchargeAmountRaw = formData.get('surcharge_amount') as string | null
+  const surchargeNoteRaw = formData.get('surcharge_note') as string | null
 
   const isPaid = payment === 'on'
-  const grossAmount = isPaid ? parseCurrency(membershipAmount) : 0
+  // `membership_amount` es el total del plan según la modalidad elegida, con el
+  // recargo ya dentro cuando la modalidad es "mes con recargo". El bruto es ese
+  // total menos el recargo, así la fila queda con las tres partes separadas y
+  // el neto no cambia: gross + surcharge = membership_amount, como antes.
+  const chargeAmount = isPaid ? parseCurrency(membershipAmount) : 0
+  const surchargeAmount =
+    isPaid && surchargeAmountRaw ? Math.min(parseCurrency(surchargeAmountRaw), chargeAmount) : 0
+  const grossAmount = chargeAmount - surchargeAmount
   const discountAmount = discountAmountRaw ? parseCurrency(discountAmountRaw) : 0
-  const netAmount = Math.max(0, grossAmount - discountAmount)
+  const netAmount = Math.max(0, grossAmount + surchargeAmount - discountAmount)
   const discountNote = discountNoteRaw?.trim() || null
+  const surchargeNote = surchargeNoteRaw?.trim() || null
   const adjustmentAmount =
     typeChangeAction && adjustmentAmountRaw ? parseCurrency(adjustmentAmountRaw) : null
 
@@ -479,6 +502,8 @@ export async function upsertCustomerMembership({
     p_discount_amount: discountAmount,
     p_discount_rule_id: discountRuleId,
     p_discount_note: discountNote,
+    p_surcharge_amount: surchargeAmount,
+    p_surcharge_note: surchargeNote,
   })
 
   // Handle Supabase/PostgreSQL errors

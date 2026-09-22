@@ -12,6 +12,24 @@ import { generateThemeStyles } from '@/lib/themes'
 import { getServerT } from '@/lib/i18n/server'
 import { I18nServerProvider } from '@/lib/i18n/server-provider'
 import { QueryProvider } from '@/lib/query-client'
+import dynamic from 'next/dynamic'
+
+/**
+ * Instrumentación de desarrollo. Ver [docs/dev-logging.md].
+ *
+ * El import va dinámico y detrás del ternario a propósito. Con un
+ * `import DevLogger from …` estático y el gate sólo en el JSX
+ * (`NODE_ENV === 'development' && <DevLogger />`), el componente **nunca se
+ * monta en producción pero igual se bundlea**: verificado sobre un `next build`
+ * real, el chunk del layout se llevaba el cuerpo entero —el parche de
+ * `window.fetch` incluido— porque webpack elimina el JSX de la rama muerta pero
+ * no el import de módulo. Inerte, pero código muerto en el bundle de cada
+ * usuario. Así el módulo queda en un chunk aparte que producción no pide nunca.
+ */
+const DevLogger =
+  process.env.NODE_ENV === 'development'
+    ? dynamic(() => import('@/components/dev/DevLogger'))
+    : () => null
 
 export const metadata: Metadata = {
   title: 'Actitud - Backoffice',
@@ -263,6 +281,7 @@ export default async function RootLayout({
         className={`${tenantFontVariables} h-dvh grid grid-rows-[auto_1fr_auto] ${isProd ? '' : 'pt-7'}`}
       >
         <EnvBanner />
+        <DevLogger />
         <QueryProvider>
           <I18nServerProvider>
             {children}
