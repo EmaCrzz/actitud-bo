@@ -20,7 +20,10 @@ export type DatabaseErrorCode =
   | 'GROUP_MIN_MEMBERS'
   | 'MEMBER_ALREADY_IN_GROUP'
   | 'DISCOUNT_NOTE_REQUIRED'
-  | 'DISCOUNT_MATH_MISMATCH'
+  // Reemplaza a DISCOUNT_MATH_MISMATCH desde la migración 20260921101140: la
+  // validación dejó de ser sólo del descuento y ahora cubre el desglose
+  // completo (bruto + recargo - descuento = neto).
+  | 'AMOUNT_MATH_MISMATCH'
 
 export interface DatabaseError {
   success: false

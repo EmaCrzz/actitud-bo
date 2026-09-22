@@ -13,7 +13,7 @@ import { basicCustomerValidation, basicMembershipValidation } from '@/customer/u
 import type { Customer } from '@/customer/types'
 import { removeFormatPersonId } from '@/lib/format-person-id'
 import { useTranslations } from '@/lib/i18n/context'
-import { getChargeAmount } from '@/membership/charge-mode'
+import { getChargeAmount, getConfiguredSurcharge } from '@/membership/charge-mode'
 import { getMembershipTypes } from '@/membership/api/client'
 import { MEMBERSHIP_TYPE_VIP } from '@/membership/consts'
 import CustomerFormMembershipStep from './CustomerFormMembershipStep'
@@ -179,6 +179,14 @@ export default function CustomerFormPanel({
       data.set('payment', 'on')
       data.set('payment_type', membership.payment_type)
       data.set('membership_amount', String(getChargeAmount(selectedType, membership.charge_mode)))
+      // El recargo se manda aparte para que el pago quede con el desglose
+      // separado (migración 20260921101140): `membership_amount` es el total y
+      // el bruto se obtiene restándole esto. Sólo la modalidad "mes con
+      // recargo" lleva recargo; las otras dos son 0.
+      data.set(
+        'surcharge_amount',
+        String(membership.charge_mode === 'surcharge' ? getConfiguredSurcharge(selectedType) : 0)
+      )
     }
 
     return data

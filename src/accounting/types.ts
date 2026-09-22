@@ -8,6 +8,18 @@ export interface MembershipPayment {
   discount_amount: number
   discount_rule_id: string | null
   discount_note: string | null
+  /**
+   * Recargo por mora cobrado. Desde la migración 20260921101140.
+   *
+   * Invariante garantizada por CHECK: `amount = gross_amount +
+   * surcharge_amount - discount_amount`. Los pagos anteriores a esa migración
+   * están en 0 aunque hayan cobrado recargo — ahí quedó dentro de
+   * `gross_amount`, así que no se puede derivar cuánto fue.
+   */
+  surcharge_amount: number
+  surcharge_note: string | null
+  /** Formato `YYYY-NNNNN`. NULL en los pagos previos a 20260921101140. */
+  receipt_number: string | null
   payment_date: string
   payment_method: string
   notes?: string
