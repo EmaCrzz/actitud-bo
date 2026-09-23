@@ -34,6 +34,23 @@ El comprobante compartible (`PaymentReceipt`) y la entrada desde el home quedan 
 
   **La condición es angosta a propósito.** No alcanza con "cliente activo + cambio de plan": esa es la renovación normal de alguien que pasa de 3 a 5 días el mes que viene, el caso más frecuente que existe, y avisar ahí convertiría el recuadro en ruido. Tiene que haber colisión de período — o sea, una corrección sobre un cobro ya emitido.
 
+- **Cuando una sugerencia no aparece, la UI no explica por qué** — decisión de Ema, 2026-09-23. La pregunta es legítima (¿por qué este cliente tiene opción de recargo y aquel no?) y salió en la revisión de este PR, pero la hizo quien revisaba el código, no quien va a usar la pantalla: el operador hace esto decenas de veces por mes y aprende las reglas en una semana. Explicar cada ausencia agregaría dos líneas de texto gris a prácticamente toda renovación, y la mayoría serían el caso aburrido. Las condiciones quedan documentadas acá abajo; si la pregunta reaparece desde el uso real, se reconsidera.
+
+  **Cuándo aparece la opción `Recargo por mora - $X`** — las cuatro condiciones, todas obligatorias:
+  1. El plan no es VIP ni Diaria (la diaria se paga el día que se usa: no puede haber mora).
+  2. El **inicio del período** cae el día 11 o después (`ACTITUD_BILLING_POLICY.surchargeStart`).
+  3. El cliente **registró asistencias en el mes contable en curso**. Es lo que separa mora de ingreso nuevo: quien se suma el día 20 no debe nada de antes, y recibe la sugerencia de **media membresía** en su lugar (desde el día 16, `halfMonthStart`).
+  4. El plan tiene recargo cargado — `amount_surcharge > amount` en `types_memberships`.
+
+  Consecuencia que conviene tener presente: **una renovación anticipada nunca ofrece recargo**, porque su período arranca el día 1. Es correcto — se está pagando por adelantado, no tarde.
+
+  **Cuándo aparece la opción de descuento** — las tres, todas obligatorias:
+  1. El cliente pertenece a algún grupo (`customer_group_members` con `left_at IS NULL`).
+  2. Ese grupo tiene **2 o más** miembros activos (`GROUP_MIN_MEMBERS_FOR_DISCOUNT`).
+  3. Existe una regla activa en `discount_rules` con `applies_to = 'group_member'`.
+
+  No depende de fechas ni del plan. **En los dos campos, `Otro monto…` está siempre disponible**: la ausencia de sugerencia nunca impide cobrar un recargo o aplicar un descuento, sólo significa que el sistema no propone ninguno.
+
 - **El paso 1 muestra el período vigente pago** (`Período vigente pago: 03/09/2026 – 30/09/2026`). Apareció al intentar verificar el aviso de arriba: la condición exige que el inicio elegido caiga **el mismo día** que el inicio del período vigente, y ese día no estaba en ninguna pantalla de la app — el Perfil muestra "30 días restantes", no la fecha. El operador elegía a ciegas y el aviso era, en la práctica, inalcanzable. Es información útil por sí misma: renovar es continuar un período, y hay que ver desde dónde.
 
 - **Cambiar de plan resetea el recargo a "sin recargo".** La sugerencia anterior se calculó con los precios del plan viejo; re-aplicarla en silencio bajo un monto nuevo es peor que hacer que el operador la vuelva a elegir. La opción sigue en el select, con el monto del plan nuevo y su motivo.
