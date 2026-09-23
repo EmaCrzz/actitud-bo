@@ -26,7 +26,7 @@
 | 6a | Sección Clientes — listado | ✅ completa | Rama `feat/v2-clientes` (PR [#53](https://github.com/EmaCrzz/actitud-bo/pull/53)). ADR [20260916120738](../architecture/decisions/20260916120738_v2-listado-de-clientes.md). Query canónico compartido server/client, filtros en la URL. ~~scroll infinito~~ → **corregido a paginación en 6b**. |
 | 6b | Perfil del cliente + paginación | ✅ completa | Rama `feat/v2-perfil-cliente`. ADR [20260916161500](../architecture/decisions/20260916161500_v2-perfil-de-cliente-y-paginacion.md). Panel de 4 tabs, paginador transversal, filtro de estado a 3 valores, migración B10+B11. **No hay menú de acciones de fila** (el nodo que el plan creía que era, es el filtro `Estado`). Mobile sin verificar. |
 | 7 | Alta de cliente (desde Home y desde Clientes) | ✅ completa | Rama `feat/v2-alta-cliente`. ADR [20260918112629](../architecture/decisions/20260918112629_v2-alta-de-cliente.md). Un panel con dos entradas, **toda alta cobra** (excepto VIP), B12 cerrada, residuo del defecto C eliminado. **Dos migraciones con orden de deploy obligatorio** — ver [Fase 7](#fase-7--alta-de-cliente). |
-| 8 | Registrar pago / renovar membresía + comprobante | 🟡 en curso | Fundaciones en producción con **v0.13.0/v0.13.1**. **Panel de renovación construido** (rama `feat/v2-renovar-membresia`), ADR [20260922173000](../architecture/decisions/20260922173000_v2-panel-de-renovacion-de-membresia.md) — sin migraciones. Falta el **comprobante compartible** y la **entrada desde el home**. Ver [Fase 8](#fase-8--registrar-pago--renovar-membresía--comprobante). |
+| 8 | Registrar pago / renovar membresía + comprobante | ✅ completa | Fundaciones en prod con **v0.13.0/v0.13.1**. Panel de renovación: PR [#62](https://github.com/EmaCrzz/actitud-bo/pull/62), ADR [20260922173000](../architecture/decisions/20260922173000_v2-panel-de-renovacion-de-membresia.md). Comprobante + cobro desde el home: rama `feat/v2-comprobante-y-pago-desde-home`, ADR [20260923140000](../architecture/decisions/20260923140000_v2-comprobante-de-pago-y-cobro-desde-el-home.md). **Ninguno de los dos llevó migraciones.** |
 | 9 | Sección Asistencias | ⬜ pendiente | |
 | 10 | Sección Membresías (planes y precios) | ⬜ pendiente | |
 | 11 | Sección Gastos (crear/editar/eliminar) | ⬜ pendiente | Requiere migración: `payment_method` en `expenses`. |
@@ -39,19 +39,17 @@
 
 ## Por dónde seguir
 
-> Última actualización: **2026-09-22**. Esta sección es el arranque de cualquier sesión nueva: decí en qué estado quedó todo y cuál es el siguiente movimiento, sin tener que leer el documento entero.
+> Última actualización: **2026-09-23**. Esta sección es el arranque de cualquier sesión nueva: decí en qué estado quedó todo y cuál es el siguiente movimiento, sin tener que leer el documento entero.
 
-**Dónde estamos: el panel de renovación está construido y la Fase 8 quedó a dos piezas de cerrar.** Las fundaciones (modelo de precio, recargo explícito, número de comprobante) viajaron en **v0.13.0/v0.13.1**. El panel de 2 pasos con su entrada desde el perfil está en la rama `feat/v2-renovar-membresia` — ADR [20260922173000](../architecture/decisions/20260922173000_v2-panel-de-renovacion-de-membresia.md), **sin migraciones**. Falta el **comprobante compartible** y la **entrada desde el home**. Ver [Fase 8](#fase-8--registrar-pago--renovar-membresía--comprobante).
+**Dónde estamos: la Fase 8 está cerrada.** Las fundaciones (modelo de precio, recargo explícito, número de comprobante) viajaron en **v0.13.0/v0.13.1**; el panel de renovación en el PR [#62](https://github.com/EmaCrzz/actitud-bo/pull/62); el comprobante compartible y el cobro desde el home en `feat/v2-comprobante-y-pago-desde-home`. **Ninguno de los dos PRs de UI llevó migraciones.** Ver [Fase 8](#fase-8--registrar-pago--renovar-membresía--comprobante).
+
+**El movimiento siguiente es el issue [#59](https://github.com/EmaCrzz/actitud-bo/issues/59)**, no la Fase 9. El criterio ya está decidido —el mes contable es cuándo entró la plata— y conviene ejecutarlo ahora, con el contexto de pagos fresco y antes de que **Balance (Fase 13)** se construya sobre la atribución equivocada. Detalle completo en la deuda de abajo. Después, la **Fase 9** (Asistencias), que es mayormente port de UI y no tiene brechas de DB.
 
 **Lo que cambió el diseño el 2026-09-22:** el paso 1 ahora tiene los **dos datepickers** (inicio y vencimiento), que antes no estaban. El panel los muestra con prefill derivado — inicio = día siguiente al vencimiento vigente, o hoy si ya venció — y con eso la renovación anticipada arranca sola en el período correcto.
 
 **Estado de entornos — todo desplegado y sin deuda.** Producción corre **v0.13.1** con las migraciones `20260921101140` y `20260922125530` aplicadas; dev está emparejado. Prod sigue con **0 usuarios con `v2_access`**, así que toda la v2 viaja apagada. No hay migraciones pendientes en ningún entorno.
 
 **Lo que este release cambió para los usuarios de v1:** el corte del recargo pasó del día 16 al 11, así que el dashboard de ingresos reclasifica los pagos de los días 11–15 —históricos incluidos— como "con recargo", y la barra del ciclo se pone amarilla cinco días antes. **No se migró ningún dato**: esa clasificación se calcula al leer. La auditoría de integridad antes y después del push salió byte a byte idéntica.
-
-**El movimiento siguiente: la UI de la Fase 8.** El flow está verificado y las fundaciones entregadas, así que lo que queda es pantalla — panel de 2 pasos, comprobante y las dos entradas, detallado en [Qué falta construir](#qué-falta-construir-la-ui). La **decisión #5 está cerrada** y con ella el último bloqueo de diseño de la fase.
-
-**Alternativa:** la **Fase 9** (Asistencias) es mayormente port de UI, sin brechas de DB. Su único pendiente de diseño es si los tabs de desktop desaparecen, como en mobile.
 
 **Lo que el release v0.12.0 arregló en producción, además de traer la Fase 7:**
 
@@ -998,22 +996,28 @@ Revisados contra las capturas nuevas. Lo que se resolvió, y lo que sigue abiert
 
 Y una observación de UX que no es defecto: la alerta amarilla *"Asistencia registrada a las 17:43"* del tab Membresía del perfil es información, no advertencia, y no es evidente por qué vive en ese tab.
 
-### Qué falta construir (la UI)
+### Qué se construyó (la UI)
 
-**Construido** en la rama `feat/v2-renovar-membresia` — ADR [20260922173000](../architecture/decisions/20260922173000_v2-panel-de-renovacion-de-membresia.md), sin migraciones:
+Dos PRs, **ninguno con migraciones**.
 
-- `RenewMembershipPanel.tsx` + `RenewMembershipStep.tsx` + `RenewSummaryStep.tsx` + `AmountChoiceField.tsx` — el flow de 2 pasos completo, con la ficha anclada arriba.
+**Panel de renovación** — PR [#62](https://github.com/EmaCrzz/actitud-bo/pull/62), ADR [20260922173000](../architecture/decisions/20260922173000_v2-panel-de-renovacion-de-membresia.md):
+
+- `RenewMembershipPanel` + `RenewMembershipStep` + `RenewSummaryStep` + `AmountChoiceField`.
 - `src/membership/renewal.ts` — período derivado, montos y etiqueta de período, todo puro.
-- `src/group/discount.ts` — el descuento de grupo, compartido entre server y browser (antes era server-only, y el panel es client component).
-- `fetchRenewalContext()` en `membership/api/client.ts` — plan vigente, vencimiento, inicio del período y `hasAssistancesThisMonth`.
+- `src/group/discount.ts` — el descuento de grupo, compartido server/browser.
+- `fetchRenewalContext()` — plan vigente, vencimiento, inicio del período y asistencias del mes.
 - Átomos: `components/v2/FormField.tsx` (subido desde `customer/`) y `components/v2/ui/InputCurrency.tsx`.
-- Entrada desde el perfil: el botón `Renovar` del footer ya no es un toast de "próximamente".
+- Entrada desde el perfil, y el fix del `DatePicker` que abría siempre en el mes de hoy (bug preexistente de la Fase 7).
 
-**Falta:**
+**Comprobante + cobro desde el home** — ADR [20260923140000](../architecture/decisions/20260923140000_v2-comprobante-de-pago-y-cobro-desde-el-home.md):
 
-- `src/membership/components/v2/PaymentReceipt.tsx` — 390 de ancho, centrado en desktop. **Se comparte como imagen** reusando [use-share-image.ts](../../src/lib/hooks/use-share-image.ts) y [share-image-button.tsx](../../src/assistance/share-image-button.tsx), que ya funcionan en producción para asistencias. El ícono del Figma dice PDF: avisar al diseñador — meter una librería de PDF al bundle no se justifica cuando el destino real es WhatsApp. Debe llevar el `receipt_number`, que el diseño no dibuja, y la `Fecha` sale de `membership_payments.created_at` (ver abajo).
-- El paso de búsqueda para la entrada desde el home, reusando el patrón de `AttendanceSearchCard` (filas con avatar + badge), y la acción rápida del home.
-- El botón `Compartir` del dialog de éxito, que hoy tiene una sola acción (`ConfirmDialog` acepta `showCancel={false}` desde este PR).
+- `PaymentReceipt.tsx` — 390px fijos, colores literales (`html-to-image` serializa estilos computados y las CSS vars de `[data-v2]` no resuelven fuera de su árbol), con `receipt_number`. **Se comparte como imagen, no PDF.**
+- `RenewSuccessDialog.tsx` — el `Modal Dialog` del Figma con el check verde, y el comprobante a tamaño real antes de mandarlo.
+- `RenewCustomerSearchStep.tsx` — sobre `fetchCustomersPage`, el query canónico del listado, para que la fila traiga plan y badge.
+- `useShareImage` extendido: tamaño opcional y share nativo con fallback a descarga, **preservando los defaults del top de asistencias**.
+- Acción rápida del home enganchada: el panel abre sin cliente y arranca en el buscador.
+
+**Pendiente con el diseñador:** el wordmark "ACTITUD" y la marca de agua del isotipo **no existen como assets en el repo**. El comprobante usa la marca del sidebar (círculo + nombre del negocio) mientras tanto.
 
 ### El modelo de fechas, actualizado con las capturas del 2026-09-22
 
@@ -1065,12 +1069,12 @@ El formulario tiene que **calcular y mostrar el monto sugerido** usando `getCycl
 **Riesgo timezone:** **el más alto de todo el plan.** `payment_date` determina el mes contable y, vía `getCyclePhaseForDate`, si se cobra recargo. Un desfase de 3 horas el día 15 a las 22hs cobra recargo de más. Este es exactamente el bug que ya pasó dos veces (ADR [20260709153000](../architecture/decisions/20260709153000_representacion-canonica-de-fechas-ar.md)). **Auditar cada call site nuevo, sin excepción.**
 
 **Definición de hecho:**
-- [ ] Pago completo desde ambas entradas *(Perfil de cliente ✅; Home pendiente)*
+- [x] Pago completo desde ambas entradas (Home y Perfil de cliente)
 - [x] Monto sugerido correcto en días 1–10, 11–15 y 16+ *(lógica: `getSuggestedCharge`)*
-- [ ] Monto sugerido verificado **en pantalla** en los tres tramos
+- [x] Monto sugerido verificado **en pantalla** en los tres tramos *(recargo por mora y media membresía, validados por Ema el 2026-09-23)*
 - [x] Descuento de grupo familiar aplicado *(preseleccionado; falta verlo con un grupo real en preview)*
 - [x] Recargo sugerido con el motivo visible, editable y no obligatorio
-- [ ] `Payment Receipt` renderiza y se comparte como imagen
+- [x] `Payment Receipt` renderiza y se comparte como imagen
 - [x] Idempotencia verificada: doble submit no crea dos pagos *(ejercitado contra Postgres local; el re-cobro pisa la fila y **no** consume número de comprobante nuevo)*
 - [x] `receipt_number` en DB *(falta mostrarlo en el comprobante)*
 - [x] ~~Defecto C verificado en dev~~ — cerrado en la Fase 7

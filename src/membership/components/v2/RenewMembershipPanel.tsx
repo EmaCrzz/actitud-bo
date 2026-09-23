@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
-import ConfirmDialog from '@/components/v2/ConfirmDialog'
 import { DataTableAvatar } from '@/components/v2/DataTable'
 import SidePanel from '@/components/v2/SidePanel'
 import Stepper from '@/components/v2/Stepper'
@@ -17,20 +16,23 @@ import { basicMembershipValidation } from '@/customer/utils'
 import { CUSTOMER_STATUS_LABEL, CUSTOMER_STATUS_TONE } from '@/customer/components/v2/customer-status'
 import { fetchApplicableDiscount } from '@/group/api/client'
 import { computeDiscountAmount } from '@/group/discount'
-import { formatCurrency } from '@/lib/format-currency'
 import { getInitials } from '@/lib/format-person'
 import { useTranslations } from '@/lib/i18n/context'
-import { getAppTzDateParts, isExpiredInAppTz, parseAppTzDateString } from '@/lib/timezone'
+import {
+  getAppTzDateParts,
+  getTodayIsoDateInAppTz,
+  isExpiredInAppTz,
+  parseAppTzDateString,
+} from '@/lib/timezone'
 import {
   fetchRenewalContext,
   getMembershipTypes,
   type RenewalContext,
 } from '@/membership/api/client'
-import { getPeriodBaseAmount } from '@/membership/charge-mode'
+import { getPeriodBaseAmount, getPeriodModeOptions } from '@/membership/charge-mode'
 import {
   MEMBERSHIP_TYPE_VIP,
   MembershipTranslationShort,
-  PaymentsTranslation,
   type MembershipTypes,
   type PaymentType,
 } from '@/membership/consts'
@@ -44,7 +46,10 @@ import {
   resolveRenewalPeriod,
   type RenewalFormValues,
 } from '@/membership/renewal'
+import { type PaymentReceiptData } from './PaymentReceipt'
+import RenewCustomerSearchStep from './RenewCustomerSearchStep'
 import RenewMembershipStep from './RenewMembershipStep'
+import RenewSuccessDialog from './RenewSuccessDialog'
 import RenewSummaryStep from './RenewSummaryStep'
 
 export interface RenewableCustomer {
@@ -54,6 +59,10 @@ export interface RenewableCustomer {
 }
 
 interface RenewMembershipPanelProps {
+  /**
+   * Cliente ya resuelto — la entrada desde el perfil. `null` abre el panel en
+   * el buscador, que es la entrada desde el home.
+   */
   customer: RenewableCustomer | null
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -67,8 +76,8 @@ interface RenewMembershipPanelProps {
  * El Figma dibuja el flow dos veces, "Desde el home" (10 pantallas) y "Desde
  * Cliente/Perfil" (7), pero es **un formulario con dos entradas**, igual que el
  * alta de la Fase 7: las tres pantallas de más son el buscador de cliente que
- * hace falta cuando no se viene de una ficha. Este componente recibe el cliente
- * ya resuelto; quién lo elige es problema de quien abre el panel.
+ * hace falta cuando no se viene de una ficha. Las dos viven acá: con `customer`
+ * el panel arranca en el stepper, sin él arranca en el buscador y sigue igual.
  *
  * EL PRECIO SE PROPONE, NO SE IMPONE (Ema, 2026-09-21). `getSuggestedCharge()`
  * devuelve la porción del mes y el recargo que corresponden por política, y el
@@ -92,10 +101,15 @@ export default function RenewMembershipPanel({
   const { isAdmin } = usePermissions()
 
   const [step, setStep] = useState(0)
+  /**
+   * Cliente elegido en el buscador. Sólo se usa en la entrada desde el home:
+   * cuando el panel recibe `customer`, este estado nunca se toca.
+   */
+  const [pickedCustomer, setPickedCustomer] = useState<RenewableCustomer | null>(null)
   const [values, setValues] = useState<RenewalFormValues | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
-  const [receipt, setReceipt] = useState<{ number: string | null; total: number } | null>(null)
+  const [receipt, setReceipt] = useState<PaymentReceiptData | null>(null)
 
   const { data: membershipTypes = [] } = useQuery({
     queryKey: ['membership-types', 'v2'],
@@ -107,10 +121,15 @@ export default function RenewMembershipPanel({
     staleTime: 5 * 60 * 1000,
   })
 
+  // El cliente sobre el que trabaja el panel, venga de donde venga.
+  const activeCustomer = customer ?? pickedCustomer
+  // Sin cliente todavía elegido, el panel está en el buscador.
+  const isSearching = !activeCustomer
+
   const { data: context, isPending: isContextPending } = useQuery({
-    queryKey: ['renewal-context', 'v2', customer?.id],
-    queryFn: () => fetchRenewalContext(customer!.id),
-    enabled: Boolean(open && customer?.id),
+    queryKey: ['renewal-context', 'v2', activeCustomer?.id],
+    queryFn: () => fetchRenewalContext(activeCustomer!.id),
+    enabled: Boolean(open && activeCustomer?.id),
     // El contexto define el prefill del período y la sugerencia de recargo: se
     // relee en cada apertura porque entre una y otra pudo registrarse una
     // asistencia, que es justo lo que distingue mora de ingreso nuevo.
@@ -135,16 +154,16 @@ export default function RenewMembershipPanel({
   // y modalidad, y refetchear por eso sería un round trip por click para
   // rehacer una multiplicación.
   const { data: discountRule = null, isFetched: isDiscountFetched } = useQuery({
-    queryKey: ['applicable-discount', 'v2', customer?.id],
+    queryKey: ['applicable-discount', 'v2', activeCustomer?.id],
     queryFn: () =>
       fetchApplicableDiscount(
-        customer!.id,
+        activeCustomer!.id,
         getPeriodBaseAmount(
           membershipTypes.find((type) => type.type === context?.membership_type) ?? null,
           'full'
         )
       ),
-    enabled: Boolean(open && customer?.id && context && membershipTypes.length > 0),
+    enabled: Boolean(open && activeCustomer?.id && context && membershipTypes.length > 0),
     staleTime: 5 * 60 * 1000,
   })
 
@@ -168,6 +187,7 @@ export default function RenewMembershipPanel({
   useEffect(() => {
     if (open) return
     setStep(0)
+    setPickedCustomer(null)
     setValues(null)
     setErrors({})
     setLoading(false)
@@ -245,6 +265,18 @@ export default function RenewMembershipPanel({
    * muestra días restantes, no la fecha— y ese día es justamente el que decide
    * si este cobro entra como pago nuevo o pisa el anterior.
    */
+  /**
+   * Clave i18n de la modalidad elegida. La resuelven el resumen del paso 2 y el
+   * comprobante, que tienen que decir lo mismo — en el Figma se contradicen
+   * ("Mes completo" en uno, "Medio mes" en el otro para la misma operación).
+   */
+  const periodModeLabel = useMemo(
+    () =>
+      getPeriodModeOptions(selectedType).find((option) => option.mode === values?.period_mode)
+        ?.labelKey ?? null,
+    [selectedType, values?.period_mode]
+  )
+
   const currentPeriod = useMemo(() => {
     if (!context?.period_start || !context.expiration_date) return null
 
@@ -332,7 +364,7 @@ export default function RenewMembershipPanel({
   }, [buildFormData, validate])
 
   const handleSubmit = useCallback(async () => {
-    if (!customer || !values) return
+    if (!activeCustomer || !values) return
     setErrors({})
 
     const formData = buildFormData()
@@ -346,7 +378,7 @@ export default function RenewMembershipPanel({
     }
 
     setLoading(true)
-    const response = await upsertCustomerMembership({ customerId: customer.id, formData })
+    const response = await upsertCustomerMembership({ customerId: activeCustomer.id, formData })
 
     setLoading(false)
 
@@ -361,60 +393,103 @@ export default function RenewMembershipPanel({
       return
     }
 
-    // El comprobante viaja en la respuesta del RPC justamente para no tener que
-    // releer `membership_payments`, que es admin-only por RLS.
+    // El comprobante se arma con lo que ya tenemos en pantalla más el número
+    // que devuelve el RPC. Nada de releer `membership_payments`: es admin-only
+    // por RLS y el comprobante tiene que salir igual para un operador sin
+    // permisos de finanzas.
     setReceipt({
-      number: (response.data?.receipt_number as string | undefined) ?? null,
+      customerName: `${activeCustomer.first_name} ${activeCustomer.last_name}`.trim(),
+      membershipType: values.membership_type as MembershipTypes,
+      periodModeLabel: periodModeLabel ? t(periodModeLabel) : null,
+      base: amounts.base,
+      discount: amounts.discount,
+      surcharge: amounts.surcharge,
       total: amounts.total,
+      paymentMethod: values.payment_type,
+      // Día de emisión en la TZ del negocio. Para un cobro recién registrado es
+      // su `created_at`; ver el docblock de `PaymentReceipt`.
+      issuedOn: getTodayIsoDateInAppTz(),
+      receiptNumber: (response.data?.receipt_number as string | undefined) ?? null,
     })
     onRenewed?.()
-  }, [customer, values, buildFormData, validate, amounts.total, onRenewed, t])
+  }, [activeCustomer, values, buildFormData, validate, amounts, periodModeLabel, onRenewed, t])
 
-  const name = customer ? `${customer.first_name} ${customer.last_name}`.trim() : ''
+  const name = activeCustomer
+    ? `${activeCustomer.first_name} ${activeCustomer.last_name}`.trim()
+    : ''
   const isLastStep = step === 1
   const isReady = Boolean(values && !isContextPending)
+  /** Entrando desde el home, el paso 1 puede volver a la busqueda. */
+  const canGoBackToSearch = !customer && !!pickedCustomer
+
+  const handleBack = useCallback(() => {
+    if (isLastStep) {
+      setStep(0)
+
+      return
+    }
+    // Volver a la busqueda descarta el formulario a proposito: el prefill, la
+    // sugerencia y el periodo se calcularon para el cliente anterior, y
+    // arrastrarlos al siguiente cobraria con los numeros de otra persona.
+    if (canGoBackToSearch) {
+      setPickedCustomer(null)
+      setValues(null)
+      setErrors({})
+
+      return
+    }
+    onOpenChange(false)
+  }, [isLastStep, canGoBackToSearch, onOpenChange])
 
   return (
     <>
       <SidePanel
+        // El buscador no tiene footer: la accion es elegir una fila, y un
+        // "Siguiente" deshabilitado al pie solo agrega un boton muerto.
         footer={
-          <div className='flex items-center justify-between gap-3'>
-            <Button
-              disabled={loading}
-              type='button'
-              variant='outlined'
-              onClick={() => (isLastStep ? setStep(0) : onOpenChange(false))}
-            >
-              {isLastStep ? t('common.back') : t('common.cancel')}
-            </Button>
-            <Button
-              disabled={loading || !isReady}
-              type='button'
-              onClick={isLastStep ? handleSubmit : handleNext}
-            >
-              {loading && <Loader2 aria-hidden className='size-4 animate-spin' />}
-              {loading
-                ? t('v2.membership.renew.submitting')
-                : isLastStep
-                  ? t('v2.membership.renew.submit')
-                  : t('common.next')}
-            </Button>
-          </div>
+          isSearching ? undefined : (
+            <div className='flex items-center justify-between gap-3'>
+              <Button
+                disabled={loading}
+                type='button'
+                variant='outlined'
+                onClick={handleBack}
+              >
+                {isLastStep || canGoBackToSearch ? t('common.back') : t('common.cancel')}
+              </Button>
+              <Button
+                disabled={loading || !isReady}
+                type='button'
+                onClick={isLastStep ? handleSubmit : handleNext}
+              >
+                {loading && <Loader2 aria-hidden className='size-4 animate-spin' />}
+                {loading
+                  ? t('v2.membership.renew.submitting')
+                  : isLastStep
+                    ? t('v2.membership.renew.submit')
+                    : t('common.next')}
+              </Button>
+            </div>
+          )
         }
         open={open}
         pinned={
-          <div className='flex flex-col gap-4'>
-            {customer && <CustomerCard context={context} name={name} />}
-            <Stepper
-              current={step}
-              steps={[t('v2.membership.renew.stepNew'), t('v2.membership.renew.stepConfirm')]}
-            />
-          </div>
+          isSearching ? undefined : (
+            <div className='flex flex-col gap-4'>
+              {activeCustomer && <CustomerCard context={context} name={name} />}
+              <Stepper
+                current={step}
+                steps={[t('v2.membership.renew.stepNew'), t('v2.membership.renew.stepConfirm')]}
+              />
+            </div>
+          )
         }
         title={t('v2.membership.renew.title')}
         onOpenChange={onOpenChange}
       >
-        {!isReady || !values ? (
+        {isSearching ? (
+          <RenewCustomerSearchStep onSelect={setPickedCustomer} />
+        ) : !isReady || !values ? (
           <StepSkeleton />
         ) : step === 0 ? (
           <RenewMembershipStep
@@ -439,42 +514,11 @@ export default function RenewMembershipPanel({
         )}
       </SidePanel>
 
-      {/* El éxito es un `Modal Dialog` centrado sobre el panel, no un toast: el
-          Figma lo dibuja con el resumen de la operación porque es desde ahí que
-          se comparte el comprobante. El botón `Compartir` llega con el
-          `PaymentReceipt` (PR B de la fase); hasta entonces el dialog tiene una
-          sola acción, en vez de dos botones que hacen lo mismo. */}
-      <ConfirmDialog
-        confirmLabel={t('common.understood')}
-        description={
-          <span className='flex flex-col gap-1'>
-            <span className='text-foreground font-medium'>
-              {`${name} - ${
-                values?.membership_type
-                  ? t(MembershipTranslationShort[values.membership_type as MembershipTypes])
-                  : ''
-              } ${formatCurrency(receipt?.total ?? 0)}`}
-            </span>
-            {values?.payment_type && (
-              <span>
-                {t('v2.membership.renew.success.method', {
-                  method: t(PaymentsTranslation[values.payment_type as PaymentType]),
-                })}
-              </span>
-            )}
-            {receipt?.number && (
-              <span>{t('v2.membership.renew.success.receipt', { number: receipt.number })}</span>
-            )}
-          </span>
-        }
-        open={!!receipt}
-        showCancel={false}
-        title={t('v2.membership.renew.success.title')}
-        onConfirm={() => onOpenChange(false)}
-        onOpenChange={(next) => {
-          if (!next) onOpenChange(false)
-        }}
-      />
+      {/* El éxito es un `Modal Dialog` centrado sobre el panel, no un toast:
+          el Figma lo dibuja con el resumen de la operación porque es desde ahí
+          que se comparte el comprobante. Cerrarlo cierra también el panel — el
+          flow del diseño vuelve a la pantalla de origen, ya actualizada. */}
+      <RenewSuccessDialog receipt={receipt} onClose={() => onOpenChange(false)} />
     </>
   )
 }
