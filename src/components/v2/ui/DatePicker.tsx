@@ -117,6 +117,15 @@ export default function DatePicker({
         >
           <Calendar
             captionLayout='dropdown'
+            // Sin `defaultMonth`, `DayPicker` abre siempre en el mes de HOY
+            // aunque el campo tenga otra fecha: un vencimiento en 31/10 mostraba
+            // septiembre y había que navegar a mano hasta encontrar el día
+            // marcado. `selected` sólo pinta el día, no mueve la vista.
+            //
+            // Alcanza con el valor inicial (`defaultMonth` y no `month`) porque
+            // el popover de Radix desmonta su contenido al cerrarse, así que
+            // cada apertura vuelve a evaluarlo con el valor vigente.
+            defaultMonth={selected}
             mode='single'
             selected={selected}
             onSelect={handleSelect}

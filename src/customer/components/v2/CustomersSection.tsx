@@ -21,6 +21,7 @@ import {
 import type { CustomerWithMembership } from '@/customer/types'
 import { useTranslations } from '@/lib/i18n/context'
 import type { MembershipTypes } from '@/membership/consts'
+import RenewMembershipPanel from '@/membership/components/v2/RenewMembershipPanel'
 import CustomerFilters from './CustomerFilters'
 import CustomerFormPanel from './CustomerFormPanel'
 import CustomerProfilePanel from './CustomerProfilePanel'
@@ -60,6 +61,7 @@ export default function CustomersSection({
   // animación de salida no se quede sin contenido a mitad de camino.
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerWithMembership | null>(null)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [isRenewOpen, setIsRenewOpen] = useState(false)
 
   const filters = useMemo<CustomerListFilters>(
     () => ({ query: debouncedQuery, status, membershipType }),
@@ -219,6 +221,22 @@ export default function CustomersSection({
         customer={selectedCustomer}
         open={isProfileOpen}
         onOpenChange={setIsProfileOpen}
+        // El Figma reemplaza el perfil por el panel de renovación en vez de
+        // apilarlos: son el mismo contenedor de 480px pegado al mismo borde, y
+        // dos Sheets superpuestos dejarían el de atrás inerte pero visible.
+        onRenew={() => {
+          setIsProfileOpen(false)
+          setIsRenewOpen(true)
+        }}
+      />
+
+      <RenewMembershipPanel
+        customer={selectedCustomer}
+        open={isRenewOpen}
+        onOpenChange={setIsRenewOpen}
+        // La renovación mueve el vencimiento y el estado de la fila, que salen
+        // de la query del listado.
+        onRenewed={() => refetch()}
       />
     </div>
   )
