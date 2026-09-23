@@ -4,7 +4,7 @@ import Input from '@/components/v2/ui/Input'
 import DatePicker from '@/components/v2/ui/DatePicker'
 import { formatPersonId } from '@/lib/format-person-id'
 import { useTranslations } from '@/lib/i18n/context'
-import CustomerFormField from './CustomerFormField'
+import FormField from '@/components/v2/FormField'
 import type { CustomerFormPersonalValues } from './customer-form-state'
 
 interface Props {
@@ -28,7 +28,7 @@ export default function CustomerFormPersonalStep({ values, errors, onChange }: P
 
   return (
     <div className='flex flex-col gap-4'>
-      <CustomerFormField
+      <FormField
         error={errors.first_name}
         htmlFor='first_name'
         label={t('v2.customers.form.firstName')}
@@ -39,9 +39,9 @@ export default function CustomerFormPersonalStep({ values, errors, onChange }: P
           value={values.first_name}
           onChange={(event) => onChange({ first_name: event.target.value })}
         />
-      </CustomerFormField>
+      </FormField>
 
-      <CustomerFormField
+      <FormField
         error={errors.last_name}
         htmlFor='last_name'
         label={t('v2.customers.form.lastName')}
@@ -52,10 +52,10 @@ export default function CustomerFormPersonalStep({ values, errors, onChange }: P
           value={values.last_name}
           onChange={(event) => onChange({ last_name: event.target.value })}
         />
-      </CustomerFormField>
+      </FormField>
 
       <div className='grid gap-4 sm:grid-cols-2'>
-        <CustomerFormField
+        <FormField
           error={errors.person_id}
           htmlFor='person_id'
           label={t('v2.customers.form.personId')}
@@ -69,9 +69,9 @@ export default function CustomerFormPersonalStep({ values, errors, onChange }: P
             // limpia recién al mandarlo al RPC: la columna guarda el DNI pelado.
             onChange={(event) => onChange({ person_id: formatPersonId(event.target.value) })}
           />
-        </CustomerFormField>
+        </FormField>
 
-        <CustomerFormField
+        <FormField
           error={errors.birth_date}
           htmlFor='birth_date'
           label={t('v2.customers.form.birthDate')}
@@ -83,10 +83,10 @@ export default function CustomerFormPersonalStep({ values, errors, onChange }: P
             placeholder={t('v2.customers.form.datePlaceholder')}
             onValueChange={(value) => onChange({ birth_date: value })}
           />
-        </CustomerFormField>
+        </FormField>
       </div>
 
-      <CustomerFormField error={errors.phone} htmlFor='phone' label={t('v2.customers.form.phone')}>
+      <FormField error={errors.phone} htmlFor='phone' label={t('v2.customers.form.phone')}>
         <Input
           autoComplete='off'
           id='phone'
@@ -94,7 +94,7 @@ export default function CustomerFormPersonalStep({ values, errors, onChange }: P
           value={values.phone}
           onChange={(event) => onChange({ phone: event.target.value })}
         />
-      </CustomerFormField>
+      </FormField>
     </div>
   )
 }

@@ -6,12 +6,7 @@ import {
   CustomerGroupWithMembers,
   GroupMemberSummary,
 } from '@/group/types'
-import {
-  DISCOUNT_APPLIES_TO_GROUP_MEMBER,
-  DISCOUNT_TYPE_FIXED,
-  DISCOUNT_TYPE_PERCENT,
-  GROUP_MIN_MEMBERS_FOR_DISCOUNT,
-} from '@/group/consts'
+import { resolveApplicableDiscount } from '@/group/discount'
 import { getAppTzDateParts } from '@/lib/timezone'
 
 // Grupos activos a los que pertenece un cliente, con el conteo de miembros
@@ -151,71 +146,16 @@ export async function getGroupWithMembers(
 // Descuento aplicable al cliente ahora mismo. Devuelve la primera regla
 // activa `group_member` cuyo grupo tenga >= GROUP_MIN_MEMBERS_FOR_DISCOUNT
 // miembros activos. Si no hay match, null.
+//
+// La lógica vive en [src/group/discount.ts] desde la Fase 8: el panel de
+// renovación necesita el mismo dato desde el browser, y este módulo no se puede
+// importar desde un client component. Acá queda sólo el cableado del cliente
+// de server.
 export async function getApplicableDiscountForCustomer(
   customerId: string,
   membershipGrossAmount: number | null
 ): Promise<ApplicableDiscount | null> {
   const supabase = await createClient()
 
-  const { data: memberships } = await supabase
-    .from('customer_group_members')
-    .select('group_id, customer_groups!inner ( id, name )')
-    .eq('customer_id', customerId)
-    .is('left_at', null)
-
-  if (!memberships || memberships.length === 0) return null
-
-  const groupIds = memberships.map((m) => m.group_id)
-
-  const { data: allMembers } = await supabase
-    .from('customer_group_members')
-    .select('group_id')
-    .in('group_id', groupIds)
-    .is('left_at', null)
-
-  const activeByGroup = new Map<string, number>()
-
-  ;(allMembers ?? []).forEach((m) => {
-    activeByGroup.set(m.group_id, (activeByGroup.get(m.group_id) ?? 0) + 1)
-  })
-
-  const eligibleGroup = memberships.find(
-    (m) => (activeByGroup.get(m.group_id) ?? 0) >= GROUP_MIN_MEMBERS_FOR_DISCOUNT
-  )
-
-  if (!eligibleGroup) return null
-
-  const { data: rules } = await supabase
-    .from('discount_rules')
-    .select('*')
-    .eq('applies_to', DISCOUNT_APPLIES_TO_GROUP_MEMBER)
-    .eq('active', true)
-    .order('created_at', { ascending: true })
-    .limit(1)
-
-  const rule = rules?.[0]
-
-  if (!rule) return null
-
-  const groupInfo = eligibleGroup.customer_groups as unknown as {
-    id: string
-    name: string
-  }
-
-  const suggestedAmount =
-    rule.type === DISCOUNT_TYPE_FIXED
-      ? rule.value
-      : rule.type === DISCOUNT_TYPE_PERCENT && membershipGrossAmount != null
-        ? Math.round(membershipGrossAmount * (rule.value / 100))
-        : 0
-
-  return {
-    rule,
-    group: {
-      id: groupInfo.id,
-      name: groupInfo.name,
-      active_members_count: activeByGroup.get(eligibleGroup.group_id) ?? 0,
-    },
-    suggested_amount: suggestedAmount,
-  }
+  return resolveApplicableDiscount(supabase, customerId, membershipGrossAmount)
 }

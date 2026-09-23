@@ -844,6 +844,65 @@
         "submitting": "Un momento",
         "successMessage": "Nuevo cliente creado correctamente"
       }
+    },
+    "membership": {
+      "renew": {
+        "title": "Renovar membresía",
+        "stepNew": "Nueva membresía",
+        "stepConfirm": "Confirmar",
+        "currentPlan": "Membresía: {plan}",
+        "membershipType": "Tipo de membresía",
+        "chargeMode": "Modalidad de cobro",
+        "startDate": "Fecha de inicio",
+        "endDate": "Fecha de vencimiento",
+        "datePlaceholder": "dd/mm/aaaa",
+        "dailyPeriodNotice": "Pase válido sólo por hoy, {date}. El pase diario no elige fechas.",
+        "currentPeriod": "Período vigente pago: {start} – {end}",
+        "conditions": "Condiciones y forma de pago",
+        "promotions": "Promociones",
+        "noPromotion": "Sin promoción",
+        "discount": "Descuento",
+        "surcharge": "Recargo",
+        "noDiscount": "Sin descuento",
+        "noSurcharge": "Sin recargo",
+        "lateFee": "Recargo por mora",
+        "otherAmount": "Otro monto…",
+        "amountPlaceholder": "$ 0",
+        "noteLabel": "Motivo",
+        "noteLabelOptional": "Motivo (opcional)",
+        "notePlaceholder": "Por qué se aplica",
+        "discountReason": "{group} · {members} integrantes activos",
+        "reason": {
+          "late_payment": "Ya registró asistencias este mes y paga pasada la fecha.",
+          "mid_month_entry": "Entra en la segunda mitad del mes: media membresía, no es mora."
+        },
+        "paymentType": "Forma de pago",
+        "selectPlaceholder": "Selecciona una opción",
+        "selectPlaceholderShort": "Selecciona...",
+        "typeChangeWarning": "Este cobro pisa el pago del período vigente y conserva su número de comprobante. Si ya le entregaste un comprobante al cliente, va a dejar de coincidir con el monto registrado.",
+        "submit": "Confirmar pago",
+        "submitting": "Un momento",
+        "summary": {
+          "title": "Resumen",
+          "membership": "Membresía",
+          "chargeMode": "Modalidad de cobro",
+          "promotion": "Promoción activa",
+          "discount": "Descuento aplicado",
+          "surcharge": "Recargo",
+          "paymentMethod": "Método de pago",
+          "period": "Periodo",
+          "total": "Total",
+          "empty": "-"
+        },
+        "success": {
+          "title": "Membresía renovada",
+          "method": "Método: {method}",
+          "receipt": "Comprobante N° {number}"
+        },
+        "errors": {
+          "totalNotPositive": "El total a cobrar tiene que ser mayor a $ 0."
+        }
+      }
     }
   }
 }

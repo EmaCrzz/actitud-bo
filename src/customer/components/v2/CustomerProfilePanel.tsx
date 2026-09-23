@@ -7,7 +7,6 @@ import { DataTableAvatar } from '@/components/v2/DataTable'
 import SidePanel from '@/components/v2/SidePanel'
 import Button from '@/components/v2/ui/Button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/v2/ui/Tabs'
-import { useComingSoonToast } from '@/components/v2/use-coming-soon-toast'
 import { fetchCustomerProfile } from '@/customer/api/client'
 import type { CustomerWithMembership } from '@/customer/types'
 import { getInitials } from '@/lib/format-person'
@@ -29,6 +28,11 @@ interface CustomerProfilePanelProps {
   onOpenChange: (open: boolean) => void
   /** Ver `CustomerProfilePayments`: finanzas es admin-only a nivel RLS. */
   canReadPayments: boolean
+  /**
+   * Abre el flow de renovación (Fase 8). Lo maneja quien monta el panel porque
+   * el Figma **reemplaza** este panel por el de renovación en vez de apilarlos.
+   */
+  onRenew: () => void
 }
 
 /**
@@ -48,9 +52,9 @@ export default function CustomerProfilePanel({
   open,
   onOpenChange,
   canReadPayments,
+  onRenew,
 }: CustomerProfilePanelProps) {
   const { t } = useTranslations()
-  const notifyComingSoon = useComingSoonToast()
 
   const {
     data: profile,
@@ -71,9 +75,9 @@ export default function CustomerProfilePanel({
           <Button type='button' variant='outlined' onClick={() => onOpenChange(false)}>
             {t('common.cancel')}
           </Button>
-          {/* Renovar es el flow de la Fase 8 (`2167:22902`). El botón existe
-              porque el Figma lo ancla al footer del panel en las cuatro vistas. */}
-          <Button type='button' onClick={notifyComingSoon}>
+          {/* Renovar es el flow de la Fase 8 (`2167:22902`). El Figma lo ancla
+              al footer del panel en las cuatro vistas. */}
+          <Button type='button' onClick={onRenew}>
             <RefreshCw aria-hidden className='size-4' />
             {t('v2.customers.profile.renew')}
           </Button>

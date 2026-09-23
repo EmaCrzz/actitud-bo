@@ -2,12 +2,14 @@ import { createClient } from '@/lib/supabase/client'
 import { withRateLimit } from '@/lib/rate-limit'
 import { DatabaseResult } from '@/types/database-errors'
 import {
+  ApplicableDiscount,
   CustomerGroup,
   CustomerGroupWithCount,
   CustomerGroupWithMembers,
   GroupMemberSummary,
 } from '@/group/types'
 import { GROUP_TYPE_FAMILY } from '@/group/consts'
+import { resolveApplicableDiscount } from '@/group/discount'
 import { getAppTzDateParts } from '@/lib/timezone'
 
 // -------- Reads (cliente) --------
@@ -15,6 +17,25 @@ import { getAppTzDateParts } from '@/lib/timezone'
 // pantallas con React Query. Duplicamos el shape (no la lógica) porque el
 // server usa `createClient` de `@/lib/supabase/server` y el cliente el de
 // `@/lib/supabase/client` — distintos módulos, no compatibles.
+
+/**
+ * Descuento aplicable al cliente, desde el browser.
+ *
+ * Gemelo de `getApplicableDiscountForCustomer` ([../api/server.ts]): **el mismo
+ * cuerpo**, importado de [src/group/discount.ts]. Acá sólo cambia de dónde sale
+ * el cliente de Supabase. Lo consume el panel de renovación de la Fase 8, que
+ * prefija el campo Descuento con `suggested_amount`.
+ *
+ * `membershipGrossAmount` importa sólo para reglas `percent`: el panel lo
+ * recalcula cada vez que cambia el plan o la modalidad de cobro, porque el
+ * porcentaje se aplica sobre el bruto vigente.
+ */
+export async function fetchApplicableDiscount(
+  customerId: string,
+  membershipGrossAmount: number | null
+): Promise<ApplicableDiscount | null> {
+  return resolveApplicableDiscount(createClient(), customerId, membershipGrossAmount)
+}
 
 async function _listGroupsWithCount(): Promise<CustomerGroupWithCount[]> {
   const supabase = createClient()

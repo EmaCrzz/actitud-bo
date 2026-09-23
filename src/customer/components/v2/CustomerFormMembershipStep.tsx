@@ -23,7 +23,7 @@ import {
   type MembershipTypes,
 } from '@/membership/consts'
 import type { MembershipType } from '@/membership/types'
-import CustomerFormField from './CustomerFormField'
+import FormField from '@/components/v2/FormField'
 import { resolveMembershipPeriod, type CustomerFormMembershipValues } from './customer-form-state'
 
 interface Props {
@@ -87,7 +87,7 @@ export default function CustomerFormMembershipStep({
 
   return (
     <div className='flex flex-col gap-4'>
-      <CustomerFormField
+      <FormField
         error={errors.membership_type}
         htmlFor='membership_type'
         label={t('v2.customers.form.membershipType')}
@@ -116,10 +116,10 @@ export default function CustomerFormMembershipStep({
             ))}
           </SelectContent>
         </Select>
-      </CustomerFormField>
+      </FormField>
 
       {showChargeMode && (
-        <CustomerFormField
+        <FormField
           error={errors.charge_mode}
           htmlFor='charge_mode'
           label={t('v2.customers.form.chargeMode')}
@@ -139,7 +139,7 @@ export default function CustomerFormMembershipStep({
               ))}
             </SelectContent>
           </Select>
-        </CustomerFormField>
+        </FormField>
       )}
 
       {isDaily ? (
@@ -150,7 +150,7 @@ export default function CustomerFormMembershipStep({
         </p>
       ) : (
         <div className='grid gap-4 sm:grid-cols-2'>
-          <CustomerFormField
+          <FormField
             error={errors.start_date}
             htmlFor='start_date'
             label={t('v2.customers.form.startDate')}
@@ -162,9 +162,9 @@ export default function CustomerFormMembershipStep({
               placeholder={t('v2.customers.form.datePlaceholder')}
               onValueChange={(value) => onChange({ start_date: value })}
             />
-          </CustomerFormField>
+          </FormField>
 
-          <CustomerFormField
+          <FormField
             error={errors.end_date}
             htmlFor='end_date'
             label={t('v2.customers.form.endDate')}
@@ -176,12 +176,12 @@ export default function CustomerFormMembershipStep({
               placeholder={t('v2.customers.form.datePlaceholder')}
               onValueChange={(value) => onChange({ end_date: value })}
             />
-          </CustomerFormField>
+          </FormField>
         </div>
       )}
 
       {!isVip && (
-        <CustomerFormField
+        <FormField
           error={errors.payment_type}
           htmlFor='payment_type'
           label={t('v2.customers.form.paymentType')}
@@ -201,14 +201,14 @@ export default function CustomerFormMembershipStep({
               ))}
             </SelectContent>
           </Select>
-        </CustomerFormField>
+        </FormField>
       )}
 
       <div className='flex flex-col gap-3'>
         <p className='text-muted-foreground border-b pb-2 text-sm'>
           {t('v2.customers.form.observations')}
         </p>
-        <CustomerFormField htmlFor='notes' label={t('v2.customers.form.notes')}>
+        <FormField htmlFor='notes' label={t('v2.customers.form.notes')}>
           <Textarea
             id='notes'
             placeholder={t('v2.customers.form.notesPlaceholder')}
@@ -216,7 +216,7 @@ export default function CustomerFormMembershipStep({
             value={values.notes}
             onChange={(event) => onChange({ notes: event.target.value })}
           />
-        </CustomerFormField>
+        </FormField>
       </div>
     </div>
   )
