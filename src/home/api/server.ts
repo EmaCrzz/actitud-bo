@@ -116,6 +116,10 @@ export async function getDailySummary(): Promise<DailySummary> {
     return count ?? 0
   }
 
+  // "Pagos registrados hoy" cuenta por `payment_date`, que desde el issue #59
+  // es el momento del cobro. Antes guardaba el inicio del período, así que este
+  // contador mostraba los pagos cuyo período arrancaba hoy —el día 1 del mes
+  // sumaba decenas, y un cobro hecho hoy para el mes en curso no aparecía.
   const getPaymentsRegistered = async () => {
     const { count } = await supabase
       .from('membership_payments')

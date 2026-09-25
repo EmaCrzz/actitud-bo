@@ -24,6 +24,11 @@ function withCanonicalExpenseDate<T extends { expense_date?: string }>(input: T)
 }
 
 // Membership Payments
+//
+// Lista y filtra por `payment_date` — criterio de caja: el mes de un pago es el
+// mes en que entró la plata. El período que cubre la cuota vive en
+// `period_start` desde el issue #59, y este listado no lo usa a propósito: es
+// la vista contable de los cobros, no del ciclo de cobranza.
 export const getMembershipPayments = async (
   filters?: AccountingFilters
 ): Promise<MembershipPayment[]> => {
@@ -251,7 +256,9 @@ export const getMonthlyStats = async (month: string): Promise<MonthlyStats[]> =>
   await requireAdmin()
 
   // Rango [start, end) del mes en AR — mismo criterio que /incomes para que
-  // ambos totales coincidan.
+  // ambos totales coincidan. Ingresos por `payment_date` (cuándo entró la
+  // plata) contra gastos por `expense_date`: los dos lados del balance miden
+  // caja, que es lo que los hace comparables. Ver el issue #59.
   const { start, end } = getMonthRangeFromKey(month)
   const startIso = start.toISOString()
   const endIso = end.toISOString()

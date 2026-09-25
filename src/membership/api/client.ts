@@ -136,7 +136,11 @@ export async function getActiveMemberships() {
   // Obtener todos los customer_ids
   const customerIds = memberships.map((m) => m.customer_id)
 
-  // Obtener todos los últimos pagos en una sola consulta
+  // Obtener todos los últimos pagos en una sola consulta. Ordena por
+  // `payment_date` = el cobro más reciente, que desde el issue #59 es de verdad
+  // el último: antes ordenaba por inicio de período, así que un cobro cargado
+  // hoy para un período viejo se colaba al frente y uno anticipado quedaba
+  // primero antes de haber ocurrido.
   const { data: allPayments } = await supabase
     .from('membership_payments')
     .select('customer_id, amount, payment_method, payment_date')
