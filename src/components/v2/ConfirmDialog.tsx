@@ -25,6 +25,12 @@ interface ConfirmDialogProps {
   destructive?: boolean
   /** Deshabilita ambos botones mientras la acción está en curso. */
   isPending?: boolean
+  /**
+   * `false` deja una sola acción. Lo usa el dialog de éxito de la renovación,
+   * donde no hay nada que cancelar — la operación ya ocurrió — y dos botones
+   * que cierran lo mismo son una elección falsa.
+   */
+  showCancel?: boolean
   onConfirm: () => void
 }
 
@@ -52,6 +58,7 @@ export default function ConfirmDialog({
   cancelLabel,
   destructive = false,
   isPending = false,
+  showCancel = true,
   onConfirm,
 }: ConfirmDialogProps) {
   const { t } = useTranslations()
@@ -73,11 +80,13 @@ export default function ConfirmDialog({
           )}
         </AlertDialogHeader>
         <AlertDialogFooter className='flex-row justify-end gap-3'>
-          <AlertDialogPrimitive.Cancel asChild>
-            <Button disabled={isPending} variant='outlined'>
-              {cancelLabel ?? t('common.cancel')}
-            </Button>
-          </AlertDialogPrimitive.Cancel>
+          {showCancel && (
+            <AlertDialogPrimitive.Cancel asChild>
+              <Button disabled={isPending} variant='outlined'>
+                {cancelLabel ?? t('common.cancel')}
+              </Button>
+            </AlertDialogPrimitive.Cancel>
+          )}
           <AlertDialogPrimitive.Action asChild>
             <Button
               disabled={isPending}

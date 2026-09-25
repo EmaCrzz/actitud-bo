@@ -26,7 +26,7 @@
 | 6a | Sección Clientes — listado | ✅ completa | Rama `feat/v2-clientes` (PR [#53](https://github.com/EmaCrzz/actitud-bo/pull/53)). ADR [20260916120738](../architecture/decisions/20260916120738_v2-listado-de-clientes.md). Query canónico compartido server/client, filtros en la URL. ~~scroll infinito~~ → **corregido a paginación en 6b**. |
 | 6b | Perfil del cliente + paginación | ✅ completa | Rama `feat/v2-perfil-cliente`. ADR [20260916161500](../architecture/decisions/20260916161500_v2-perfil-de-cliente-y-paginacion.md). Panel de 4 tabs, paginador transversal, filtro de estado a 3 valores, migración B10+B11. **No hay menú de acciones de fila** (el nodo que el plan creía que era, es el filtro `Estado`). Mobile sin verificar. |
 | 7 | Alta de cliente (desde Home y desde Clientes) | ✅ completa | Rama `feat/v2-alta-cliente`. ADR [20260918112629](../architecture/decisions/20260918112629_v2-alta-de-cliente.md). Un panel con dos entradas, **toda alta cobra** (excepto VIP), B12 cerrada, residuo del defecto C eliminado. **Dos migraciones con orden de deploy obligatorio** — ver [Fase 7](#fase-7--alta-de-cliente). |
-| 8 | Registrar pago / renovar membresía + comprobante | 🟡 en curso | **Diseño verificado** (capturas del 2026-09-21) y **fundaciones en producción con v0.13.0**: política de cobro unificada en el día 11, recargo explícito, `receipt_number` (B3 cerrada). PR [#60](https://github.com/EmaCrzz/actitud-bo/pull/60), ADR [20260921101140](../architecture/decisions/20260921101140_politica-de-cobro-unica-recargo-explicito-y-comprobante.md). **Falta toda la UI del flow** — ver [Qué falta construir](#qué-falta-construir-la-ui). |
+| 8 | Registrar pago / renovar membresía + comprobante | ✅ completa | Fundaciones en prod con **v0.13.0/v0.13.1**. Panel de renovación: PR [#62](https://github.com/EmaCrzz/actitud-bo/pull/62), ADR [20260922173000](../architecture/decisions/20260922173000_v2-panel-de-renovacion-de-membresia.md). Comprobante + cobro desde el home: rama `feat/v2-comprobante-y-pago-desde-home`, ADR [20260923140000](../architecture/decisions/20260923140000_v2-comprobante-de-pago-y-cobro-desde-el-home.md). **Ninguno de los dos llevó migraciones.** |
 | 9 | Sección Asistencias | ⬜ pendiente | |
 | 10 | Sección Membresías (planes y precios) | ⬜ pendiente | |
 | 11 | Sección Gastos (crear/editar/eliminar) | ⬜ pendiente | Requiere migración: `payment_method` en `expenses`. |
@@ -39,17 +39,19 @@
 
 ## Por dónde seguir
 
-> Última actualización: **2026-09-22**. Esta sección es el arranque de cualquier sesión nueva: decí en qué estado quedó todo y cuál es el siguiente movimiento, sin tener que leer el documento entero.
+> Última actualización: **2026-09-25**. Esta sección es el arranque de cualquier sesión nueva: decí en qué estado quedó todo y cuál es el siguiente movimiento, sin tener que leer el documento entero.
 
-**Dónde estamos: las fundaciones de la Fase 8 están en producción.** El modelo de precio, el recargo explícito y el número de comprobante viajaron en **v0.13.0** (2026-09-22). Falta **toda la UI**: el panel de renovación de 2 pasos, el comprobante y las dos entradas. El diseño ya está verificado contra capturas, así que no hay nada bloqueado por Figma. Ver [Fase 8](#fase-8--registrar-pago--renovar-membresía--comprobante).
+**Dónde estamos: la Fase 8 está cerrada y desplegada.** Las fundaciones (modelo de precio, recargo explícito, número de comprobante) viajaron en **v0.13.0/v0.13.1**; el panel de renovación en el PR [#62](https://github.com/EmaCrzz/actitud-bo/pull/62); el comprobante compartible y el cobro desde el home en el [#63](https://github.com/EmaCrzz/actitud-bo/pull/63). **Ninguno de los dos PRs de UI llevó migraciones.** Ver [Fase 8](#fase-8--registrar-pago--renovar-membresía--comprobante).
 
-**Estado de entornos — todo desplegado y sin deuda.** Producción corre **v0.13.0** con la migración `20260921101140` aplicada; dev está emparejado. Prod sigue con **0 usuarios con `v2_access`**, así que toda la v2 viaja apagada. No hay migraciones pendientes en ningún entorno.
+**El issue [#59](https://github.com/EmaCrzz/actitud-bo/issues/59) se ejecutó el 2026-09-25**, en la rama `fix/payment-date-criterio-de-caja`. `membership_payments` tiene ahora dos fechas: `payment_date` (cuándo entró la plata, la fecha contable) y `period_start` (qué período cubre la cuota). Se aplicó el criterio de caja. Los totales de prod se movieron —junio 2026 quedó en $0 y sus $78.000 pasaron a julio— y el detalle con la medición antes/después está en el ADR [20260925103921](../architecture/decisions/20260925103921_payment-date-criterio-de-caja.md). Es reversible: el valor viejo quedó guardado en `period_start`.
+
+**El movimiento siguiente es la Fase 9** (Asistencias), que es mayormente port de UI y no tiene brechas de DB. La pregunta de diseño abierta es si los tabs de desktop desaparecen como en mobile.
+
+**Lo que cambió el diseño el 2026-09-22:** el paso 1 ahora tiene los **dos datepickers** (inicio y vencimiento), que antes no estaban. El panel los muestra con prefill derivado — inicio = día siguiente al vencimiento vigente, o hoy si ya venció — y con eso la renovación anticipada arranca sola en el período correcto.
+
+**Estado de entornos — todo desplegado y sin deuda.** Producción corre **v0.13.1** con las migraciones `20260921101140` y `20260922125530` aplicadas; dev está emparejado. Prod sigue con **0 usuarios con `v2_access`**, así que toda la v2 viaja apagada. No hay migraciones pendientes en ningún entorno.
 
 **Lo que este release cambió para los usuarios de v1:** el corte del recargo pasó del día 16 al 11, así que el dashboard de ingresos reclasifica los pagos de los días 11–15 —históricos incluidos— como "con recargo", y la barra del ciclo se pone amarilla cinco días antes. **No se migró ningún dato**: esa clasificación se calcula al leer. La auditoría de integridad antes y después del push salió byte a byte idéntica.
-
-**El movimiento siguiente: la UI de la Fase 8.** El flow está verificado y las fundaciones entregadas, así que lo que queda es pantalla — panel de 2 pasos, comprobante y las dos entradas, detallado en [Qué falta construir](#qué-falta-construir-la-ui). La **decisión #5 está cerrada** y con ella el último bloqueo de diseño de la fase.
-
-**Alternativa:** la **Fase 9** (Asistencias) es mayormente port de UI, sin brechas de DB. Su único pendiente de diseño es si los tabs de desktop desaparecen, como en mobile.
 
 **Lo que el release v0.12.0 arregló en producción, además de traer la Fase 7:**
 
@@ -81,12 +83,8 @@ La evidencia que lo confirmó: de los 15 clientes creados desde el 22-07 con alg
 - **B5 (DNI sin UNIQUE)** sigue abierta y sigue necesitando PR propio: 8 pares duplicados en prod que requieren criterio caso por caso — uno son dos personas distintas con un DNI mal tipeado.
 - **Un no-admin puede crear un cliente VIP llamando al RPC directo.** El form lo filtra client-side, pero `upsert_customer_with_membership` no valida el rol (el RPC de pago sí, y un alta VIP no pasa por él). Ver "Consideraciones de seguridad" del ADR de la Fase 7.
 - **⚠️ El cambio de tipo de membresía reescribe un pago ya comprobado.** Recalcula el monto según el plan nuevo y pone descuento y recargo en 0, conservando el `receipt_number`. Es comportamiento deliberado del ADR [20260707114541](../architecture/decisions/20260707114541_prevent-duplicate-membership-payments-and-type-changes.md), pero ahora esa fila lleva número de comprobante: **un comprobante entregado al cliente puede dejar de coincidir con la fila que lo respalda**. Hoy no afecta a nadie porque la UI que los emite todavía no existe. Decidir en la UI de la Fase 8 si un cambio de tipo **anula y reemite** o si directamente no debería tocar un pago ya comprobado. *(El caso hermano —renovar por adelantado— se cerró el 2026-09-22, ver ADR [20260922125530](../architecture/decisions/20260922125530_renovacion-anticipada-no-pisa-el-pago-anterior.md).)*
-- **⚠️ `membership_payments.payment_date` recibe el inicio del período, no el momento del cobro** — issue [#59](https://github.com/EmaCrzz/actitud-bo/issues/59). Confirmado el 2026-09-21 con datos reales de dev. El RPC escribe `payment_date = p_start_date`, que es la fecha que el operador elige en el datepicker de inicio. Dos consecuencias medidas:
-  - **"Últimos pagos" de `/incomes` no muestra lo último cobrado.** `getRecentPayments` ordena por `payment_date DESC LIMIT 5`. Cuatro pagos hechos el 21 de septiembre para el período que arranca el 1 quedaron en los **puestos 91 a 94 de 287**. El único de la prueba que apareció fue el pase diario, porque ahí el inicio del período *es* hoy.
-  - **8 pagos están atribuidos a un mes contable distinto del que entró la plata** (de 287 en dev; 72 tienen la fecha desfasada, con un máximo de 46 días). Ej.: $78.000 cobrados en julio contados en junio.
-
-  Es el **mismo defecto que `last_payment_date`**, que la Fase 7 resolvió a medias agregando `customer_membership.start_date`: un solo valor del datepicker alimentando dos conceptos distintos — cuándo arranca el período y cuándo se cobró. La simetría es agregar `period_start` a `membership_payments` (o dejar `payment_date` = momento del cobro y mover el inicio a su propia columna) y que el feed ordene por lo que corresponda. **Toca 287 filas históricas y cambia números que alguien ya mira, así que va en PR y ADR propios.** No confundir con la reclasificación del recargo de la Fase 8, que se calcula al leer y no migra datos.
-- **`POST /api/accounting/payments` está roto y nadie lo nota**, hallazgo del 2026-09-21. `CreateMembershipPaymentData` no incluye `gross_amount`, que es `NOT NULL` sin default desde la migración de descuentos (`20260722120000`), así que el insert falla siempre. No lo alcanza ninguna UI: el `createMembershipPayment` de [accounting/api/client.ts](../../src/accounting/api/client.ts) no tiene llamadores. Es un endpoint muerto que parece vivo — o se completa el tipo con el desglose (`gross_amount`, `discount_amount`, `surcharge_amount`) o se borra. **No se tocó en la rama de la Fase 8** para no mezclarlo con el cambio de precio.
+- ~~**`membership_payments.payment_date` recibe el inicio del período**~~ — issue [#59](https://github.com/EmaCrzz/actitud-bo/issues/59). ✅ **Cerrado el 2026-09-25** (migración `20260925103921`, ADR [20260925103921](../architecture/decisions/20260925103921_payment-date-criterio-de-caja.md)). La tabla tiene ahora dos fechas: `payment_date` = cuándo entró la plata (la contable) y `period_start` = qué período cubre la cuota. Se aplicó **criterio de caja**: todo lo que suma plata agrupa por `payment_date`; las dos preguntas de cobranza —el ciclo del mes y la lista de pendientes— agrupan por `period_start`. El backfill salió de `created_at`, que guardaba el momento real del cobro desde siempre, y es reversible porque el valor viejo quedó en `period_start`. **Efecto en prod:** junio 2026 pasó de $78.000 a $0 (sus 4 pagos se cargaron en julio), julio +$37.000, agosto +$41.000. De yapa se corrigieron dos conteos de la fase grace/recargo que venían mal: la renovación anticipada y el alta de mitad de mes.
+- **`POST /api/accounting/payments` está roto y nadie lo nota**, hallazgo del 2026-09-21. `CreateMembershipPaymentData` no incluye `gross_amount` —`NOT NULL` sin default desde la migración de descuentos (`20260722120000`)— ni `period_start`, que desde `20260925103921` es `NOT NULL` por el mismo motivo. Son **dos** columnas faltantes, así que el insert falla siempre. No lo alcanza ninguna UI: el `createMembershipPayment` de [accounting/api/client.ts](../../src/accounting/api/client.ts) no tiene llamadores. Es un endpoint muerto que parece vivo — o se completa el tipo con el desglose (`gross_amount`, `discount_amount`, `surcharge_amount`, `period_start`) o se borra. **No se tocó ni en la Fase 8 ni en el #59** para no mezclarlo con cambios de precio y de fechas.
 - **`last_payment_date` todavía recibe la fecha de inicio** en las altas sin cobro. Con `start_date` ya escrito, la limpieza es migrar los lectores restantes a `getMembershipPeriodStart()` — entre ellos [membership-form.tsx](../../src/customer/membership-form.tsx), que lo usa como `defaultValue` del datepicker de inicio.
 
 ---
@@ -887,8 +885,10 @@ Tres datepickers, y **no los tres se tratan igual**:
 | Campo | Columna | Tratamiento |
 |---|---|---|
 | Fecha de nacimiento | `customers.birth_date` (`date`) | **"YYYY-MM-DD" crudo** — es día calendario, no instante |
-| Fecha de inicio | `start_date` + `last_payment_date` + `payment_date` (`timestamptz`) | `parseAppTzDateString` |
+| Fecha de inicio | `start_date` + `last_payment_date` + `period_start` (`timestamptz`) | `parseAppTzDateString` |
 | Fecha de vencimiento | `expiration_date` (`timestamptz`) | `parseAppTzDateString` |
+
+> **Corregido el 2026-09-25 (issue #59).** La fila del medio decía `payment_date` en vez de `period_start`, y era precisamente el defecto: el datepicker de inicio escribía en la columna de la fecha de cobro. Hoy `payment_date` **no sale de ningún datepicker** — lo escribe el RPC con `now()`, así que no se canonicaliza ni se alinea a medianoche AR: es un instante, no un día.
 
 Verificado en dev con un alta completa en una transacción con ROLLBACK: las cuatro columnas `timestamptz` quedan en `03:00:00+00` = medianoche AR. El prefill también es AR-aware (`getTodayIsoDateInAppTz` + el nuevo `getEndOfMonthIsoDateInAppTz`), evaluado en cada apertura del panel para que una sesión abierta a las 23:59 del día 31 no arrastre un prefill atrasado.
 
@@ -962,29 +962,68 @@ La decisión #5 se resolvió, y al implementarla se descubrió que **la premisa 
 - **El `date` que recibe `getSuggestedCharge()` es la fecha de cobro del datepicker, no `new Date()`** — si no, un pago retroactivo recibe la sugerencia de hoy.
 - **El total no se tipea.** Cualquier monto es alcanzable editando las partes; lo que se vuelve imposible es un monto sin concepto, que es lo que descuadra el desglose de ingresos y Balance. El CHECK `amount = gross_amount + surcharge_amount - discount_amount` lo garantiza en la base.
 
-### Defectos del diseño detectados en las capturas del 2026-09-21
+### Defectos del diseño — estado al 2026-09-22
 
-Para pasarle al diseñador. Ninguno bloquea la implementación; los seis se resuelven eligiendo lo correcto y documentándolo acá.
+Revisados contra las capturas nuevas. Lo que se resolvió, y lo que sigue abierto para el diseñador.
 
-1. **Paso 2 — `Método de pago: 10/08/2026`.** El valor del método de pago es una fecha.
-2. **Paso 2 — `Fecha: $10/08/2026`.** El `$` sobrante (ya estaba anotado).
-3. **Paso 2 — los montos no cierran:** `Membresía $15.000` + `Modalidad de cobro: Mes completo - $20.000` + `Total $15.000`.
-4. **El comprobante de la misma operación dice `Medio mes - $20.000`** donde el resumen decía `Mes completo`.
-5. **`Tipo de membresía: Sin membresía` como valor por defecto al renovar** a alguien que tiene 5 días activos. Decisión: **viene preseleccionado el plan vigente del cliente**, y "Sin membresía" no se ofrece — consistente con lo que ya se decidió en la Fase 7 (decisión #6).
-6. **`Membresía` significa dos cosas distintas:** un monto ($15.000) en el resumen del paso 2, y el nombre del plan ("5 días") en el comprobante.
+**Corregidos en el Figma:**
+
+- ~~**#2 — `Fecha: $10/08/2026`**~~ ✅ el `$` desapareció junto con la fila, reemplazada por `Periodo: Agosto`.
+- ~~**#1 — `Método de pago: 10/08/2026`**~~ 🟡 **corregido en una de las dos pantallas del resumen**; la otra sigue mostrando la fecha.
+
+**Siguen abiertos** (los cuatro se resolvieron eligiendo lo correcto en el código — ver las divergencias del ADR [20260922173000](../architecture/decisions/20260922173000_v2-panel-de-renovacion-de-membresia.md)):
+
+3. **Paso 2 — los montos no cierran:** `Membresía $15.000` + `Modalidad de cobro: Mes completo - $20.000` + `Total $15.000`. → En el código, `Modalidad de cobro` lleva el precio base real y `base − descuento + recargo = Total` se verifica leyendo la tabla.
+4. **El comprobante de la misma operación dice `Medio mes - $20.000`** donde el resumen decía `Mes completo`. → Los dos salen del mismo cálculo.
+5. **`Tipo de membresía: Sin membresía` por defecto al renovar** a alguien con 5 días activos. → **Viene preseleccionado el plan vigente**, y "Sin membresía" no se ofrece; consistente con la Fase 7 (decisión #6).
+6. **`Membresía` significa dos cosas distintas:** un monto ($15.000) en el resumen y el nombre del plan ("5 días") en el comprobante. → En los dos lados dice el nombre del plan.
+
+**Nuevos:**
+
+7. **El comprobante no lleva número de comprobante.** `receipt_number` (formato `YYYY-NNNNN`) existe desde la migración de esta fase y es justo lo que la columna resuelve. Se incluye igual.
+8. **`Periodo: Agosto` no describe todo período posible.** Con los dos datepickers editables, 15/08 → 14/09 no es ningún mes. Se muestra el nombre del mes cuando el período es un mes calendario completo, y el rango cuando no.
+9. **El comprobante muestra la fecha de cobro, que la DB no guarda como tal** — ver la sección de arriba: sale de `created_at`.
 
 Y una observación de UX que no es defecto: la alerta amarilla *"Asistencia registrada a las 17:43"* del tab Membresía del perfil es información, no advertencia, y no es evidente por qué vive en ese tab.
 
-### Qué falta construir (la UI)
+### Qué se construyó (la UI)
 
-Las fundaciones ya están en `feat/politica-de-cobro-y-recargo`. Lo que queda:
+Dos PRs, **ninguno con migraciones**.
 
-- `src/membership/components/v2/RenewMembershipPanel.tsx` — `SidePanel` + `Stepper` de 2 pasos, con la ficha del cliente anclada arriba.
-- El paso de búsqueda para la entrada desde el home, reusando el patrón de `AttendanceSearchCard` (filas con avatar + badge).
-- `src/membership/components/v2/PaymentReceipt.tsx` — 390 de ancho, centrado en desktop. **Se comparte como imagen** reusando [use-share-image.ts](../../src/lib/hooks/use-share-image.ts) y [share-image-button.tsx](../../src/assistance/share-image-button.tsx), que ya funcionan en producción para asistencias. El ícono del Figma dice PDF: avisar al diseñador — meter una librería de PDF al bundle no se justifica cuando el destino real es WhatsApp.
-- Las dos entradas: botón `Renovar` del footer del tab Membresía del perfil, y acción rápida del home.
+**Panel de renovación** — PR [#62](https://github.com/EmaCrzz/actitud-bo/pull/62), ADR [20260922173000](../architecture/decisions/20260922173000_v2-panel-de-renovacion-de-membresia.md):
 
-> Nota: el Figma muestra la fila `Fecha` con valor **`$10/08/2026`** — el `$` es un typo del diseño.
+- `RenewMembershipPanel` + `RenewMembershipStep` + `RenewSummaryStep` + `AmountChoiceField`.
+- `src/membership/renewal.ts` — período derivado, montos y etiqueta de período, todo puro.
+- `src/group/discount.ts` — el descuento de grupo, compartido server/browser.
+- `fetchRenewalContext()` — plan vigente, vencimiento, inicio del período y asistencias del mes.
+- Átomos: `components/v2/FormField.tsx` (subido desde `customer/`) y `components/v2/ui/InputCurrency.tsx`.
+- Entrada desde el perfil, y el fix del `DatePicker` que abría siempre en el mes de hoy (bug preexistente de la Fase 7).
+
+**Comprobante + cobro desde el home** — ADR [20260923140000](../architecture/decisions/20260923140000_v2-comprobante-de-pago-y-cobro-desde-el-home.md):
+
+- `PaymentReceipt.tsx` — 390px fijos, colores literales (`html-to-image` serializa estilos computados y las CSS vars de `[data-v2]` no resuelven fuera de su árbol), con `receipt_number`. **Se comparte como imagen, no PDF.**
+- `RenewSuccessDialog.tsx` — el `Modal Dialog` del Figma con el check verde, y el comprobante a tamaño real antes de mandarlo.
+- `RenewCustomerSearchStep.tsx` — sobre `fetchCustomersPage`, el query canónico del listado, para que la fila traiga plan y badge.
+- `useShareImage` extendido: tamaño opcional y share nativo con fallback a descarga, **preservando los defaults del top de asistencias**.
+- Acción rápida del home enganchada: el panel abre sin cliente y arranca en el buscador.
+
+**Pendiente con el diseñador:** el wordmark "ACTITUD" y la marca de agua del isotipo **no existen como assets en el repo**. El comprobante usa la marca del sidebar (círculo + nombre del negocio) mientras tanto.
+
+### El modelo de fechas, actualizado con las capturas del 2026-09-22
+
+**El paso 1 ahora tiene los dos datepickers** — `Fecha de inicio` y `Fecha de vencimiento`, lado a lado entre "Modalidad de cobro" y el separador "Condiciones y forma de pago". El plan anterior asumía que no había ninguno.
+
+La regla que implementa el panel:
+
+- **Prefill derivado, campos editables.** Inicio = `max(hoy, vencimiento vigente + 1 día)`; fin = fin de ese mes. Renovar anticipado arranca solo en el período correcto, que es lo que la migración `20260922125530` habilitó del lado de la base.
+- **El último día del mes propone el mes siguiente completo** (del 1 a fin de mes). "Hoy → fin de mes" dejaría inicio = fin, que `basicMembershipValidation` rechaza; y "hoy → fin del mes siguiente" excede su tope de un mes en los meses de 30 días. Verificado con un barrido de los 730 días de 2026 y 2028 contra el validador real: 0 fallos.
+- **`getSuggestedCharge()` recibe el inicio del período, no `new Date()`.** Es lo que evita sugerirle mora a quien paga octubre el 28 de septiembre.
+
+### Defecto nuevo del diseño (capturas del 2026-09-22)
+
+El comprobante muestra `Fecha: 10/08/2026` sobre un período de agosto (01/08 → 31/08): o sea pide **la fecha de cobro**, distinta del inicio del período. Cuando se construyó la Fase 8 el RPC escribía `payment_date = p_start_date` (issue [#59](https://github.com/EmaCrzz/actitud-bo/issues/59)), así que esa fecha no estaba en `payment_date` — pero sí en `created_at`. El comprobante terminó usando **el día de emisión** (`getTodayIsoDateInAppTz()`), que para un cobro recién registrado es lo mismo, porque `membership_payments` es admin-only por RLS y el operador no puede leer la fila que acaba de crear.
+
+> **Desde el 2026-09-25** el #59 está cerrado y `payment_date` ya es la fecha de cobro, así que la pantalla que reimprima un comprobante viejo —el tab Pagos del perfil, que es admin-only— puede leerla directo de la columna. El comprobante recién emitido se queda como está: no necesita una consulta que la RLS le negaría.
 
 **Compartir el comprobante:** ya hay precedente funcionando en v1 — [share-image-button.tsx](../../src/assistance/share-image-button.tsx) + [use-share-image.ts](../../src/lib/hooks/use-share-image.ts). Reusar.
 
@@ -1019,15 +1058,15 @@ El formulario tiene que **calcular y mostrar el monto sugerido** usando `getCycl
 - ✅ **Recargo explícito** — `surcharge_amount` + `surcharge_note`, brecha que este plan no tenía anotada y apareció al responder la decisión #5. El RPC pasó de 14 a 16 parámetros (DROP + CREATE, un solo overload en `pg_proc`).
 - ~~**Defecto C**~~ — ✅ cerrado del todo: la columna en `20260917120000`, el residuo del RPC legacy en la Fase 7. Esta fase trabaja sólo contra el overload vigente, que valida el método de pago.
 
-**Riesgo timezone:** **el más alto de todo el plan.** `payment_date` determina el mes contable y, vía `getCyclePhaseForDate`, si se cobra recargo. Un desfase de 3 horas el día 15 a las 22hs cobra recargo de más. Este es exactamente el bug que ya pasó dos veces (ADR [20260709153000](../architecture/decisions/20260709153000_representacion-canonica-de-fechas-ar.md)). **Auditar cada call site nuevo, sin excepción.**
+**Riesgo timezone:** **el más alto de todo el plan.** `payment_date` determina el mes contable y `period_start`, vía `getCyclePhaseForPayment`, si el pago entró en mora. Un desfase de 3 horas el día 10 a las 22hs clasifica un pago puntual como atrasado. Este es exactamente el bug que ya pasó dos veces (ADR [20260709153000](../architecture/decisions/20260709153000_representacion-canonica-de-fechas-ar.md)). **Auditar cada call site nuevo, sin excepción.**
 
 **Definición de hecho:**
-- [ ] Pago completo desde ambas entradas (Home y Perfil de cliente)
+- [x] Pago completo desde ambas entradas (Home y Perfil de cliente)
 - [x] Monto sugerido correcto en días 1–10, 11–15 y 16+ *(lógica: `getSuggestedCharge`)*
-- [ ] Monto sugerido verificado **en pantalla** en los tres tramos
-- [ ] Descuento de grupo familiar aplicado
-- [ ] Recargo sugerido con el motivo visible, editable y no obligatorio
-- [ ] `Payment Receipt` renderiza y se comparte como imagen
+- [x] Monto sugerido verificado **en pantalla** en los tres tramos *(recargo por mora y media membresía, validados por Ema el 2026-09-23)*
+- [x] Descuento de grupo familiar aplicado *(preseleccionado; falta verlo con un grupo real en preview)*
+- [x] Recargo sugerido con el motivo visible, editable y no obligatorio
+- [x] `Payment Receipt` renderiza y se comparte como imagen
 - [x] Idempotencia verificada: doble submit no crea dos pagos *(ejercitado contra Postgres local; el re-cobro pisa la fila y **no** consume número de comprobante nuevo)*
 - [x] `receipt_number` en DB *(falta mostrarlo en el comprobante)*
 - [x] ~~Defecto C verificado en dev~~ — cerrado en la Fase 7
@@ -1485,4 +1524,12 @@ Aplica a **toda** fase antes de pedir review. Está pensado para que el otro dev
   - **Hallazgo que la Fase 8 tiene que resolver antes de emitir comprobantes de verdad:** el cambio de tipo de membresía **reescribe el pago original** —recalcula el monto según el plan nuevo y pone descuento y recargo en 0— conservando su `receipt_number`. Es comportamiento preexistente y documentado en el RPC, pero ahora esa fila lleva número de comprobante: un comprobante ya entregado al cliente puede dejar de coincidir con la fila que lo respalda. Hoy no afecta a nadie porque la UI que emite comprobantes todavía no existe. Decidir en la UI de la fase si un cambio de tipo **anula y reemite** o si directamente no debería tocar un pago ya comprobado.
   - **Un 405 no prueba que un endpoint esté apagado.** Verificando el gate del logger en el preview, pegar la URL en la barra del navegador devolvía 405 —el router de Next contestando "existe pero no con ese verbo", sin llegar a la guarda— que parece un gate roto y no lo era: el POST ya daba 404. Se agregó el handler de GET para que producción no anuncie la ruta, y quedó documentado el `curl` correcto en [dev-logging.md](../dev-logging.md). **Verificar un gate con el método equivocado no verifica nada.**
   - **El gate de un componente de dev tiene que estar en el import, no en el JSX.** `NODE_ENV === 'development' && <DevLogger />` con import estático evita que se monte pero **no que se bundlee**: el chunk del layout se llevaba el cuerpo entero, parche de `window.fetch` incluido. Con import dinámico detrás del ternario desaparece de todos los chunks. Verificado contra los 21 chunks que sirve producción, no sólo contra un build local.
+  — Ema + Claude.
+- 2026-09-22 — **Renovar por adelantado dejaba de registrar el cobro anterior. Arreglado y desplegado — v0.13.1.** PR [#61](https://github.com/EmaCrzz/actitud-bo/pull/61), ADR [20260922125530](../architecture/decisions/20260922125530_renovacion-anticipada-no-pisa-el-pago-anterior.md). Salió al planificar la UI de esta fase: un flow que emite comprobantes no se puede construir sobre un modelo donde un cobro sobrescribe a otro.
+  - **El defecto, medido:** cobrar septiembre y después pagar octubre el 28/09 dejaba **una** fila de $20.000 fechada en octubre. Se cobraron $40.000 y la contabilidad registraba $20.000. El comprobante ya entregado quedaba apuntando a otra fila. Es de v1 y estaba en producción desde julio.
+  - **Un proxy razonable puede ser exactamente incorrecto en el caso que no se pensó.** El criterio era "membresía vigente = mismo período", puesto en julio para frenar 9 filas duplicadas que inflaban los ingresos a $260.000. "Vigente" y "mismo período" coinciden en todos los casos que ese ADR tenía sobre la mesa, y dejan de coincidir en el único que no estaba.
+  - **Leer por qué existe la regla cambió el arreglo.** La primera lectura fue "la idempotencia está mal, sacarla" — que habría reintroducido el bug de julio. El trabajo pasó de revertir a **afinar**: el criterio nuevo hace lo que aquel ADR quería decir.
+  - **El riesgo estaba en dónde poner la condición, no en la condición.** Reescribir `v_can_update_current` era lo natural y habría roto el cambio de tipo sin pago, que usa esa misma variable y recibe `p_start_date = NULL`. El síntoma habría sido un cambio de plan que deja de reflejarse en el pago: silencioso y sólo visible en contabilidad.
+  - **Medir el fallback antes de elegirlo.** El criterio depende de `start_date`, que el 90% de las filas activas no tiene (se agregó sin backfill). El `COALESCE` a `last_payment_date` cubre el 100% de las 96 membresías activas con pago vigente — pero una sola fila sin ninguno de los dos habría perdido la protección contra duplicados sin que nada fallara.
+  - **No se reparó nada retroactivamente.** Hay una fila en prod con la firma de un pago pisado (creada el 07/08, hoy fechada el 07/09, $24.000), pero el `UPDATE` destruyó la evidencia del cobro original: no hay a qué volver.
   — Ema + Claude.

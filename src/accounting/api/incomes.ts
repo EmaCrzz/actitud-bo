@@ -7,7 +7,7 @@ import {
   utcInstantAtAppTzWallClock,
 } from '@/lib/timezone'
 import { MEMBERSHIP_TYPE_DAILY, MEMBERSHIP_TYPE_VIP } from '@/membership/consts'
-import { ACTITUD_BILLING_POLICY } from '@/accounting/billing-policy'
+import { getCyclePhaseForPayment } from '@/accounting/billing-policy'
 import { devlog } from '@/lib/dev/devlog'
 import type {
   BillingCycleProgress,
@@ -27,6 +27,37 @@ import type {
 // Membresías excluidas del ciclo de cobro mensual: VIP no cobra periódicamente,
 // DAILY es un pase de un día que no genera deuda al no renovar.
 const CYCLE_EXCLUDED_MEMBERSHIP_TYPES = [MEMBERSHIP_TYPE_VIP, MEMBERSHIP_TYPE_DAILY]
+
+/* =============================================================================
+ * Qué fecha usa cada consulta de este archivo
+ * =============================================================================
+ *
+ * Desde el issue #59, `membership_payments` tiene dos fechas y no son
+ * intercambiables:
+ *
+ *   payment_date  → cuándo entró la plata.       Es la fecha CONTABLE.
+ *   period_start  → qué período cubre la cuota.  Es la fecha del CICLO.
+ *
+ * **Criterio de caja** (decidido con Ema el 2026-09-23): la plata se cuenta en
+ * el mes en que entró. Es lo que cuadra contra la caja y el banco, lo que hace
+ * comparable el mes contra Gastos —que ya van por fecha de gasto— y lo que
+ * evita que un mes cerrado siga cambiando porque alguien pagó tarde. Así que
+ * **todo lo que suma plata agrupa por `payment_date`**: el cobrado del mes, los
+ * breakdowns por tipo y por método, los descuentos, la serie de 6 meses, el
+ * drill-down por tipo y el feed de últimos pagos.
+ *
+ * Las dos excepciones son las dos preguntas que NO son sobre plata sino sobre
+ * cobranza — "¿quién pagó la cuota de este mes?" y su complemento "¿quién
+ * falta?". Esas agrupan por `period_start`: un socio que pagó octubre el 28 de
+ * septiembre ya está al día en octubre, aunque su plata haya entrado en
+ * septiembre. Son `getBillingCycleProgress` y `getPendingCustomers`, y están
+ * marcadas abajo.
+ *
+ * Antes del #59 la distinción no existía porque `payment_date` guardaba el
+ * inicio del período, así que **todas** estas consultas agrupaban por período
+ * sin saberlo. Los totales del mes se movieron; el detalle y la medición
+ * antes/después están en el ADR 20260925103921.
+ * ========================================================================== */
 
 // Devuelve el "YYYY-MM" del mes anterior a `monthKey`.
 function getPreviousMonthKey(monthKey: string): string {
@@ -104,6 +135,10 @@ async function filterByAssistanceInRange(
 // real en el mes ya pagaron y en qué fase. El denominador exige "señal de
 // vida" (al menos una asistencia en el mes) para excluir churn silencioso —
 // socios cuya membresía sigue vigente por fecha pero que ya no vienen.
+//
+// **Excepción al criterio de caja**: acá la pregunta es "¿pagó la cuota de este
+// mes?", que es sobre el período y no sobre la plata, así que filtra por
+// `period_start`. Ver el bloque del encabezado.
 async function getBillingCycleProgress(
   supabase: Awaited<ReturnType<typeof createClient>>,
   monthKey: string
@@ -122,33 +157,41 @@ async function getBillingCycleProgress(
   const activeCustomerIds = await filterByAssistanceInRange(supabase, candidateIds, start, end)
   const denominator = activeCustomerIds.size
 
-  // Pagos del mes, para saber quiénes pagaron y con qué día. Filtrar por los
-  // mismos tipos excluidos para mantener consistencia con el denominador.
+  // Cuotas cuyo PERÍODO cae en el mes, para saber quiénes ya pagaron el mes en
+  // curso. Filtrar por los mismos tipos excluidos para mantener consistencia
+  // con el denominador.
   const { data: paymentsRaw } = await supabase
     .from('membership_payments')
-    .select('customer_id, payment_date, membership_type')
-    .gte('payment_date', start.toISOString())
-    .lt('payment_date', end.toISOString())
+    .select('customer_id, period_start, payment_date, membership_type')
+    .gte('period_start', start.toISOString())
+    .lt('period_start', end.toISOString())
     .not('membership_type', 'in', `(${CYCLE_EXCLUDED_MEMBERSHIP_TYPES.join(',')})`)
 
-  // Un socio puede tener varios pagos en el mes; el "más temprano" define su fase.
-  const earliestPaymentByCustomer = new Map<string, Date>()
+  // Un socio puede tener varios pagos para el mismo mes; el cobro **más
+  // temprano** define su fase, porque lo que se mide es si llegó a tiempo.
+  const earliestPaymentByCustomer = new Map<string, { paidAt: Date; periodStart: Date }>()
 
   ;(paymentsRaw ?? []).forEach((p) => {
     if (!activeCustomerIds.has(p.customer_id)) return
-    const date = new Date(p.payment_date)
+    const paidAt = new Date(p.payment_date)
     const current = earliestPaymentByCustomer.get(p.customer_id)
 
-    if (!current || date < current) earliestPaymentByCustomer.set(p.customer_id, date)
+    if (!current || paidAt < current.paidAt) {
+      earliestPaymentByCustomer.set(p.customer_id, {
+        paidAt,
+        periodStart: new Date(p.period_start),
+      })
+    }
   })
 
   let paidWithoutSurcharge = 0
   let paidWithSurcharge = 0
 
-  earliestPaymentByCustomer.forEach((date) => {
-    const { day } = getAppTzDateParts(date)
-
-    if (day <= ACTITUD_BILLING_POLICY.gracePeriodEnd) paidWithoutSurcharge += 1
+  // La fase se mide contra el vencimiento de la gracia **del mes del período**,
+  // no contra el día del mes en que se cobró: pagar octubre el 28 de septiembre
+  // es adelantarse, no atrasarse. Ver getCyclePhaseForPayment().
+  earliestPaymentByCustomer.forEach(({ paidAt, periodStart }) => {
+    if (getCyclePhaseForPayment(periodStart, paidAt) === 'grace') paidWithoutSurcharge += 1
     else paidWithSurcharge += 1
   })
 
@@ -367,6 +410,11 @@ function validateAndRangeFromKey(monthKey: string): { start: Date; end: Date } {
 // pagaron aún en el mes. Aplica los mismos filtros que
 // `getBillingCycleProgress` (tipo renovable + asistencia en el mes) para que
 // la lista coincida con el contador del bloque.
+//
+// **Excepción al criterio de caja**, por lo mismo: es el complemento exacto del
+// numerador del ciclo, así que tiene que filtrar por `period_start` o los dos
+// números dejan de cerrar — alguien que pagó octubre por adelantado en
+// septiembre aparecería como pendiente de octubre.
 export async function getPendingCustomers(monthKey: string): Promise<PendingCustomer[]> {
   await requireAdmin()
   const { start, end } = validateAndRangeFromKey(monthKey)
@@ -399,12 +447,12 @@ export async function getPendingCustomers(monthKey: string): Promise<PendingCust
   const candidateIds = rows.map((r) => r.customer_id)
   const withAssistance = await filterByAssistanceInRange(supabase, candidateIds, start, end)
 
-  // Quiénes pagaron en el mes.
+  // Quiénes ya tienen paga la cuota del mes.
   const { data: paymentsRaw } = await supabase
     .from('membership_payments')
     .select('customer_id')
-    .gte('payment_date', start.toISOString())
-    .lt('payment_date', end.toISOString())
+    .gte('period_start', start.toISOString())
+    .lt('period_start', end.toISOString())
     .not('membership_type', 'in', `(${CYCLE_EXCLUDED_MEMBERSHIP_TYPES.join(',')})`)
     .in('customer_id', candidateIds)
 
@@ -524,9 +572,11 @@ export async function getIncomesSummary(monthKey: string): Promise<IncomesSummar
     getLast6MonthsIncome(supabase, monthKey),
   ])
 
-  // Observabilidad de dev (no-op sin DEV_LOG_FILE). El feed de "últimos pagos"
-  // ordena por payment_date, que **no** es el día en que se cobró, así que acá
-  // se registra la diferencia entre ambos para poder verla sin abrir la DB.
+  // Observabilidad de dev (no-op sin DEV_LOG_FILE). Se dejó registrando el
+  // payment_date de cada pago del feed: era lo que destapó el issue #59 —los
+  // cobros del día no aparecían porque la columna guardaba el inicio del
+  // período— y sigue siendo la forma más rápida de ver si el orden del feed se
+  // vuelve a desalinear, sin abrir la DB.
   devlog('incomes.summary', {
     month: monthKey,
     cobrado_total: cobrado.total,

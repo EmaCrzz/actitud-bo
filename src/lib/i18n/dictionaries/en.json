@@ -845,6 +845,89 @@
         "submitting": "One moment",
         "successMessage": "Customer created successfully"
       }
+    },
+    "membership": {
+      "renew": {
+        "title": "Renew membership",
+        "stepNew": "New membership",
+        "stepConfirm": "Confirm",
+        "search": {
+          "label": "Search customer",
+          "placeholder": "Search by first or last name",
+          "prompt": "Search for the customer who is renewing.",
+          "noResults": "No customer matches \"{query}\"."
+        },
+        "currentPlan": "Membership: {plan}",
+        "membershipType": "Membership type",
+        "chargeMode": "Billing mode",
+        "startDate": "Start date",
+        "endDate": "Expiration date",
+        "datePlaceholder": "dd/mm/yyyy",
+        "dailyPeriodNotice": "Pass valid for today only, {date}. Daily passes don't pick dates.",
+        "currentPeriod": "Current paid period: {start} – {end}",
+        "conditions": "Conditions and payment method",
+        "promotions": "Promotions",
+        "noPromotion": "No promotion",
+        "discount": "Discount",
+        "surcharge": "Surcharge",
+        "noDiscount": "No discount",
+        "noSurcharge": "No surcharge",
+        "lateFee": "Late payment surcharge",
+        "otherAmount": "Other amount…",
+        "amountPlaceholder": "$ 0",
+        "noteLabel": "Reason",
+        "noteLabelOptional": "Reason (optional)",
+        "notePlaceholder": "Why it applies",
+        "discountReason": "{group} · {members} active members",
+        "reason": {
+          "late_payment": "Already attended this month and is paying past the due date.",
+          "mid_month_entry": "Joining in the second half of the month: half membership, not a late payment."
+        },
+        "paymentType": "Payment method",
+        "selectPlaceholder": "Select an option",
+        "selectPlaceholderShort": "Select...",
+        "typeChangeWarning": "This charge overwrites the current period's payment and keeps its receipt number. If you already handed a receipt to the customer, it will no longer match the recorded amount.",
+        "submit": "Confirm payment",
+        "submitting": "One moment",
+        "summary": {
+          "title": "Summary",
+          "membership": "Membership",
+          "chargeMode": "Billing mode",
+          "promotion": "Active promotion",
+          "discount": "Discount applied",
+          "surcharge": "Surcharge",
+          "paymentMethod": "Payment method",
+          "period": "Period",
+          "total": "Total",
+          "empty": "-"
+        },
+        "success": {
+          "title": "Membership renewed",
+          "method": "Method: {method}",
+          "receipt": "Receipt No. {number}"
+        },
+        "errors": {
+          "totalNotPositive": "The total to charge must be greater than $ 0."
+        }
+      },
+      "receipt": {
+        "title": "Payment receipt",
+        "membershipLine": "{plan} membership",
+        "date": "Date: {date}",
+        "number": "Receipt No. {number}",
+        "membership": "Membership",
+        "chargeMode": "Billing mode",
+        "discount": "Discount",
+        "surcharge": "Surcharge",
+        "promotion": "Promotion",
+        "paymentMethod": "Payment method",
+        "total": "Total",
+        "thanks": "Thank you for your payment",
+        "disclaimer": "Not valid as an invoice",
+        "share": "Share",
+        "sharing": "Generating...",
+        "shareText": "Payment receipt for {name}"
+      }
     }
   }
 }

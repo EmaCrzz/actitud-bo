@@ -5,14 +5,14 @@ import { useRouter } from 'next/navigation'
 import { CreditCard, UserPlus } from 'lucide-react'
 import { useTranslations } from '@/lib/i18n/context'
 import Button from '@/components/v2/ui/Button'
-import { useComingSoonToast } from '@/components/v2/use-coming-soon-toast'
 import CustomerFormPanel from '@/customer/components/v2/CustomerFormPanel'
+import RenewMembershipPanel from '@/membership/components/v2/RenewMembershipPanel'
 
 export default function QuickActionsSection() {
   const { t } = useTranslations()
   const router = useRouter()
-  const notifyComingSoon = useComingSoonToast()
   const [isNewCustomerOpen, setIsNewCustomerOpen] = useState(false)
+  const [isRenewOpen, setIsRenewOpen] = useState(false)
 
   return (
     <section aria-labelledby='v2-quick-actions-title' className='flex flex-col gap-3'>
@@ -29,12 +29,27 @@ export default function QuickActionsSection() {
           <UserPlus className='size-4' />
           {t('v2.home.quickActions.newCustomer')}
         </Button>
-        {/* "Renovar membresía" sigue pendiente: es la Fase 8. */}
-        <Button className='justify-start sm:w-auto' type='button' variant='outlined' onClick={notifyComingSoon}>
+        {/* Abre el panel de renovación sin cliente: arranca en el buscador,
+            que es la diferencia entre este flow y el que sale del perfil. */}
+        <Button
+          className='justify-start sm:w-auto'
+          type='button'
+          variant='outlined'
+          onClick={() => setIsRenewOpen(true)}
+        >
           <CreditCard className='size-4' />
           {t('v2.home.quickActions.registerPayment')}
         </Button>
       </div>
+
+      <RenewMembershipPanel
+        customer={null}
+        open={isRenewOpen}
+        // Cobrar mueve los ingresos del día y el estado del cliente, que se
+        // resuelven en server components — mismo motivo que el alta.
+        onOpenChange={setIsRenewOpen}
+        onRenewed={() => router.refresh()}
+      />
 
       <CustomerFormPanel
         open={isNewCustomerOpen}

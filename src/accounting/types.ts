@@ -20,7 +20,21 @@ export interface MembershipPayment {
   surcharge_note: string | null
   /** Formato `YYYY-NNNNN`. NULL en los pagos previos a 20260921101140. */
   receipt_number: string | null
+  /**
+   * Cuándo entró la plata. Es la fecha contable: por acá agrupan el cobrado del
+   * mes, los breakdowns, el balance y los ingresos del día.
+   *
+   * Hasta la migración 20260925103921 guardaba el inicio del período (issue
+   * #59), así que los pagos históricos venían fechados a medianoche AR del día
+   * 1. Después del backfill lleva la hora real del cobro.
+   */
   payment_date: string
+  /**
+   * Inicio del período que la cuota cubre — la fecha del datepicker. Lo usan el
+   * ciclo de cobro y la lista de pendientes, que preguntan "¿pagó la cuota de
+   * este mes?" en vez de "¿cuánta plata entró?". Ver el issue #59.
+   */
+  period_start: string
   payment_method: string
   notes?: string
   created_at: string
@@ -41,6 +55,18 @@ export interface Expense {
   created_at: string
 }
 
+/**
+ * Payload de `POST /api/accounting/payments`, **que está roto y no tiene
+ * llamadores** — deuda conocida, anotada en docs/v2/PLAN.md.
+ *
+ * Le falta `gross_amount`, que es NOT NULL sin default desde la migración de
+ * descuentos (20260722120000), así que el insert falla siempre. Desde
+ * 20260925103921 le falta también `period_start`, NOT NULL por el mismo motivo.
+ * No se completan acá a propósito: el arreglo es una decisión —completar el
+ * desglose o borrar el endpoint— y mezclarla con el issue #59 la escondería
+ * detrás de un cambio de fechas. Los pagos reales no pasan por este camino sino
+ * por el RPC `upsert_customer_membership_with_payment`.
+ */
 export interface CreateMembershipPaymentData {
   customer_id: string
   membership_type: string

@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/client'
 import { CustomerMembership } from '@/customer/types'
 import { ActiveMembership, MembershipType } from '@/membership/types'
+import type { MembershipTypes } from '@/membership/consts'
+import { getMembershipPeriodStart } from '@/membership/period'
 import { getMonthRangeInAppTz, getTodayRangeInAppTz } from '@/lib/timezone'
 
 type MembershipStatsRPCResult = {
@@ -134,7 +136,11 @@ export async function getActiveMemberships() {
   // Obtener todos los customer_ids
   const customerIds = memberships.map((m) => m.customer_id)
 
-  // Obtener todos los últimos pagos en una sola consulta
+  // Obtener todos los últimos pagos en una sola consulta. Ordena por
+  // `payment_date` = el cobro más reciente, que desde el issue #59 es de verdad
+  // el último: antes ordenaba por inicio de período, así que un cobro cargado
+  // hoy para un período viejo se colaba al frente y uno anticipado quedaba
+  // primero antes de haber ocurrido.
   const { data: allPayments } = await supabase
     .from('membership_payments')
     .select('customer_id, amount, payment_method, payment_date')
@@ -225,6 +231,78 @@ export async function getMembershipTypes(typeFilter?: string) {
   }
 
   return { data: data as MembershipType[], error: null }
+}
+
+/**
+ * Todo lo que el panel de renovación necesita saber del cliente antes de poder
+ * proponer un cobro (Fase 8).
+ *
+ * Son cuatro datos que hoy no devuelve ningún fetch existente:
+ * `fetchCustomerProfile` no trae ni las asistencias del mes ni el descuento, y
+ * `fetchCustomerModalData` mira la semana, no el mes contable.
+ */
+export interface RenewalContext {
+  /** Plan vigente — con lo que arranca preseleccionado el select de tipo. */
+  membership_type: MembershipTypes | null
+  /** Vencimiento vigente. Es el origen del prefill del período. */
+  expiration_date: string | null
+  /**
+   * Inicio del período vigente, vía `getMembershipPeriodStart()`.
+   *
+   * Lo necesita el aviso de cambio de tipo: el RPC pisa el pago existente
+   * —conservándole el `receipt_number`— cuando el `start_date` que llega cae el
+   * mismo día calendario AR que este valor. Es la misma resolución
+   * `start_date ?? last_payment_date` que hace la función en SQL.
+   */
+  period_start: string | null
+  /**
+   * ¿Registró asistencias en el mes contable en curso?
+   *
+   * Input obligatorio de `getSuggestedCharge()`: es lo único que distingue mora
+   * de ingreso a mitad de mes. Sin él, a alguien que se suma el día 20 se le
+   * sugeriría un recargo que no debe.
+   */
+  has_assistances_this_month: boolean
+  /** Último método de pago usado. Prefija el select de forma de pago. */
+  last_payment_method: string | null
+}
+
+export async function fetchRenewalContext(customerId: string): Promise<RenewalContext> {
+  const supabase = createClient()
+  const { start, end } = getMonthRangeInAppTz()
+
+  const [{ data: membership }, { count }, { data: lastPayment }] = await Promise.all([
+    supabase
+      .from('customer_membership')
+      .select('membership_type, expiration_date, start_date, last_payment_date')
+      .eq('customer_id', customerId)
+      .maybeSingle(),
+    // `head: true` trae el count sin las filas: sólo importa si hay alguna.
+    supabase
+      .from('assistance')
+      .select('id', { count: 'exact', head: true })
+      .eq('customer_id', customerId)
+      .gte('assistance_date', start.toISOString())
+      .lt('assistance_date', end.toISOString()),
+    // La forma de pago vive en membership_payments, no en customer_membership.
+    // Es admin-only por RLS: para un no-admin la consulta devuelve vacío y el
+    // select arranca sin preselección, que es una degradación aceptable.
+    supabase
+      .from('membership_payments')
+      .select('payment_method')
+      .eq('customer_id', customerId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ])
+
+  return {
+    membership_type: (membership?.membership_type as MembershipTypes | undefined) ?? null,
+    expiration_date: membership?.expiration_date ?? null,
+    period_start: membership ? getMembershipPeriodStart(membership) : null,
+    has_assistances_this_month: (count ?? 0) > 0,
+    last_payment_method: lastPayment?.payment_method ?? null,
+  }
 }
 
 // Función para actualizar precios de membresía

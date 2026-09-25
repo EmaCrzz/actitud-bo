@@ -20,7 +20,14 @@ export type ChargeMode = 'full' | 'half' | 'surcharge'
 
 export interface ChargeModeOption {
   mode: ChargeMode
-  /** Clave i18n de la etiqueta — "Mes completo", "Medio mes / quincena", … */
+  /**
+   * Clave i18n de la etiqueta — "Mes completo", "Medio mes", …
+   *
+   * Decía "Medio mes / quincena" hasta el 2026-09-23. Se acortó porque la
+   * etiqueta se concatena con el precio (`Medio mes - $ 9.000`) y en el select
+   * del panel de renovación y en el comprobante —390px fijos— la barra la
+   * cortaba con elipsis, dejando el monto fuera de vista.
+   */
   labelKey: TranslationKey
   amount: number
 }
