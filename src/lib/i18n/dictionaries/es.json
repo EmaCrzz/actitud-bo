@@ -210,7 +210,7 @@
     "activeMemberships": "membresías activas",
     "chargeMode": "Modalidad de cobro",
     "chargeModeFull": "Mes completo",
-    "chargeModeHalf": "Medio mes / quincena",
+    "chargeModeHalf": "Medio mes",
     "chargeModeSurcharge": "Mes completo + recargo",
     "confirm": "Confirmar",
     "createMembership": "Crear membresía",
@@ -850,6 +850,12 @@
         "title": "Renovar membresía",
         "stepNew": "Nueva membresía",
         "stepConfirm": "Confirmar",
+        "search": {
+          "label": "Buscar cliente",
+          "placeholder": "Busca por nombre o apellido",
+          "prompt": "Buscá al cliente que va a renovar.",
+          "noResults": "Ningún cliente coincide con \"{query}\"."
+        },
         "currentPlan": "Membresía: {plan}",
         "membershipType": "Tipo de membresía",
         "chargeMode": "Modalidad de cobro",
@@ -902,6 +908,24 @@
         "errors": {
           "totalNotPositive": "El total a cobrar tiene que ser mayor a $ 0."
         }
+      },
+      "receipt": {
+        "title": "Comprobante de pago",
+        "membershipLine": "Membresía {plan}",
+        "date": "Fecha: {date}",
+        "number": "Comprobante N° {number}",
+        "membership": "Membresía",
+        "chargeMode": "Modalidad de cobro",
+        "discount": "Descuento",
+        "surcharge": "Recargo",
+        "promotion": "Promoción",
+        "paymentMethod": "Método de pago",
+        "total": "Total",
+        "thanks": "Gracias por tu pago",
+        "disclaimer": "Documento no válido como factura",
+        "share": "Compartir",
+        "sharing": "Generando...",
+        "shareText": "Comprobante de pago de {name}"
       }
     }
   }

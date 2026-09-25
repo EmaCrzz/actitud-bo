@@ -851,6 +851,12 @@
         "title": "Renew membership",
         "stepNew": "New membership",
         "stepConfirm": "Confirm",
+        "search": {
+          "label": "Search customer",
+          "placeholder": "Search by first or last name",
+          "prompt": "Search for the customer who is renewing.",
+          "noResults": "No customer matches \"{query}\"."
+        },
         "currentPlan": "Membership: {plan}",
         "membershipType": "Membership type",
         "chargeMode": "Billing mode",
@@ -903,6 +909,24 @@
         "errors": {
           "totalNotPositive": "The total to charge must be greater than $ 0."
         }
+      },
+      "receipt": {
+        "title": "Payment receipt",
+        "membershipLine": "{plan} membership",
+        "date": "Date: {date}",
+        "number": "Receipt No. {number}",
+        "membership": "Membership",
+        "chargeMode": "Billing mode",
+        "discount": "Discount",
+        "surcharge": "Surcharge",
+        "promotion": "Promotion",
+        "paymentMethod": "Payment method",
+        "total": "Total",
+        "thanks": "Thank you for your payment",
+        "disclaimer": "Not valid as an invoice",
+        "share": "Share",
+        "sharing": "Generating...",
+        "shareText": "Payment receipt for {name}"
       }
     }
   }
