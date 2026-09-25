@@ -88,7 +88,14 @@ CREATE TABLE public.membership_payments (
   customer_id uuid NOT NULL,
   membership_type character varying NOT NULL,
   amount real NOT NULL CHECK (amount > 0::double precision),
+  -- Cuándo entró la plata: la fecha CONTABLE. Hasta la migración
+  -- 20260925103921 guardaba el inicio del período (issue #59) y por eso venía
+  -- siempre a medianoche AR; ahora lleva la hora real del cobro.
   payment_date timestamp with time zone NOT NULL DEFAULT now(),
+  -- Qué período cubre la cuota: la fecha del CICLO, la que elige el operador en
+  -- el datepicker. La leen el ciclo de cobro y la lista de pendientes. Backfill
+  -- desde el payment_date viejo, que es exactamente lo que guardaba.
+  period_start timestamp with time zone NOT NULL,
   payment_method character varying NOT NULL CHECK (payment_method::text = ANY (ARRAY['PAYMENT_CASH'::character varying::text, 'PAYMENT_TRANSFER'::character varying::text])),
   notes text,
   created_at timestamp with time zone NOT NULL DEFAULT now(),

@@ -1,4 +1,4 @@
-import { getAppTzDateParts } from '@/lib/timezone'
+import { getAppTzDateParts, utcInstantAtAppTzWallClock } from '@/lib/timezone'
 
 // Política de cobro por tenant. Hoy está hardcodeado para Actitud; cuando
 // aparezca un segundo tenant con reglas distintas, este objeto se promueve a
@@ -64,6 +64,52 @@ export function getCyclePhaseForDate(
   const { day } = getAppTzDateParts(date)
 
   return getCyclePhaseForDay(day, policy)
+}
+
+/**
+ * Fase del ciclo para un pago concreto: ¿entró la plata dentro de la ventana
+ * sin recargo **del período que paga**?
+ *
+ * `getCyclePhaseForDate` mira el día del mes de una sola fecha, y eso alcanza
+ * mientras la fecha del cobro y el período caigan en el mismo mes. Desde el
+ * issue #59 ya no es así: `payment_date` pasó a ser el momento real del cobro y
+ * `period_start` el inicio del período, y se pueden separar en los dos
+ * sentidos.
+ *
+ * Hay dos casos que rompen la versión simple, y el corte los contempla a los
+ * dos:
+ *
+ * 1. **Renovación anticipada** (habilitada por la migración 20260922125530):
+ *    pagar octubre el 28 de septiembre da día 28 y se clasificaría como mora,
+ *    cuando en realidad se pagó doce días antes de que venciera la gracia. Por
+ *    eso el corte no es "día ≤ 10" sino "antes de que termine el día 10 **del
+ *    mes del período**" — un instante fijo contra el que se compara el cobro,
+ *    venga de antes o de después.
+ *
+ * 2. **Alta de mitad de mes**: alguien que entra el 15 y paga el 15 no está en
+ *    mora, está estrenando. Paga media membresía, que es un eje distinto del
+ *    recargo (ver `qualifiesForHalfMonth`). Por eso nadie puede estar atrasado
+ *    antes de que su propio período empiece: el vencimiento efectivo es el más
+ *    tarde entre la gracia del mes y el final del día en que arranca el
+ *    período. Esto sí corrige un conteo que venía mal desde antes del #59 —
+ *    el código viejo miraba el día del mes del inicio del período, así que
+ *    contaba como morosa cada alta del 11 en adelante.
+ */
+export function getCyclePhaseForPayment(
+  periodStart: Date,
+  paidAt: Date,
+  policy: BillingPolicy = ACTITUD_BILLING_POLICY
+): CyclePhase {
+  const { year, month, day } = getAppTzDateParts(periodStart)
+  // Fin de la gracia = medianoche AR del día siguiente al último día sin
+  // recargo. Con gracePeriodEnd = 10, cualquier cobro anterior al 11 a las
+  // 00:00 AR entra sin recargo, incluido todo el día 10.
+  const graceDeadline = utcInstantAtAppTzWallClock(year, month, policy.gracePeriodEnd + 1, 0, 0, 0)
+  // Y nunca antes de que termine el día en que el período arranca.
+  const periodStartDeadline = utcInstantAtAppTzWallClock(year, month, day + 1, 0, 0, 0)
+  const deadline = graceDeadline > periodStartDeadline ? graceDeadline : periodStartDeadline
+
+  return paidAt < deadline ? 'grace' : 'surcharge'
 }
 
 // True si la fecha cae en la ventana sin recargo (día 1 a gracePeriodEnd).
