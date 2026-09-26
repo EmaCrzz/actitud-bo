@@ -44,7 +44,10 @@ const api = {
 }
 
 // Deep merge utility to combine base and tenant translations
-function deepMerge(base: Record<string, any>, override: Record<string, any>): Record<string, any> {
+export function deepMerge(
+  base: Record<string, any>,
+  override: Record<string, any>
+): Record<string, any> {
   const result = { ...base }
 
   for (const key in override) {
