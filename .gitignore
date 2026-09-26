@@ -41,8 +41,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# public sw
-./public/sw.js
+# public sw — generado por src/scripts/generate-sw.js en cada dev/build.
+# El patrón iba con "./", que git no interpreta: la regla nunca aplicó y el
+# archivo quedó versionado, colándose con su timestamp nuevo en cada commit.
+/public/sw.js
 
 # playwright
 /test-results/

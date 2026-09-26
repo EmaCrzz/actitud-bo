@@ -50,7 +50,12 @@ export default defineConfig({
   },
 
   projects: [
-    { name: 'setup', testMatch: /auth\.setup\.ts/ },
+    // `teardown` encadenado al setup: Playwright lo corre cuando terminaron
+    // todos los proyectos que dependen de él, y lo corre **aunque haya tests
+    // en rojo**. Es la diferencia que importa: un fallo a mitad del alta es
+    // justo el caso que deja basura en una DB que comparten dev y preview.
+    { name: 'setup', testMatch: /auth\.setup\.ts/, teardown: 'cleanup' },
+    { name: 'cleanup', testMatch: /global\.teardown\.ts/ },
     {
       name: 'v2',
       testMatch: /.*\.spec\.ts/,
