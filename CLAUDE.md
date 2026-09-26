@@ -88,8 +88,26 @@ npm run db:status       # Show current migration status
 ```
 
 ### Testing Environment
-- No test framework is configured - check with maintainer before adding tests
-- Manual testing is done on Preview environment: `actitud-bo-git-develop-*.vercel.app`
+
+Hay suite end-to-end con Playwright desde el 2026-09-26 (ADR [20260926131436](docs/architecture/decisions/20260926131436_suite-e2e-playwright-para-v2.md)). Cubre **v2**; v1 todavía no.
+
+```bash
+npm run test:e2e          # Correr la suite
+npm run test:e2e:ui       # Modo UI de Playwright
+npm run test:e2e:headed   # Con browser visible
+npm run test:e2e:watch    # Headed + slow motion, para mirar qué hace
+npm run test:e2e:report   # Abrir el último reporte HTML
+npm run test:e2e:clean    # Borrar los datos de test de la DB de dev
+```
+
+**Todo trabajo nuevo en v2 debería sumar su spec** — la suite existe justamente para que verificar "¿esto sigue funcionando?" no consuma tiempo del único dev. Convenciones (detalle en el ADR):
+
+- **Selectores por clave de i18n**, no por strings en español: los specs importan el mismo diccionario que la app. Un cambio de copy mueve el selector solo; lo que rompe un test es que desaparezca la *clave*.
+- **Controles con `id` estables.** Los labels de v2 son palabras cortas que reaparecen como encabezados de tabla, y `getByLabel` matchea por substring.
+- **Lo que la UI no muestra se verifica contra la DB** (`e2e/support/db.ts` + `toAppTzIsoDate` de `e2e/support/dates.ts`). Es la única forma de detectar el bug de canonicalización de fechas: la pantalla se ve correcta y sólo cambia un timestamp que nadie renderiza.
+- **Datos efímeros con prefijo `[E2E]` y DNI en el rango `99.xxx.xxx`**, no asignado en Argentina. La suite corre contra la DB de dev, que es un backup de producción con gente real.
+
+Los tests verifican **funcionamiento**, no criterio de negocio. Que el recargo del día 11 sea el correcto lo sigue evaluando QA humano en el Preview (`actitud-bo-git-develop-*.vercel.app`), así que todo PR mantiene su checklist manual.
 
 ## Architecture Overview
 

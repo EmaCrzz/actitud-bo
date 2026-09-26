@@ -1,7 +1,7 @@
 import MetricCard from '@/components/v2/MetricCard'
 import { getServerT } from '@/lib/i18n/server'
 import type { HomeMetrics } from '@/home/types'
-import { V2_CUSTOMERS } from '@/consts/routes'
+import { V2_ATTENDANCE, V2_CUSTOMERS } from '@/consts/routes'
 import {
   MEMBERSHIP_STATUS_ACTIVE,
   MEMBERSHIP_STATUS_EXPIRED,
@@ -24,7 +24,11 @@ export default async function MetricsRow({ metrics }: MetricsRowProps) {
 
   return (
     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+      {/* Lleva a la sección Asistencias, que es el destino natural del card y
+          hasta la fase 9 no existía como pantalla. Sin query: la sección abre
+          en el tab "Registro diario", que es justo el día que cuenta el card. */}
       <MetricCard
+        href={V2_ATTENDANCE}
         subtitle={attendance.subtitle}
         subtitleTone={attendance.tone}
         title={t('v2.home.metrics.todayAttendances')}
