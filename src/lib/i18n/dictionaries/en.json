@@ -726,6 +726,36 @@
       "title": "Under construction",
       "description": "This section isn't available yet. It's planned in the redesign and ships in an upcoming release."
     },
+    "attendance": {
+      "title": "Attendance",
+      "tabs": {
+        "daily": "Daily log",
+        "history": "History"
+      },
+      "dailyTitle": "Today's attendance",
+      "count": {
+        "total": "Total",
+        "results": "Results"
+      },
+      "searchPlaceholder": "Search by first or last name",
+      "row": {
+        "noMembership": "No membership"
+      },
+      "empty": {
+        "title": "No attendance recorded",
+        "todayDescription": "Nobody has come in today yet. Attendance you record will show up here.",
+        "dayDescription": "No attendance was recorded on that day."
+      },
+      "noResults": {
+        "title": "No results",
+        "description": "No attendance on this day matches your search."
+      },
+      "error": {
+        "title": "We couldn't load the attendance",
+        "description": "Check your connection and try again.",
+        "retry": "Retry"
+      }
+    },
     "customers": {
       "title": "Customers",
       "subtitle": "Manage the gym's customers and the status of their memberships.",

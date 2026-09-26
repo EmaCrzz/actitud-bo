@@ -14,6 +14,18 @@ export function normalizeText(text: string): string {
 }
 
 /**
+ * Pone en mayúscula **sólo la primera letra**, dejando el resto intacto.
+ *
+ * Existe porque `text-transform: capitalize` de CSS capitaliza cada palabra, y
+ * sobre una fecha larga en español eso produce "Jueves, 24 **De** Septiembre".
+ * `Intl` devuelve el día en minúscula ("jueves 24 de septiembre") y lo único
+ * que hay que corregir es el arranque de la oración.
+ */
+export function capitalizeFirst(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
+/**
  * Normaliza el término de búsqueda para que matchee la columna generada
  * `customers.full_name_search` (lower + unaccent).
  *

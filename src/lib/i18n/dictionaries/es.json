@@ -725,6 +725,36 @@
       "title": "En construcción",
       "description": "Esta sección todavía no está disponible. Está planificada en el rediseño y llega en una próxima entrega."
     },
+    "attendance": {
+      "title": "Asistencias",
+      "tabs": {
+        "daily": "Registro diario",
+        "history": "Historial"
+      },
+      "dailyTitle": "Asistencias del día",
+      "count": {
+        "total": "Total",
+        "results": "Resultados"
+      },
+      "searchPlaceholder": "Busca por nombre o apellido",
+      "row": {
+        "noMembership": "Sin membresía"
+      },
+      "empty": {
+        "title": "Sin asistencias registradas",
+        "todayDescription": "Todavía no vino nadie hoy. Las asistencias que registres van a aparecer acá.",
+        "dayDescription": "Ese día no se registró ninguna asistencia."
+      },
+      "noResults": {
+        "title": "Sin resultados",
+        "description": "Ninguna asistencia de este día coincide con la búsqueda."
+      },
+      "error": {
+        "title": "No pudimos cargar las asistencias",
+        "description": "Revisá la conexión y volvé a intentar.",
+        "retry": "Reintentar"
+      }
+    },
     "customers": {
       "title": "Clientes",
       "subtitle": "Gestioná los clientes del gimnasio y el estado de sus membresías.",

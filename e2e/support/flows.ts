@@ -61,6 +61,53 @@ export async function createCustomerViaUI(page: Page, label: string): Promise<Te
   return customer
 }
 
+/**
+ * Registra la asistencia de un cliente desde el buscador del home.
+ *
+ * Vive acá porque la necesitan dos specs: el del flujo de registro en sí y el
+ * de la sección Asistencias, que precisa una fila del día para tener algo que
+ * listar. Recordar el UNIQUE por día de la migración `20260917120100`: llamarla
+ * dos veces con el mismo cliente en la misma jornada falla, y es correcto que
+ * falle.
+ */
+export async function registerAssistanceViaUI(
+  page: Page,
+  customer: TestCustomer
+): Promise<void> {
+  await gotoV2(page, ROUTES_V2.V2_HOME)
+
+  // La búsqueda es con debounce: se escribe el apellido (único por corrida)
+  // y se espera que el dropdown liste al cliente.
+  await page.getByPlaceholder(t('v2.home.attendanceSearch.placeholder')).fill(customer.lastName)
+
+  const result = page.getByText(fullName(customer)).first()
+
+  await expect(result).toBeVisible({ timeout: 15_000 })
+  await result.click()
+
+  // Seleccionarlo lo convierte en un chip y habilita el CTA.
+  await page.getByRole('button', { name: t('v2.home.attendanceSearch.cta') }).click()
+
+  // El modal se identifica por su título, que es el nombre del cliente. La
+  // palabra "Asistencia" no sirve de ancla: aparece en el menú, en dos
+  // métricas del home y en el propio CTA.
+  await expect(page.getByRole('heading', { name: fullName(customer) })).toBeVisible({
+    timeout: 15_000,
+  })
+
+  // El CTA nace deshabilitado y se habilita cuando terminan de cargar los
+  // datos del cliente. `click()` espera a que sea accionable, así que esto
+  // cubre la espera sin un sleep arbitrario.
+  await page.getByRole('button', { name: t('v2.home.attendanceModal.confirmCta') }).click()
+
+  // El modal queda abierto ~2s mostrando la animación de éxito y después se
+  // cierra solo. Se espera a que el CTA desaparezca en vez de dormir un tiempo
+  // fijo.
+  await expect(
+    page.getByRole('button', { name: t('v2.home.attendanceModal.confirmCta') })
+  ).toBeHidden({ timeout: 15_000 })
+}
+
 export interface RenewalResult {
   /** "YYYY-MM-DD" que quedó elegido en el datepicker de inicio del período. */
   startDate: string

@@ -88,6 +88,46 @@ export async function findLatestPaymentByPersonId(
   return data as MembershipPaymentRow | null
 }
 
+export interface AssistanceRow {
+  id: string
+  assistance_date: string
+}
+
+/**
+ * Última asistencia registrada de un cliente, buscándolo por DNI.
+ *
+ * La usa el spec de la sección Asistencias para lo único que la pantalla no
+ * puede mostrar: en qué **día calendario argentino** cayó el timestamp que se
+ * guardó. Que la fila aparezca en la lista de hoy ya prueba que el filtro por
+ * rango funciona; esto prueba además que el valor guardado es el que se cree.
+ */
+export async function findLatestAssistanceByPersonId(
+  personId: string
+): Promise<AssistanceRow | null> {
+  const client = await getDbClient()
+
+  const { data: customer, error: customerError } = await client
+    .from('customers')
+    .select('id')
+    .eq('person_id', personId)
+    .maybeSingle()
+
+  if (customerError) throw new Error(`Error buscando el cliente: ${customerError.message}`)
+  if (!customer) return null
+
+  const { data, error } = await client
+    .from('assistance')
+    .select('id, assistance_date')
+    .eq('customer_id', customer.id)
+    .order('assistance_date', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (error) throw new Error(`Error buscando la asistencia: ${error.message}`)
+
+  return data as AssistanceRow | null
+}
+
 /** Cantidad de pagos registrados para un cliente. */
 export async function countPaymentsByPersonId(personId: string): Promise<number> {
   const client = await getDbClient()

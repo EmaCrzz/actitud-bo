@@ -4,6 +4,68 @@ export interface WeekAssistance {
   assistance_date: string
 }
 
+/**
+ * Filas por página en la sección Asistencias de v2.
+ *
+ * La paginación es puramente visual: la página ya trae el día entero, así que
+ * esto sólo decide cuántas filas se pintan por vez.
+ *
+ * Vive acá y no en el componente porque también la consumen los specs e2e, que
+ * corren en Node: importarla desde un módulo `'use client'` les arrastraría
+ * React y `next/navigation`.
+ */
+export const ATTENDANCE_PAGE_SIZE = 10
+
+/**
+ * Membresía embebida en la fila de asistencia.
+ *
+ * `customer_membership.customer_id` es UNIQUE, así que Supabase resuelve la
+ * relación como objeto — pero la normalización cubre igual el array, por el
+ * mismo motivo que documenta `mapCustomerRow`: el shape depende de cómo
+ * PostgREST interprete la relación, no de lo que pida el select.
+ */
+interface EmbeddedAssistanceMembership {
+  membership_type: string | null
+}
+
+/**
+ * Fila de asistencia con su cliente, tal como la devuelve `getAssistancesByDate`.
+ *
+ * Vive acá y no en `api/server.ts` **a propósito**: los componentes de la
+ * sección Asistencias de v2 son client components, y aunque un `import type` se
+ * borre en compilación, importar desde el módulo del server arrastra a
+ * `getAssistanceMembershipType` con él — y con ella `next/headers`, que revienta
+ * el build. Este archivo sólo depende de `@/lib/timezone`, así que es seguro
+ * desde los dos lados.
+ */
+export interface AssistanceByDate {
+  id: string
+  assistance_date: string
+  customers: {
+    first_name: string
+    last_name: string
+    person_id: string
+    phone: string | null
+    email: string | null
+    id: string
+    customer_membership?: EmbeddedAssistanceMembership | EmbeddedAssistanceMembership[] | null
+  }
+}
+
+/**
+ * Plan vigente del cliente de una fila de asistencia, o `null` si no tiene.
+ *
+ * Es la línea secundaria de cada fila en la sección Asistencias de v2 ("5
+ * días"). El valor es la key del catálogo, no un texto: la traduce
+ * `MembershipTranslation`, igual que el listado de clientes.
+ */
+export function getAssistanceMembershipType(assistance: AssistanceByDate): string | null {
+  const embedded = assistance.customers.customer_membership
+  const membership = Array.isArray(embedded) ? (embedded[0] ?? null) : (embedded ?? null)
+
+  return membership?.membership_type ?? null
+}
+
 export interface WeekSlot {
   // La asistencia que consumió este slot, o null si está libre.
   assistance: WeekAssistance | null
