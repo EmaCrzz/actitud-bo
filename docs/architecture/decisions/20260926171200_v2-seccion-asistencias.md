@@ -105,6 +105,8 @@ El registro de asistencia por UI se extrajo del spec a `e2e/support/flows.ts`, p
 **Lo que quedó sin cubrir, y por qué.** Anotado para que sea una decisión y no un redescubrimiento:
 
 - **La paginación con más de una página**, y con ella el recorte de `safePage`. Necesita un día con más de 10 asistencias, y montarlo requeriría 11 altas — contra un rate limit de **10 por hora**, que la suite ya consume en parte. Los tests cubren el invariante barato (la página nunca pinta más de 10 filas) pero no el paso a la página 2 ni su `?page=` en la URL. Si alguna vez se migra a Supabase local con seed, es lo primero que conviene agregar.
+
+  Esto también limita el test del redirect: **conserva `page`, pero eso no es observable** con los datos disponibles. Al montar, `safePage` recorta la página a la última que exista para los resultados actuales, y una búsqueda sin coincidencias sólo tiene la primera. La primera versión del test afirmaba `page=3` y falló — con el código funcionando correctamente. **Una aserción puede ser falsa aunque el comportamiento sea el correcto**: ahí el test estaba codificando una expectativa que contradecía una regla deliberada del propio código.
 - **Que la URL se escriba con `replace` y no con `push`.** El test existe conceptualmente —buscar, `goBack`, verificar que se salió de la pantalla en vez de deshacer una letra— pero necesita un día con asistencias, o sea otra alta. El síntoma de la regresión es molesto pero inmediatamente visible al usar la pantalla, así que no justifica el costo.
 - **Las funciones puras de `filters.ts` y `date-range.ts`** son lo más barato de testear que hay acá, y no tienen test: el proyecto no tiene runner unitario, sólo Playwright. Montar Vitest es una decisión de infra que excede esta fase.
 

@@ -218,17 +218,22 @@ test.describe('v2 · sección asistencias', () => {
     expect(page.url()).not.toContain('date=')
   })
 
-  test('el redirect de hoy conserva la búsqueda y la página', async ({ page }) => {
+  test('el redirect de hoy conserva la búsqueda', async ({ page }) => {
     // El redirect saca sólo el parámetro redundante. Sin este test, una
     // regresión acá se manifiesta como "recargar una vista filtrada la
     // desfiltra", que es de las que nadie reporta y todos sufren.
+    //
+    // Sólo se afirma sobre `q`. El redirect también conserva `page`, pero eso
+    // no es observable acá: al montar, `safePage` recorta la página a la última
+    // que exista para los resultados actuales, y una búsqueda sin coincidencias
+    // sólo tiene la primera. Verificarlo de verdad necesita un día con más de
+    // 10 asistencias — ver "lo que quedó sin cubrir" en el ADR.
     await page.goto(
-      `${ROUTES_V2.V2_ATTENDANCE}?date=${getTodayIsoDateInAppTz()}&q=zzzz-no-existe-zzzz&page=3`
+      `${ROUTES_V2.V2_ATTENDANCE}?date=${getTodayIsoDateInAppTz()}&q=zzzz-no-existe-zzzz`
     )
     await page.waitForURL(/q=zzzz-no-existe-zzzz/)
 
     expect(page.url()).not.toContain('date=')
-    expect(page.url()).toContain('page=3')
   })
 
   test('un `?q=` sobre un día sin asistencias no deja la pantalla trabada', async ({ page }) => {
