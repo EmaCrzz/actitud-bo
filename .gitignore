@@ -44,6 +44,14 @@ next-env.d.ts
 # public sw
 ./public/sw.js
 
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+# Sesión serializada del usuario de e2e: contiene un JWT real de Supabase.
+/e2e/.auth/
+
 ./CLAUDE.md
 
 # Docs

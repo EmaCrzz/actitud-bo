@@ -84,6 +84,16 @@ const eslintConfig = [
       'no-console': 'off',
     },
   },
+  {
+    // Tests e2e. `react-hooks/rules-of-hooks` da un falso positivo acá: los
+    // fixtures de Playwright reciben un callback llamado `use`, y la regla lo
+    // toma por el hook `use` de React llamado fuera de un componente.
+    files: ['e2e/**/*.ts', 'playwright.config.ts'],
+    rules: {
+      'react-hooks/rules-of-hooks': 'off',
+      'no-console': 'off',
+    },
+  },
 ]
 
 export default eslintConfig
