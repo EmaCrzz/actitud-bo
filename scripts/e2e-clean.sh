@@ -30,11 +30,18 @@ echo "🧹 Limpieza de datos e2e"
 echo "   Base:     $HOST"
 echo "   Criterio: customers.first_name LIKE '[E2E]%' (+ sus membresías, pagos y asistencias)"
 echo
-read -r -p "¿Confirmás el borrado? (escribí 'si'): " answer
 
-if [ "$answer" != "si" ]; then
-  echo "Cancelado."
-  exit 0
+# El teardown de la suite invoca este mismo script con E2E_CLEAN_ASSUME_YES=1.
+# La confirmación existe para la invocación a mano, donde el riesgo es el
+# dedazo; cuando lo llama la suite, el criterio de borrado ya está acotado por
+# el código y no hay nadie mirando la terminal.
+if [ "${E2E_CLEAN_ASSUME_YES:-}" != "1" ]; then
+  read -r -p "¿Confirmás el borrado? (escribí 'si'): " answer
+
+  if [ "$answer" != "si" ]; then
+    echo "Cancelado."
+    exit 0
+  fi
 fi
 
 psql "$SUPABASE_DB_URL_DEV" -v ON_ERROR_STOP=1 -f scripts/e2e-clean.sql
