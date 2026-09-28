@@ -8,42 +8,25 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 import { getServerT } from '@/lib/i18n/server'
-import { getTodayIsoDateInAppTz, shiftIsoDateInAppTz } from '@/lib/timezone'
-
-// Ventana máxima hacia atrás desde /assistances.
-const MAX_DAYS_BACK = 14
-
-const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
-
-function resolveSelectedDate(raw: string | undefined, todayIso: string): string {
-  if (!raw) return todayIso
-  if (!ISO_DATE_RE.test(raw)) notFound()
-
-  // Validar que el string se corresponda a un día real (evita "2026-02-31").
-  const [y, m, d] = raw.split('-').map(Number)
-  const asDate = new Date(Date.UTC(y, m - 1, d))
-  const normalized =
-    asDate.getUTCFullYear() === y && asDate.getUTCMonth() === m - 1 && asDate.getUTCDate() === d
-
-  if (!normalized) notFound()
-
-  const minIso = shiftIsoDateInAppTz(todayIso, -MAX_DAYS_BACK)
-
-  if (raw > todayIso) notFound()
-  if (raw < minIso) notFound()
-
-  return raw
-}
+import { getTodayIsoDateInAppTz } from '@/lib/timezone'
+import { getMinAssistanceDate, resolveAssistanceDate } from '@/assistance/date-range'
 
 export default async function page({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
   const { date: rawDate } = await searchParams
   // `lang` se sigue usando acá: DayNavigator es client y lo necesita para Intl.
   const { t, lang } = await getServerT()
 
+  // La resolución del `?date=` vive en `assistance/date-range` porque la
+  // comparte con la sección de v2. Acá `?date=` apuntando a hoy se trata como
+  // hoy (sin redirect), que es el comportamiento que esta pantalla ya tenía.
   const todayIso = getTodayIsoDateInAppTz()
-  const selectedDate = resolveSelectedDate(rawDate, todayIso)
-  const minIso = shiftIsoDateInAppTz(todayIso, -MAX_DAYS_BACK)
-  const listDateProp = selectedDate === todayIso ? undefined : selectedDate
+  const resolution = resolveAssistanceDate(rawDate, todayIso)
+
+  if (resolution.status === 'invalid') notFound()
+
+  const selectedDate = resolution.status === 'day' ? resolution.date : todayIso
+  const minIso = getMinAssistanceDate(todayIso)
+  const listDateProp = resolution.status === 'day' ? resolution.date : undefined
 
   return (
     <>

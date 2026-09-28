@@ -27,8 +27,8 @@
 | 6b | Perfil del cliente + paginación | ✅ completa | Rama `feat/v2-perfil-cliente`. ADR [20260916161500](../architecture/decisions/20260916161500_v2-perfil-de-cliente-y-paginacion.md). Panel de 4 tabs, paginador transversal, filtro de estado a 3 valores, migración B10+B11. **No hay menú de acciones de fila** (el nodo que el plan creía que era, es el filtro `Estado`). Mobile sin verificar. |
 | 7 | Alta de cliente (desde Home y desde Clientes) | ✅ completa | Rama `feat/v2-alta-cliente`. ADR [20260918112629](../architecture/decisions/20260918112629_v2-alta-de-cliente.md). Un panel con dos entradas, **toda alta cobra** (excepto VIP), B12 cerrada, residuo del defecto C eliminado. **Dos migraciones con orden de deploy obligatorio** — ver [Fase 7](#fase-7--alta-de-cliente). |
 | 8 | Registrar pago / renovar membresía + comprobante | ✅ completa | Fundaciones en prod con **v0.13.0/v0.13.1**. Panel de renovación: PR [#62](https://github.com/EmaCrzz/actitud-bo/pull/62), ADR [20260922173000](../architecture/decisions/20260922173000_v2-panel-de-renovacion-de-membresia.md). Comprobante + cobro desde el home: rama `feat/v2-comprobante-y-pago-desde-home`, ADR [20260923140000](../architecture/decisions/20260923140000_v2-comprobante-de-pago-y-cobro-desde-el-home.md). **Ninguno de los dos llevó migraciones.** |
-| 9 | Sección Asistencias | ⬜ pendiente | |
-| 10 | Sección Membresías (planes y precios) | ⬜ pendiente | |
+| 9 | Sección Asistencias | ✅ completa | Rama `feat/v2-asistencias`. ADR [20260926171200](../architecture/decisions/20260926171200_v2-seccion-asistencias.md). **Desktop con tabs, mobile sin ellos** — la divergencia es deliberada y está en el Figma. Sin migraciones. Primera fase que entrega con specs e2e. |
+| 10 | Sección Membresías (planes y precios) | ⬜ pendiente | **Desbloqueada el 2026-09-28**: la [decisión #7](#decisiones-abiertas--riesgos) se cerró en *editar precios y estado, sin crear planes*. Requiere migración: `active` en `types_memberships` (brecha B6). Falta ver las capturas. |
 | 11 | Sección Gastos (crear/editar/eliminar) | ⬜ pendiente | Requiere migración: `payment_method` en `expenses`. |
 | 12 | Sección Ventas (productos) | ⚠️ bloqueada | **No existe modelo de datos.** Requiere diseño de schema completo. |
 | 13 | Balance | ⬜ pendiente | Depende de 11 y 12. |
@@ -39,17 +39,35 @@
 
 ## Por dónde seguir
 
-> Última actualización: **2026-09-25**. Esta sección es el arranque de cualquier sesión nueva: decí en qué estado quedó todo y cuál es el siguiente movimiento, sin tener que leer el documento entero.
+> Última actualización: **2026-09-28**. Esta sección es el arranque de cualquier sesión nueva: decí en qué estado quedó todo y cuál es el siguiente movimiento, sin tener que leer el documento entero.
+
+**Las fases 0–9 están cerradas. Quedan seis: 10 Membresías, 11 Gastos, 12 Ventas, 13 Balance, 14 Configuración y 15 promoción de v2.** De las doce pantallas de v2, **ocho siguen siendo `UnderConstruction`** — `memberships`, `expenses`, `sales`, `balance` y las cuatro de `settings`. Vale tenerlo presente al leer el número de tests en verde: el smoke e2e de "7 pantallas cargan" está recorriendo mayormente placeholders (lo señala el ADR [20260926164830](../architecture/decisions/20260926164830_unit-tests-para-la-logica-de-negocio.md)).
+
+**El movimiento siguiente es la Fase 10** (Membresías), **desbloqueada el 2026-09-28**: la [decisión #7](#decisiones-abiertas--riesgos) se cerró en **editar precios y estado, sin crear planes**. El catálogo de tipos queda cerrado en código porque la clave del tipo gobierna comportamiento —cupo semanal, si el plan se cobra, si tiene modalidades, y tres ramas del RPC de alta escritas en SQL— y un plan creado desde un formulario nacería sin nada de eso, sin fallar ruidosamente.
+
+**Lo que falta para arrancarla:** las capturas de las 4 pantallas desktop (`2167:22905`) y 3 mobile (`2265:69683`), y decidir la migración de `active` en `types_memberships` (brecha B6). Sin `active` no se puede discontinuar un plan sin romper el histórico de `membership_payments` que lo referencia por FK.
+
+---
 
 **Dónde estamos: la Fase 8 está cerrada y desplegada.** Las fundaciones (modelo de precio, recargo explícito, número de comprobante) viajaron en **v0.13.0/v0.13.1**; el panel de renovación en el PR [#62](https://github.com/EmaCrzz/actitud-bo/pull/62); el comprobante compartible y el cobro desde el home en el [#63](https://github.com/EmaCrzz/actitud-bo/pull/63). **Ninguno de los dos PRs de UI llevó migraciones.** Ver [Fase 8](#fase-8--registrar-pago--renovar-membresía--comprobante).
 
-**El issue [#59](https://github.com/EmaCrzz/actitud-bo/issues/59) se ejecutó el 2026-09-25**, en la rama `fix/payment-date-criterio-de-caja`. `membership_payments` tiene ahora dos fechas: `payment_date` (cuándo entró la plata, la fecha contable) y `period_start` (qué período cubre la cuota). Se aplicó el criterio de caja. Los totales de prod se movieron —junio 2026 quedó en $0 y sus $78.000 pasaron a julio— y el detalle con la medición antes/después está en el ADR [20260925103921](../architecture/decisions/20260925103921_payment-date-criterio-de-caja.md). Es reversible: el valor viejo quedó guardado en `period_start`.
+**El issue [#59](https://github.com/EmaCrzz/actitud-bo/issues/59) se cerró el 2026-09-25** (PR [#64](https://github.com/EmaCrzz/actitud-bo/pull/64)). `membership_payments` tiene ahora dos fechas: `payment_date` (cuándo entró la plata, la fecha contable) y `period_start` (qué período cubre la cuota). Se aplicó el criterio de caja. Los totales de prod se movieron —junio 2026 quedó en $0 y sus $78.000 pasaron a julio— y el detalle con la medición antes/después está en el ADR [20260925103921](../architecture/decisions/20260925103921_payment-date-criterio-de-caja.md). Es reversible: el valor viejo quedó guardado en `period_start`.
 
-**El movimiento siguiente es la Fase 9** (Asistencias), que es mayormente port de UI y no tiene brechas de DB. La pregunta de diseño abierta es si los tabs de desktop desaparecen como en mobile.
+**La Fase 9 (Asistencias) se cerró el 2026-09-26** — rama `feat/v2-asistencias`, ADR [20260926171200](../architecture/decisions/20260926171200_v2-seccion-asistencias.md), sin migraciones. La pregunta de los tabs se respondió mirando las capturas: **desktop lleva `Registro diario` / `Historial` y mobile no lleva ninguno**, y la divergencia es deliberada. Ver [Fase 9](#fase-9--sección-asistencias).
+
+**Desde el 2026-09-26 el repo tiene suite e2e con Playwright** (PRs [#65](https://github.com/EmaCrzz/actitud-bo/pull/65), [#66](https://github.com/EmaCrzz/actitud-bo/pull/66), [#67](https://github.com/EmaCrzz/actitud-bo/pull/67); ADR [20260926131436](../architecture/decisions/20260926131436_suite-e2e-playwright-para-v2.md)). **Toda fase nueva suma su spec** — la 9 fue la primera. Lo que la suite cambia para este plan: la línea "Riesgo timezone" de cada fase deja de auditarse sólo leyendo código y pasa a tener verificación ejecutable contra la DB (`e2e/support/db.ts` + `toAppTzIsoDate`), que es la única forma de detectar el bug que no se ve en pantalla.
+
+**Y desde el 2026-09-26 también tiene unit tests con Vitest** (PR [#69](https://github.com/EmaCrzz/actitud-bo/pull/69), ADR [20260926164830](../architecture/decisions/20260926164830_unit-tests-para-la-logica-de-negocio.md)). **60 tests en 60ms** sobre la política de cobro, la sugerencia de precio y los helpers de timezone — la lógica donde vive el riesgo real y que no tenía una sola verificación. Corren con `npm run test`, sin DB, sin secrets y sin dejar residuo, así que son lo primero que debería ir a CI si alguna vez se monta. **La división de trabajo entre las dos suites:** Vitest fija las reglas de negocio (que el día 11 cobre recargo), Playwright verifica que la pantalla las ejecute y que la fecha aterrice bien en la DB.
 
 **Lo que cambió el diseño el 2026-09-22:** el paso 1 ahora tiene los **dos datepickers** (inicio y vencimiento), que antes no estaban. El panel los muestra con prefill derivado — inicio = día siguiente al vencimiento vigente, o hoy si ya venció — y con eso la renovación anticipada arranca sola en el período correcto.
 
-**Estado de entornos — todo desplegado y sin deuda.** Producción corre **v0.13.1** con las migraciones `20260921101140` y `20260922125530` aplicadas; dev está emparejado. Prod sigue con **0 usuarios con `v2_access`**, así que toda la v2 viaja apagada. No hay migraciones pendientes en ningún entorno.
+**Estado de entornos — sin deuda de migraciones, con código sin releasear.** Producción corre **v0.14.0** (release del 2026-09-25), que llevó la Fase 8 completa —panel de renovación, comprobante y cobro desde el home— junto con el cierre del #59. Prod sigue con **0 usuarios con `v2_access`**, así que toda la UI de v2 viaja apagada: lo único de ese release que un operador de v1 ve son los números corregidos de `/incomes` y la etiqueta `Medio mes`.
+
+**Migraciones: al día.** La última aplicada en prod es `20260925103921` y dev está emparejado. **Nada de lo que vino después toca el schema** — ni la Fase 9, ni la suite e2e, ni los unit tests.
+
+**Lo que sí quedó pendiente de release:** `develop` está adelante de `main` con la Fase 9, las tres tandas de e2e y los unit tests. Como no hay migraciones de por medio y la UI de v2 viaja apagada, ese release no tiene orden de deploy que respetar: es `./scripts/release.sh minor` desde `develop` y listo.
+
+> **Al abrir `/incomes` desde el release v0.14.0, junio 2026 muestra $0.** Es la reatribución del #59, no una pérdida: los 4 pagos de junio se habían cargado en julio y ahora se cuentan ahí. Sus cuotas siguen existiendo en `period_start`. Está en el ADR, pero conviene tenerlo a mano porque es lo primero que llama la atención en el dashboard.
 
 **Lo que este release cambió para los usuarios de v1:** el corte del recargo pasó del día 16 al 11, así que el dashboard de ingresos reclasifica los pagos de los días 11–15 —históricos incluidos— como "con recargo", y la barra del ciclo se pone amarilla cinco días antes. **No se migró ningún dato**: esa clasificación se calcula al leer. La auditoría de integridad antes y después del push salió byte a byte idéntica.
 
@@ -193,7 +211,7 @@ No son adaptaciones de layout: son **cambios de navegación y de funcionalidad**
 
 | Tema | Desktop | Mobile | Impacto |
 |---|---|---|---|
-| **Asistencias** | `Tabs` + `DateNavigation` opcional (`2118:28921`, `2118:28933`) | **Sin Tabs.** `DateNavigation` siempre presente (`2228:48632`) | Fase 9: definir si los tabs desaparecen también en desktop o si es divergencia intencional |
+| **Asistencias** | Tabs `Registro diario` / `Historial`; el navegador de día vive **dentro del card** en Historial (`2118:28921`, `2118:28933`) | **Sin Tabs.** Navegador de día siempre presente y **fuera** del card (`2228:48632`) | ✅ Fase 9 cerrada: **divergencia deliberada**, se construyó así |
 | **Configuración** | 4 sub-items en el sidebar (Negocio, Membresías, Promociones, **Usuarios**) | **`Tabs` dentro de la pantalla**, y **sólo 3: falta Usuarios** | Fase 14: dos patrones de navegación distintos + una pantalla sin diseñar |
 | **Payment Receipt** | Presente en flows 3 y 7 (`2118:17883`, `2118:28076`) | **No aparece en ningún flow mobile** | Fase 8: ¿el comprobante no existe en mobile, o falta diseñarlo? |
 | **Pago desde el Home** | "Registrar un pago", 10 pantallas (`2166:22898`) | "Renovar membresía desde acciones rápidas", 6 pantallas (`2222:43026`) | Fase 8: confirmar si son el mismo flow con menos pasos o dos flows distintos |
@@ -1078,39 +1096,60 @@ El formulario tiene que **calcular y mostrar el monto sugerido** usando `getCycl
 
 ## Fase 9 — Sección Asistencias
 
-**Estado:** ⬜ pendiente · 🔵 diseño incompleto
-**Figma:** desktop `2167:22904` (2 pantallas) · **mobile `2228:49268` (2 pantallas)**.
+**Estado:** ✅ completa — ADR [20260926171200](../architecture/decisions/20260926171200_v2-seccion-asistencias.md)
+**Figma:** desktop `2167:22904` (2 pantallas) · **mobile `2228:49268` (2 pantallas)**. Verificado con capturas que pasó Ema el 2026-09-26.
 
-> ⚠️ **Divergencia de navegación.** Desktop tiene `Tabs` + `DateNavigation` opcional; **mobile no tiene Tabs** y muestra `DateNavigation` siempre (`2228:48632`, `2228:48923`). Decidir si los tabs desaparecen también en desktop (más simple, un solo modelo mental) o si la divergencia es intencional. Definirlo **antes** de construir, no después.
+> ✅ **La "divergencia de navegación" quedó resuelta: es deliberada.** Desktop tiene tabs **`Registro diario` / `Historial`**; mobile no tiene ninguno y muestra el navegador de día siempre. Se construyó así.
+>
+> La pregunta del plan estaba **mal planteada**: decía "los tabs son probablemente Hoy/Historial" a partir del árbol de nodos, que lista el `Tabs` pero no dice qué dice. Las capturas mostraron los nombres reales y que la segunda pantalla desktop no reemplaza el título por el navegador — lo mete **dentro del card**, a la izquierda del contador.
+>
+> Tercera vez que una inferencia del árbol de nodos resulta falsa (antes: el "dropdown de acciones de fila" de la 6b y la premisa de la decisión #5). **El árbol dice qué instancias hay, no qué hacen.**
 
-`Tabs` + `Summary Section Container` con `Customer List`. La segunda pantalla (`2118:28933`) reemplaza el título por un `DateNavigation`, así que los tabs son probablemente **"Hoy" / "Historial"**, y el historial trae navegación por fecha.
+### Cómo quedó
 
-La anotación `2118:29353` ("Ver estados del historial") confirma que **los estados de la lista no están diseñados**.
+**Desktop** — tabs arriba del card. *Registro diario*: header `Asistencias del día` + el contador suelto a la derecha, sin navegador. *Historial*: el navegador de día ocupa el lugar del título, con el contador a la derecha.
 
-Es también el destino del card "Asistencias de hoy" del home.
+**Mobile** — sin tabs: `← Asistencias`, el navegador de día full-width siempre visible, y el card con `Total de asistencias: N` inline (no hay título de card al lado que le dé contexto al número).
 
-### Qué existe hoy
+**La fila** — avatar con iniciales + nombre + plan de membresía + **la hora donde el resto de las listas del rediseño lleva un badge de estado**. Es lo que dibuja el diseño y tiene sentido: en la lista de un día puntual se consulta a qué hora entró alguien. Se pierde el ranking numerado de v1, que era el índice del array.
 
-`getTotalAssistancesToday`, `getAssistancesByDate`, `getTodayAssistances`, `getAssistancesByWeek`, `getTopCustomersThisMonthRPC` ([src/assistance/api/server.ts](../../src/assistance/api/server.ts)). UI v1: `assistances-list.tsx`, `day-navigator.tsx`, `top-monthly-assintant.tsx`, `counter.tsx`.
+### Lo que la maqueta tenía de relleno
 
-Prácticamente toda la lógica existe. Esta fase es mayormente portar UI.
+Conviene dejarlo escrito para que nadie lo lea como requisito: el contador decía 12 y 20 sobre **las mismas 8 filas**; todas las filas decían `08:14`, lo que hacía que el orden se viera alfabético sin serlo; y "Hoy" y "Ayer" listaban a las mismas 8 personas. El orden quedó por **hora descendente**, como v1 — en el mostrador lo útil es quién entró recién.
 
-### A construir
+También: el sidebar de las dos capturas desktop marca **`Inicio`** activo, no `Asistencias`, aunque el ítem exista. Se implementó marcando `Asistencias`. Anotado para el diseñador.
 
-- `src/app/[lang]/[tenant]/v2/attendance/page.tsx`
-- `src/assistance/components/v2/AttendanceTabs.tsx`, `CustomerList.tsx`, `DateNavigation.tsx`
+### Decisiones que el diseño no cubría
 
-**Brechas de DB:** ninguna (salvo B4, que se resuelve en Fase 3).
+- **El tab Historial tope en ayer.** La maqueta abre en "Ayer" y no dice qué pasa si se navega hacia adelante; llegar a hoy mostraría la misma lista que *Registro diario* con el tab equivocado subrayado.
+- **El tab se deriva de la URL, no es estado local.** `/v2/attendance` = *Registro diario*; `?date=YYYY-MM-DD` = *Historial*. `?date=` apuntando a hoy **redirige** a la ruta pelada, conservando `q` y `page`. Mismo criterio que el ADR [20260727141418](../architecture/decisions/20260727141418_tab-en-url-para-listado-clientes-y-grupos.md).
+- **Búsqueda (`?q=`) y página (`?page=`) también van en la URL**, con `history.replaceState` — igual que el listado de clientes. La vista es compartible y sobrevive a F5 y al botón atrás, y el filtrado sigue siendo client-side: la URL refleja el estado, no dispara consulta.
+- **Estados vacío / cargando / error definidos acá** — la anotación `2118:29353` ("Ver estados del historial") lo anticipaba. El vacío tiene copy distinto para hoy ("todavía no vino nadie") y para un día pasado ("ese día no se registró ninguna asistencia").
+- **Sin asistencias no se muestra el contador.** El diseño lo dibuja siempre, pero su maqueta nunca tiene la lista vacía: un `0` con énfasis de métrica al lado de "Sin asistencias registradas" repite el dato. En desktop desaparece sólo el número; en mobile, la banda entera (el total era su único contenido).
+- **El contador lleva label visible** (`Total 12` / `Resultados 3`), divergiendo del Figma, que dibuja el número suelto. Esa maqueta tenía un solo valor posible; con el buscador el número alterna entre el total del día y los resultados, y sin label no se sabe cuál se está leyendo. El énfasis tipográfico del número se conserva.
+- **Paginación de 10 y buscador por nombre**, ninguno de los dos en el Figma — pedidos por Ema durante la implementación. El diseño dibuja la lista entera sin controles, lo que funciona con las 8 filas de la maqueta y no con un sábado real. **El buscador aparece sólo si el día tuvo asistencias**, y la condición mira el total del día y no los resultados: así una búsqueda sin coincidencias no hace desaparecer el campo con el que se escribió. **Todo el filtrado es client-side** — la página ya trae el día entero, así que buscar y paginar no vuelven al server.
+- **La ventana sigue en 14 días hacia atrás**, igual que v1.
 
-**Riesgo timezone:** alto. Todo el módulo pivotea sobre "qué día es hoy en AR". `getAssistancesByDate` recibe un `Date` — verificar que el caller lo construya con `parseAppTzDateString` y no con `new Date(string)`.
+### Qué se construyó
+
+- `AttendanceSection.tsx` (tabs + orquestación), `AttendanceList.tsx`, `DateNavigation.tsx` en `src/assistance/components/v2/`.
+- [src/assistance/date-range.ts](../../src/assistance/date-range.ts) — validación del `?date=` **compartida con la pantalla de v1**, que la tenía como función local. Rechaza formato inválido, días inexistentes (`2026-02-31`), futuro y fuera de ventana.
+- `getAssistancesByDateResult` en [api/server.ts](../../src/assistance/api/server.ts) — informa si la consulta falló. `getAssistancesByDate` quedó como wrapper que descarta el error, que es lo que v1 ya hacía. **Un solo query, no dos copias.**
+- El `select` extendido con `customer_membership (membership_type)`: la línea secundaria de la fila no se estaba trayendo.
+- El `href` del card "Asistencias de hoy" del home, que **no lo tenía** — sólo lo tenía el de clientes.
+
+**Brechas de DB:** ninguna. Sin migraciones.
+
+**Riesgo timezone:** era el alto de la fase y está auditado call-site por call-site en el ADR. El punto crítico es `parseAppTzDateString(selectedDate)` en la page: `new Date(iso)` lo leería como medianoche UTC, que en AR son las 21hs del día anterior. **No se escribe ninguna fecha: la sección es de sólo lectura.**
 
 **Definición de hecho:**
-- [ ] Tabs Hoy/Historial con navegación por fecha
-- [ ] Lista con estados vacío/cargando/error (definidos por nosotros, documentados acá)
-- [ ] Link desde el card del home funciona
-- [ ] Auditoría de timezone
+- [x] Tabs Registro diario / Historial con navegación por fecha *(desktop; mobile sin tabs, deliberado)*
+- [x] Lista con estados vacío/cargando/error, definidos y documentados acá
+- [x] Link desde el card del home funciona
+- [x] Auditoría de timezone documentada en el ADR
+- [x] **Specs e2e** — la asistencia aparece en el día correcto (verificado contra la DB), el contador coincide, el tope del Historial, el 404 de fecha imposible y el redirect canónico
 
-**ADR:** probablemente no si es sólo port de UI. Sí si aparecen endpoints nuevos o cambia el shape de respuesta.
+**ADR:** sí. El plan decía "probablemente no si es sólo port de UI", pero aparecieron tres decisiones de diseño que el Figma no resolvía.
 
 ---
 
@@ -1129,18 +1168,24 @@ Prácticamente toda la lógica existe. Esta fase es mayormente portar UI.
 
 Los 5 tipos están hardcodeados en [src/membership/consts.ts](../../src/membership/consts.ts) (`MembershipTypeArray`) con traducciones por key. **Si el Figma permite crear planes nuevos desde la UI, esa constante deja de ser la fuente de verdad** — hay conflicto entre "tipos hardcodeados con i18n" y "CRUD dinámico". → [Decisiones abiertas](#decisiones-abiertas--riesgos) #7.
 
+> ✅ **La [decisión #7](#decisiones-abiertas--riesgos) se cerró el 2026-09-28: esta fase edita precios y estado, y no crea planes.** El catálogo de tipos queda cerrado en código porque la clave gobierna el cupo semanal, si el plan se cobra, si tiene modalidades y tres ramas del RPC de alta escritas en SQL. **`MembershipTypeArray` sigue siendo la fuente de verdad y la i18n por key se conserva** — el conflicto que bloqueaba la fase se disolvió, no se resolvió a medias.
+>
+> **Sigue faltando mirar las capturas reales** de las 4 pantallas desktop y 3 mobile antes de construir. La lección se repitió tres veces en este plan —la 6b, la decisión #5 y la 9— y acá es concreta: **si esos frames dibujan un botón "Crear plan", es una divergencia deliberada más** para avisarle al diseñador. El árbol de nodos dice que hay 4 pantallas; no dice qué hace cada una.
+
 **Brechas de DB:** B6 — `types_memberships` no tiene `active` ni `description`. Sin `active` no se puede discontinuar un plan sin romper el histórico de `membership_payments` que lo referencia por FK.
 
 **Riesgo timezone:** bajo. `last_update` es informativo.
 
 **Definición de hecho:**
 - [ ] Listado de planes con precios (normal / recargo / media)
-- [ ] Crear y editar plan
-- [ ] Discontinuar plan sin romper histórico
-- [ ] Resuelto el conflicto tipos-hardcodeados vs CRUD dinámico
+- [ ] **Editar** los tres precios de un plan *(crear plan queda fuera de alcance — decisión #7)*
+- [ ] Discontinuar y reactivar un plan sin romper el histórico de `membership_payments`
+- [ ] Un plan discontinuado desaparece de los selects de alta y renovación, y **sigue mostrándose** en los clientes y pagos que ya lo tienen
+- [x] ~~Resuelto el conflicto tipos-hardcodeados vs CRUD dinámico~~ — cerrado el 2026-09-28
 - [ ] Toast + refresh
+- [ ] Specs e2e de la fase + unit tests si toca alguna regla de precio
 
-**ADR:** sí — la decisión sobre tipos dinámicos vs hardcodeados tiene impacto en todo el dominio de membresías.
+**ADR:** sí — la decisión sobre tipos dinámicos vs hardcodeados tiene impacto en todo el dominio de membresías, y la migración de `active` define cómo se discontinúa un plan sin romper el histórico.
 
 ---
 
@@ -1316,7 +1361,7 @@ Ordenadas por impacto. Las que bloquean una fase están marcadas.
 1. **~~No hay diseño mobile~~ → RESUELTO (2026-09-15).** Los 12 flows mobile están indexados en [Figma — índice de nodos mobile](#2-figma--índice-de-nodos-mobile). Lo que **queda abierto** del tema mobile son tres huecos concretos, cada uno asignado a su fase:
    - **Configuración → Usuarios no tiene pantalla mobile** (el sidebar desktop tiene 4 sub-items, el mobile diseñó 3 tabs). → Fase 14.
    - **`Payment Receipt` no aparece en ningún flow mobile.** ¿No existe en mobile o falta diseñarlo? → Fase 8.
-   - **Divergencia de navegación en Asistencias** (desktop con `Tabs`, mobile sin ellos) y en **Configuración** (sub-items de sidebar vs tabs in-page). Decidir si son intencionales. → Fases 9 y 14.
+   - ~~**Divergencia de navegación en Asistencias**~~ ✅ **resuelta 2026-09-26**: es intencional y se construyó así — desktop con tabs `Registro diario` / `Historial`, mobile con el navegador de día siempre visible y sin tabs. Ver [Fase 9](#fase-9--sección-asistencias). Sigue abierta la de **Configuración** (sub-items de sidebar vs tabs in-page) → Fase 14.
 
 2. **~~Paleta~~ → RESUELTO (2026-09-15).** El rosa/magenta **es la marca de Actitud**, y los Figmas nuevos apuntan a más alta fidelidad. Ema: *"hoy no es necesario que pienses en ello de momento, podés mantener todo en escala de grises si querés"*. **Decisión: las primitivas de la Fase 5 se construyen con los tokens neutrales actuales**, y la paleta de marca se aplica después en una pasada dedicada sobre las CSS vars de `[data-v2]` — que es exactamente para lo que sirve el theming scoped de la Fase 1. Evita mezclar decisiones de color con decisiones de API de componentes.
 3. **Estados de tabla y lista — parcialmente resueltos por el mobile.** En desktop hay tres anotaciones del diseñador pidiendo definirlos (`2118:22319`, `2118:22606`, `2118:29353`), pero **el mobile sí diseñó dos empty states**: `Gastos/Vacio` (`2286:119862`) y Ventas en $0 (`2265:70904`). Usar esos dos como referencia canónica y derivar el resto (cargando, error, sin resultados de filtro) en la Fase 5, documentándolos acá. Ya no hace falta pedir nada.
@@ -1327,7 +1372,22 @@ Ordenadas por impacto. Las que bloquean una fase están marcadas.
 
 6. **`business_settings`: fila única o `tenant_id` desde ya (bloquea Fase 14).** Agregar `tenant_id` ahora cuesta poco; migrarlo después con datos cuesta bastante más.
 
-7. **Tipos de membresía: hardcodeados vs CRUD (bloquea Fase 10).** Hoy los 5 tipos están en `MembershipTypeArray` con traducciones por key i18n. Si la sección Membresías permite crear planes nuevos, esa constante deja de ser la fuente de verdad y los nombres tienen que salir de la DB (perdiendo i18n por key). Decidir antes de construir.
+7. **~~Tipos de membresía: hardcodeados vs CRUD~~ → RESUELTO (2026-09-28). La Fase 10 edita precios y estado, y no crea planes.** El catálogo de tipos queda cerrado en código. La sección Membresías es un editor de `types_memberships` —precios normal / recargo / media, y activar / discontinuar— no un ABM de planes. `MembershipTypeArray` sigue siendo la fuente de verdad y la i18n por key se conserva. **Agregar un plan nuevo sigue siendo un PR**, que es la parte honesta de la decisión: agregar un plan *es* escribir su comportamiento, y un formulario no puede hacerlo.
+
+   **Lo que destrabó la decisión fue el inventario: la clave del tipo no es un nombre, es un contrato de comportamiento.** Cuatro lugares ramifican sobre el string literal, y ninguno se resuelve leyendo una fila de `types_memberships`:
+
+   | Dónde | Qué decide la clave |
+   |---|---|
+   | [pricing.ts:99-100](../../src/membership/pricing.ts) | VIP no se cobra; Diaria va a precio único |
+   | [charge-mode.ts:54, 141, 182](../../src/membership/charge-mode.ts) | VIP y Diaria no tienen modalidades ni recargo |
+   | [customer-counter.tsx:30-32](../../src/assistance/customer-counter.tsx) + [customer.tsx:70](../../src/assistance/customer.tsx) | El cupo semanal (5 / 3 / 2) sale de un mapa por clave |
+   | Las migraciones del RPC de alta (`IF p_membership_type = 'MEMBERSHIP_TYPE_VIP'`, `v_is_daily := ...`) | Vencimiento de la diaria, gate de admin del VIP, asistencia automática |
+
+   **Un plan creado desde la UI nacería sin key i18n, sin cupo semanal, sin modalidad de cobro y desconocido para el RPC** — y nada de eso fallaría ruidosamente. Sería un plan que existe en la tabla de precios y no funciona en ninguna pantalla. Ese es el modo de fallo que la decisión evita.
+
+   **Si más adelante el negocio necesita planes arbitrarios**, el paso previo es extraer esas cuatro ramificaciones a columnas de la tabla (`weekly_quota`, `is_chargeable`, `has_charge_modes`) y hacer que el RPC las lea en vez de comparar strings. Es una fase propia **antes** de la 10, no un renglón adentro.
+
+   **Qué queda por verificar contra el diseño:** si los frames de la Fase 10 dibujan un botón "Crear plan", esta decisión choca contra el Figma y hay que avisarle al diseñador. No cambia la decisión —el botón no puede hacer lo que promete— pero sí es una divergencia deliberada más para la lista.
 
 8. **Histórico de gastos sin `payment_method` (bloquea Fase 11).** ¿Los gastos existentes se backfillean a "efectivo" o quedan como "sin especificar"? Decisión del negocio.
 
@@ -1364,9 +1424,12 @@ Aplica a **toda** fase antes de pedir review. Está pensado para que el otro dev
 ### Local, antes de pushear
 1. `npm run type-check` — sin errores nuevos.
 2. `npm run lint` — sin errores nuevos.
-3. `npm run dev` — arranca sin warnings nuevos en consola.
-4. Responsive: 1440px → 768px → 375px sin overflow horizontal.
-5. Auditoría de timezone: cada fecha nueva que llega a un RPC o a la DB pasa por un helper de `src/lib/timezone.ts`.
+3. **`npm run build` — obligatorio si la fase agrega una pantalla o un componente client.** Los dos pasos anteriores **no** detectan que un componente `'use client'` importe un valor de un módulo que toca `next/headers` o el cliente de Supabase del server: pasan limpios y el build revienta. Pasó en la Fase 9 — ver la lección del ADR [20260926171200](../architecture/decisions/20260926171200_v2-seccion-asistencias.md).
+4. `npm run dev` — arranca sin warnings nuevos en consola.
+5. `npm run test` — los unit tests en verde. Si la fase toca una regla de negocio (precio, recargo, fecha), **suma su test acá y se lo valida por mutación** antes de darlo por escrito.
+6. `npm run test:e2e` — la suite en verde, incluidos los specs que agrega la fase.
+7. Responsive: 1440px → 768px → 375px sin overflow horizontal.
+8. Auditoría de timezone: cada fecha nueva que llega a un RPC o a la DB pasa por un helper de `src/lib/timezone.ts`.
 
 ### En el preview
 1. **User sin `v2_access`:** `/home` (v1) funciona; `/v2/*` redirige a `/home`.
@@ -1532,4 +1595,40 @@ Aplica a **toda** fase antes de pedir review. Está pensado para que el otro dev
   - **El riesgo estaba en dónde poner la condición, no en la condición.** Reescribir `v_can_update_current` era lo natural y habría roto el cambio de tipo sin pago, que usa esa misma variable y recibe `p_start_date = NULL`. El síntoma habría sido un cambio de plan que deja de reflejarse en el pago: silencioso y sólo visible en contabilidad.
   - **Medir el fallback antes de elegirlo.** El criterio depende de `start_date`, que el 90% de las filas activas no tiene (se agregó sin backfill). El `COALESCE` a `last_payment_date` cubre el 100% de las 96 membresías activas con pago vigente — pero una sola fila sin ninguno de los dos habría perdido la protección contra duplicados sin que nada fallara.
   - **No se reparó nada retroactivamente.** Hay una fila en prod con la firma de un pago pisado (creada el 07/08, hoy fechada el 07/09, $24.000), pero el `UPDATE` destruyó la evidencia del cobro original: no hay a qué volver.
+  — Ema + Claude.
+- 2026-09-26 — **Fase 9 completa** (`feat/v2-asistencias`). ADR [20260926171200](../architecture/decisions/20260926171200_v2-seccion-asistencias.md). Sin migraciones, sin RPCs nuevos, v1 intacta.
+  - **La pregunta que bloqueaba la fase estaba mal planteada.** El plan decía "definir si los tabs desaparecen también en desktop" y suponía que se llamaban Hoy/Historial, a partir del árbol de nodos. Las capturas mostraron que se llaman **`Registro diario` / `Historial`**, que la divergencia con mobile es deliberada, y que en Historial el navegador de día vive **dentro del card** en vez de reemplazar el título. **Tercera vez que una inferencia del árbol de nodos resulta falsa** — antes fueron el "dropdown de acciones de fila" de la 6b (era el filtro `Estado`) y la premisa de la decisión #5. El árbol dice qué instancias hay, no qué hacen.
+  - **El tab se deriva de la URL en vez de ser estado local.** Un solo `?date=` gobierna el día visible y el tab activo, así que la combinación incoherente —Historial mostrando hoy— no existe. `?date=` apuntando a hoy redirige a la ruta pelada, para que no haya dos URLs con el mismo contenido.
+  - **Se le puso tope al Historial en ayer**, que el diseño no resolvía: llegar a hoy mostraría la misma lista que el otro tab, con el tab equivocado subrayado.
+  - **Un estado de error no se puede mostrar si la capa de datos ya lo tragó.** `getAssistancesByDate` devolvía `[]` ante cualquier fallo, así que un error de red o de RLS se veía igual que un día sin nadie. Se agregó `getAssistancesByDateResult`; la función vieja quedó como wrapper, y el query sigue siendo uno solo.
+  - **"Cero brechas, es puro port de UI" no era del todo cierto.** No hacía falta migración, pero la línea secundaria de la fila —el plan de membresía— no se estaba trayendo en el `select`. Se detectó mirando la captura, no el código.
+  - **La validación del `?date=` se extrajo a un módulo compartido con v1**, que la tenía como función local. Con dos copias, ampliar la ventana en una pantalla y no en la otra habría sido un bug invisible hasta que alguien comparara.
+  - **Primera fase que entrega con specs e2e.** Seis casos, y el que justifica el resto verifica **contra la DB** que la asistencia recién registrada cayó en el día calendario argentino correcto — lo único que la pantalla no puede mostrar y el modo de fallo que ya apareció dos veces en este repo.
+  - **Datos de relleno de la maqueta, anotados para que nadie los lea como requisitos:** el contador decía 12 y 20 sobre las mismas 8 filas, todas las filas decían `08:14` (lo que hacía ver un orden alfabético que no existe), y el sidebar marcaba `Inicio` activo en una pantalla de Asistencias.
+  - **Paginación y buscador se agregaron sobre la marcha, fuera del Figma.** El diseño dibuja la lista entera sin controles — coherente con una maqueta de 8 filas, insuficiente para un día real. Reusaron `DataTablePagination` y `FilterBar.Search`, las dos primitivas de la Fase 5, sin tocarlas. **Quedan como precedente para las fases 10–15**: una lista larga del rediseño probablemente necesite los dos aunque su frame no los muestre.
+  - **Búsqueda y página arrancaron como estado local y se corrigieron a la URL.** La justificación original —"meterlas en la URL cuesta un round-trip por tecla"— sólo vale para `router.replace`; `history.replaceState` la actualiza sin navegación, y **eso ya estaba resuelto y comentado en `CustomersSection`**, la sección más parecida del mismo rediseño. La lección para las fases que vienen: **cuando una decisión se aparta de lo que hace una pantalla equivalente, abrir esa pantalla antes de argumentar.** De paso se extrajeron `readParam` y `parsePageParam` a `lib/search-params.ts`, que eran privados de `customer/filters.ts`.
+- **Dos defectos que sólo aparecieron mirando la pantalla con data real**, no leyendo el código: el `0` del contador sobre la lista vacía, y `capitalize` de Tailwind produciendo "Jueves, 24 **De** Septiembre" (capitaliza cada palabra; `Intl` ya devuelve el día bien y sólo hay que subir la primera letra). Refuerza la regla operativa #4: **mirar cada pantalla nueva con data real antes de cerrarla**. El `DayNavigator` de v1 arrastra el mismo defecto del `capitalize` y no se tocó — está en producción y es cosmético.
+  - **`type-check` + `lint` en verde no prueban que la pantalla levante.** La primera versión dejó el tipo de fila y su normalizador en `api/server.ts`; los componentes client importaban el tipo con `import type` pero la función como valor, y eso arrastra `next/headers` al bundle. Los dos chequeos pasaron limpios y la ruta reventó al abrirla. **Se agregó `npm run build` al checklist local** para las fases que suman pantallas o componentes client.
+  — Ema + Claude.
+- 2026-09-26 — **Suite e2e con Playwright, en tres tandas** (PRs [#65](https://github.com/EmaCrzz/actitud-bo/pull/65), [#66](https://github.com/EmaCrzz/actitud-bo/pull/66), [#67](https://github.com/EmaCrzz/actitud-bo/pull/67)). ADRs [20260926131436](../architecture/decisions/20260926131436_suite-e2e-playwright-para-v2.md) (la suite), [20260926144952](../architecture/decisions/20260926144952_e2e-fechas-de-cobro-y-mes-contable.md) (fechas de cobro y mes contable) y [20260926150338](../architecture/decisions/20260926150338_e2e-limpieza-automatica-de-datos-de-test.md) (teardown automático). Cubre v2; v1 no.
+  - **Los selectores van por clave de i18n, no por strings en español.** Los specs importan el mismo diccionario que la app, así que un cambio de copy mueve el selector solo y lo que rompe un test es que desaparezca la *clave*, que es justamente lo que debería romperlo.
+  - **Lo que la UI no muestra se verifica contra la DB** (`e2e/support/db.ts` + `toAppTzIsoDate`). Es la única forma de detectar el bug de canonicalización de fechas: la pantalla se ve bien y sólo cambia un timestamp que nadie renderiza. Este es el caso que justifica la suite entera.
+  - **Los datos de test son efímeros, con prefijo `[E2E]` y DNI en el rango `99.xxx.xxx`** — no asignado en Argentina. La suite corre contra la DB de dev, que es un backup de prod con gente real, así que el aislamiento no es una formalidad.
+  - **Lo que cambia para este plan:** la línea "Riesgo timezone" de cada fase deja de auditarse sólo leyendo código y pasa a tener verificación ejecutable. Y **toda fase nueva suma su spec** — la 9 fue la primera.
+  — Ema + Claude.
+- 2026-09-26 — **Unit tests de la lógica de negocio con Vitest** (PR [#69](https://github.com/EmaCrzz/actitud-bo/pull/69)). ADR [20260926164830](../architecture/decisions/20260926164830_unit-tests-para-la-logica-de-negocio.md). 60 tests sobre `billing-policy`, `pricing` y `timezone`.
+  - **El inventario cambió el plan que se venía siguiendo.** La lista de pendientes decía "cubrir el resto de las pantallas v2"; el conteo mostró que **9 de las 12 son `UnderConstruction`**. Media hora de inventario evitó escribir tests de placeholders — y dejó una nota incómoda sobre lo ya entregado: el smoke de "7 pantallas cargan sin errores" está recorriendo mayormente pantallas vacías. No es inútil (confirma layout, flag y routing) pero conviene saberlo al leer el número de tests en verde.
+  - **La política de cobro se priorizó sobre más cobertura de UI**, y el motivo lo documenta el propio código: hubo **tres reglas de recargo conviviendo desincronizadas** —el dashboard contaba un pago del día 13 como "sin recargo" mientras el formulario ya sugería cobrarlo con recargo— y eso vivió en producción hasta que alguien lo notó de casualidad.
+  - **Herramienta distinta porque la pregunta es distinta.** Verificar "el día 11 sugiere recargo" por e2e exigiría manipular el reloj del sistema o esperar al día 11; las funciones ya reciben la fecha por parámetro. **60 tests en 60ms contra 2.3 minutos de los 19 e2e**, y sin DB ni secrets, así que son lo primero que debería ir a CI si se monta.
+  - **Los 60 pasaron al primer intento, lo que no prueba nada.** Un test escrito mirando la implementación tiende a confirmarla en vez de verificarla, así que se validó por mutación: volver `gracePeriodEnd` a 10→15 puso 7 en rojo, y reemplazar `parseAppTzDateString` por `new Date(iso)` —el bug histórico— otros 7. **Para un test de regresión, verlo fallar es parte de escribirlo.**
+  — Ema + Claude.
+- 2026-09-28 — **Plan emparejado con el repo** (`docs/emparejar-plan-v2`). Sin ADR: es sincronización de documentación, sin decisión de diseño nueva. Qué se corrigió:
+  - Faltaban en el log las **tres tandas de e2e y los unit tests** — estaban mencionados en "Por dónde seguir" pero nunca registrados, así que los cuatro ADRs del 26/09 no tenían entrada.
+  - **"Estado de entornos — todo desplegado y sin deuda" había quedado falso.** `develop` está adelante de `main` con la Fase 9, la suite e2e y los unit tests. Se separó en dos afirmaciones que envejecen distinto: las migraciones están al día (nada posterior a `20260925103921` toca el schema) y el código está pendiente de release.
+  - **Se inventarió la [decisión #7](#decisiones-abiertas--riesgos) en vez de dejarla planteada como estaba.** El relevamiento mostró que la clave del tipo de membresía gobierna cupo semanal, si el plan se cobra, si tiene modalidades y tres ramas del RPC escritas en SQL — o sea que **no es una decisión sobre nombres, es sobre comportamiento**.
+  — Ema + Claude.
+- 2026-09-28 — **Decisión #7 cerrada: la Fase 10 edita precios y estado, y no crea planes.** El catálogo de tipos queda cerrado en código y `MembershipTypeArray` sigue siendo la fuente de verdad, así que la i18n por key se conserva. La Fase 10 queda desbloqueada — Ema.
+  - **La pregunta original estaba mal encuadrada.** El plan la planteaba como un conflicto de *nombres*: "si se crean planes desde la UI, los nombres salen de la DB y se pierde la i18n por key". El inventario mostró que el nombre es lo de menos — la clave del tipo también decide el cupo semanal (5/3/2), si el plan se cobra (VIP no), si tiene modalidades de cobro (Diaria y VIP no) y tres ramas del RPC de alta comparando el string en SQL.
+  - **Un plan creado desde un formulario habría fallado en silencio.** No habría reventado nada: existiría en `types_memberships`, aparecería en el select, y después no tendría cupo, ni modalidad, ni el RPC sabría qué hacer con él. El modo de fallo favorito de este repo — ver el alta rota de v1, que vivió dos meses.
+  - **El costo aceptado, explícito:** agregar un plan nuevo sigue requiriendo un PR. Es honesto, porque agregar un plan *es* escribir su comportamiento. Si el negocio termina necesitando planes arbitrarios, el paso previo es mover esas cuatro ramificaciones a columnas (`weekly_quota`, `is_chargeable`, `has_charge_modes`) y que el RPC las lea — una fase propia **antes** de la 10, no un renglón adentro.
   — Ema + Claude.

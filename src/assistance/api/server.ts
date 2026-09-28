@@ -1,6 +1,10 @@
 /* eslint-disable no-console */
 import { createClient } from '@/lib/supabase/server'
 import { getDayRangeInAppTz, getTodayRangeInAppTz } from '@/lib/timezone'
+// El tipo vive en `utils.ts` —client-safe— porque lo consumen los componentes
+// client de la sección Asistencias de v2. Importarlo desde acá les arrastraría
+// `next/headers` al bundle.
+import type { AssistanceByDate } from '../utils'
 
 export const getTotalAssistancesToday = async () => {
   const supabase = await createClient()
@@ -15,22 +19,26 @@ export const getTotalAssistancesToday = async () => {
   return count || 0
 }
 
-// Tipo para el resultado
-interface AssistanceByDate {
-  id: string
-  assistance_date: string
-  customers: {
-    first_name: string
-    last_name: string
-    person_id: string
-    phone: string | null
-    email: string | null
-    id: string
-  }
+export interface AssistancesByDateResult {
+  assistances: AssistanceByDate[]
+  /** `true` si la consulta falló. Distinto de "el día no tuvo asistencias". */
+  failed: boolean
 }
 
-// Función para obtener todas las asistencias de una fecha específica
-export async function getAssistancesByDate(date: Date): Promise<AssistanceByDate[]> {
+/**
+ * Asistencias de un día, **informando si la consulta falló**.
+ *
+ * Existe separada de `getAssistancesByDate` porque esa degrada a lista vacía
+ * ante un error, y con eso un fallo de red o de RLS se ve en pantalla
+ * exactamente igual que un día sin nadie. Para la v1 esa degradación está bien
+ * —el accordion dice "No hay asistencias registradas" y listo—, pero la sección
+ * Asistencias de v2 tiene que poder ofrecer "reintentar", y para eso necesita
+ * saber la diferencia.
+ *
+ * El query vive acá, uno solo: `getAssistancesByDate` es el wrapper que
+ * descarta el error, no una segunda copia de la consulta.
+ */
+export async function getAssistancesByDateResult(date: Date): Promise<AssistancesByDateResult> {
   const supabase = await createClient()
   const { start, end } = getDayRangeInAppTz(date)
 
@@ -46,7 +54,10 @@ export async function getAssistancesByDate(date: Date): Promise<AssistanceByDate
         last_name,
         person_id,
         phone,
-        email
+        email,
+        customer_membership (
+          membership_type
+        )
       )
     `
     )
@@ -54,13 +65,18 @@ export async function getAssistancesByDate(date: Date): Promise<AssistanceByDate
     .lt('assistance_date', end.toISOString())
     .order('assistance_date', { ascending: false })
 
-  const assistances = data as unknown as AssistanceByDate[]
-
   if (error) {
     console.error('Error fetching assistances by date:', error)
 
-    return []
+    return { assistances: [], failed: true }
   }
+
+  return { assistances: (data ?? []) as unknown as AssistanceByDate[], failed: false }
+}
+
+// Función para obtener todas las asistencias de una fecha específica
+export async function getAssistancesByDate(date: Date): Promise<AssistanceByDate[]> {
+  const { assistances } = await getAssistancesByDateResult(date)
 
   return assistances
 }

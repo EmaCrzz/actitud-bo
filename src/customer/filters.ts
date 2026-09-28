@@ -1,4 +1,5 @@
 import { MembershipTypeArray, type MembershipTypes } from '@/membership/consts'
+import { parsePageParam, readParam, type RawSearchParams } from '@/lib/search-params'
 
 // Estado de membresía del cliente.
 //
@@ -55,14 +56,8 @@ export const EMPTY_CUSTOMER_FILTERS: CustomerListFilters = {
   membershipType: null,
 }
 
-type RawSearchParams = Record<string, string | string[] | undefined>
-
-function readParam(params: RawSearchParams, key: string): string | null {
-  const value = params[key]
-  const raw = Array.isArray(value) ? value[0] : value
-
-  return raw?.trim() ? raw.trim() : null
-}
+// `readParam` y `parsePageParam` viven en `lib/search-params` desde la fase 9:
+// la sección de asistencias necesita los mismos dos, y eran privados de acá.
 
 /**
  * Lee los filtros de los searchParams de la URL, descartando valores que no
@@ -110,10 +105,7 @@ export function customerFiltersToQueryString(
  * en la primera, igual que los filtros: un query param roto no rompe la página.
  */
 export function parseCustomerPage(params: RawSearchParams): number {
-  const raw = readParam(params, CUSTOMER_FILTER_PARAM.page)
-  const parsed = raw ? Number.parseInt(raw, 10) : Number.NaN
-
-  return Number.isFinite(parsed) && parsed > 1 ? parsed - 1 : 0
+  return parsePageParam(params, CUSTOMER_FILTER_PARAM.page)
 }
 
 export function hasActiveCustomerFilters(filters: CustomerListFilters): boolean {
