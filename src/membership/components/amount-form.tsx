@@ -1,5 +1,6 @@
 'use client'
 
+import { MEMBERSHIP_TYPES_QUERY_KEY } from '@/membership/hooks/use-membership-types-cache'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
@@ -8,7 +9,7 @@ import { InputCurrency } from '@/components/ui/input-currency'
 import { Button } from '@/components/ui/button'
 import { useTranslations } from '@/lib/i18n/context'
 import { MembershipType } from '../types'
-import { updateMembershipPrices } from '../api/client'
+import { updateMembershipPlan } from '../api/client'
 import { formatDate } from '@/lib/format-date'
 import { useRouter } from 'next/navigation'
 import { ACCOUNTING, ACCOUNTING_TAB_MEMBERSHIP, STATS } from '@/consts/routes'
@@ -48,7 +49,7 @@ export default function MembershipAmountForm({
         Object.entries(prices).filter(([_, value]) => value !== undefined)
       ) as { amount?: number; middle_amount?: number; amount_surcharge?: number }
 
-      const { data, error } = await updateMembershipPrices(membership.id, cleanPrices)
+      const { data, error } = await updateMembershipPlan(membership.id, cleanPrices)
 
       if (error) {
         toast.error(t('errors.updatePrice'), {
@@ -64,7 +65,7 @@ export default function MembershipAmountForm({
         })
         onSuccess?.(data)
         // Invalidar el cache del listado para que al volver muestre los precios nuevos
-        await queryClient.invalidateQueries({ queryKey: ['membership-types'] })
+        await queryClient.invalidateQueries({ queryKey: MEMBERSHIP_TYPES_QUERY_KEY })
         replace(`${STATS}${ACCOUNTING}?tab=${ACCOUNTING_TAB_MEMBERSHIP}`)
       }
     } catch (error) {

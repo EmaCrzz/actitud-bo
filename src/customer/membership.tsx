@@ -1,6 +1,6 @@
 'use client'
 
-import { MEMBERSHIP_TYPE_VIP, MembershipTranslationTwoLines } from '@/membership/consts'
+import { MEMBERSHIP_TYPE_VIP } from '@/membership/consts'
 import AlertContainedIcon from '@/components/icons/alert-contained'
 import AlertTriangleContained from '@/components/icons/alert-triangle-contained'
 import CheckCircleContained from '@/components/icons/check-circle-contained'
@@ -9,11 +9,12 @@ import { useMemo } from 'react'
 import { useTranslations } from '@/lib/i18n/context'
 import { daysUntilInAppTz, isExpiredInAppTz } from '@/lib/timezone'
 import { StarIcon } from 'lucide-react'
+import { getMembershipTwoLineLabel } from '@/membership/catalog'
 
 export default function CustomerMembership({ customer }: { customer: CustomerComplete }) {
   const { t } = useTranslations()
   const membershipTransaltionTowLines = customer.customer_membership?.membership_type
-    ? MembershipTranslationTwoLines[customer.customer_membership.membership_type]
+    ? getMembershipTwoLineLabel(customer.customer_membership.membership_type, t)
     : null
   const isVIPMembership = customer.customer_membership?.membership_type === MEMBERSHIP_TYPE_VIP
   const expirationDate = customer.customer_membership?.expiration_date
@@ -31,17 +32,17 @@ export default function CustomerMembership({ customer }: { customer: CustomerCom
         <div className='col-span-1 px-1 py-4 bg-input-background rounded-[4px] border border-white/20 flex flex-col gap-y-2 items-center justify-start'>
           <StarIcon className='text-yellow-300 size-10' />
           <span className='text-sm font-bold'>
-            {membershipTransaltionTowLines ? t(membershipTransaltionTowLines.one) : '-'}
+            {membershipTransaltionTowLines ? membershipTransaltionTowLines.one : '-'}
           </span>
         </div>
       )}
       {!isVIPMembership && membershipTransaltionTowLines && (
         <div className='col-span-1 px-1 py-4 bg-input-background rounded-[4px] border border-white/20 flex flex-col gap-y-2 items-center justify-start'>
           <span className='text-3xl font-sans font-semibold tracking-[1.28px]'>
-            {t(membershipTransaltionTowLines?.one)}
+            {membershipTransaltionTowLines?.one}
           </span>
           <span className='text-sm font-bold w-[104px] text-center'>
-            {t(membershipTransaltionTowLines?.two)}
+            {membershipTransaltionTowLines?.two}
           </span>
         </div>
       )}

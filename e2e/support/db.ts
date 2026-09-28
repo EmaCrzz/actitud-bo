@@ -149,3 +149,35 @@ export async function countPaymentsByPersonId(personId: string): Promise<number>
 
   return count ?? 0
 }
+
+export interface MembershipTypeRow {
+  id: string
+  type: string
+  name: string | null
+  amount: number | null
+  amount_surcharge: number | null
+  middle_amount: number | null
+  weekly_quota: number | null
+  active: boolean
+}
+
+/**
+ * Un plan del catálogo, buscándolo por su nombre visible.
+ *
+ * Por nombre y no por `type` porque el formulario sólo pide el nombre: la
+ * clave la deriva `membershipTypeKeyFromName`, y que esa derivación sea la
+ * esperada es justamente una de las cosas que el spec verifica.
+ */
+export async function findMembershipTypeByName(name: string): Promise<MembershipTypeRow | null> {
+  const client = await getDbClient()
+
+  const { data, error } = await client
+    .from('types_memberships')
+    .select('id, type, name, amount, amount_surcharge, middle_amount, weekly_quota, active')
+    .eq('name', name)
+    .maybeSingle()
+
+  if (error) throw new Error(`Error buscando el plan: ${error.message}`)
+
+  return data as MembershipTypeRow | null
+}

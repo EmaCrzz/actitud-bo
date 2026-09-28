@@ -28,7 +28,7 @@
 | 7 | Alta de cliente (desde Home y desde Clientes) | ✅ completa | Rama `feat/v2-alta-cliente`. ADR [20260918112629](../architecture/decisions/20260918112629_v2-alta-de-cliente.md). Un panel con dos entradas, **toda alta cobra** (excepto VIP), B12 cerrada, residuo del defecto C eliminado. **Dos migraciones con orden de deploy obligatorio** — ver [Fase 7](#fase-7--alta-de-cliente). |
 | 8 | Registrar pago / renovar membresía + comprobante | ✅ completa | Fundaciones en prod con **v0.13.0/v0.13.1**. Panel de renovación: PR [#62](https://github.com/EmaCrzz/actitud-bo/pull/62), ADR [20260922173000](../architecture/decisions/20260922173000_v2-panel-de-renovacion-de-membresia.md). Comprobante + cobro desde el home: rama `feat/v2-comprobante-y-pago-desde-home`, ADR [20260923140000](../architecture/decisions/20260923140000_v2-comprobante-de-pago-y-cobro-desde-el-home.md). **Ninguno de los dos llevó migraciones.** |
 | 9 | Sección Asistencias | ✅ completa | Rama `feat/v2-asistencias`. ADR [20260926171200](../architecture/decisions/20260926171200_v2-seccion-asistencias.md). **Desktop con tabs, mobile sin ellos** — la divergencia es deliberada y está en el Figma. Sin migraciones. Primera fase que entrega con specs e2e. |
-| 10 | Sección Membresías (planes y precios) | ⬜ pendiente | **Desbloqueada el 2026-09-28**: la [decisión #7](#decisiones-abiertas--riesgos) se cerró en *editar precios y estado, sin crear planes*. Requiere migración: `active` en `types_memberships` (brecha B6). Falta ver las capturas. |
+| 10 | Sección Membresías (planes y precios) | ✅ completa | Rama `feat/v2-membresias`. ADR [20260928112705](../architecture/decisions/20260928112705_v2-seccion-membresias-y-catalogo-de-planes.md). **Catálogo híbrido**: se crean planes y los 5 originales conservan su comportamiento especial. Vive en `/v2/settings/memberships`; se borró el stub de `/v2/memberships`. **Lleva migración aditiva** `20260928110544` (B6 cerrada). |
 | 11 | Sección Gastos (crear/editar/eliminar) | ⬜ pendiente | Requiere migración: `payment_method` en `expenses`. |
 | 12 | Sección Ventas (productos) | ⚠️ bloqueada | **No existe modelo de datos.** Requiere diseño de schema completo. |
 | 13 | Balance | ⬜ pendiente | Depende de 11 y 12. |
@@ -43,9 +43,11 @@
 
 **Las fases 0–9 están cerradas. Quedan seis: 10 Membresías, 11 Gastos, 12 Ventas, 13 Balance, 14 Configuración y 15 promoción de v2.** De las doce pantallas de v2, **ocho siguen siendo `UnderConstruction`** — `memberships`, `expenses`, `sales`, `balance` y las cuatro de `settings`. Vale tenerlo presente al leer el número de tests en verde: el smoke e2e de "7 pantallas cargan" está recorriendo mayormente placeholders (lo señala el ADR [20260926164830](../architecture/decisions/20260926164830_unit-tests-para-la-logica-de-negocio.md)).
 
-**El movimiento siguiente es la Fase 10** (Membresías), **desbloqueada el 2026-09-28**: la [decisión #7](#decisiones-abiertas--riesgos) se cerró en **editar precios y estado, sin crear planes**. El catálogo de tipos queda cerrado en código porque la clave del tipo gobierna comportamiento —cupo semanal, si el plan se cobra, si tiene modalidades, y tres ramas del RPC de alta escritas en SQL— y un plan creado desde un formulario nacería sin nada de eso, sin fallar ruidosamente.
+**La Fase 10 se cerró el 2026-09-28** — rama `feat/v2-membresias`, ADR [20260928112705](../architecture/decisions/20260928112705_v2-seccion-membresias-y-catalogo-de-planes.md). La [decisión #7](#decisiones-abiertas--riesgos) terminó en **catálogo híbrido: se crean planes, y los 5 originales conservan su comportamiento especial**. Ver [Fase 10](#fase-10--sección-membresías-planes-y-precios).
 
-**Lo que falta para arrancarla:** las capturas de las 4 pantallas desktop (`2167:22905`) y 3 mobile (`2265:69683`), y decidir la migración de `active` en `types_memberships` (brecha B6). Sin `active` no se puede discontinuar un plan sin romper el histórico de `membership_payments` que lo referencia por FK.
+> ⚠️ **Lleva migración aditiva `20260928110544`, que va a prod ANTES del release.** Agrega `name`, `weekly_quota` y `active`; y de paso cierra dos cosas que estaban mal desde antes: el INSERT en `types_memberships` estaba abierto a cualquier `authenticated`, y la FK de `customer_membership.membership_type` tenía **`ON DELETE CASCADE`** — borrar un plan borraba la membresía de todos sus clientes.
+
+**El movimiento siguiente es la Fase 11** (Gastos), bloqueada sólo por la [decisión #8](#decisiones-abiertas--riesgos), que es una pregunta de negocio de una línea: los gastos históricos sin `payment_method`, ¿se backfillean a efectivo o quedan como "sin especificar"? El CRUD ya existe completo en v1 y la canonicalización de fechas ya está resuelta en `withCanonicalExpenseDate`. Desbloquea además la Fase 13 (Balance).
 
 ---
 
@@ -61,11 +63,11 @@
 
 **Lo que cambió el diseño el 2026-09-22:** el paso 1 ahora tiene los **dos datepickers** (inicio y vencimiento), que antes no estaban. El panel los muestra con prefill derivado — inicio = día siguiente al vencimiento vigente, o hoy si ya venció — y con eso la renovación anticipada arranca sola en el período correcto.
 
-**Estado de entornos — sin deuda de migraciones, con código sin releasear.** Producción corre **v0.14.0** (release del 2026-09-25), que llevó la Fase 8 completa —panel de renovación, comprobante y cobro desde el home— junto con el cierre del #59. Prod sigue con **0 usuarios con `v2_access`**, así que toda la UI de v2 viaja apagada: lo único de ese release que un operador de v1 ve son los números corregidos de `/incomes` y la etiqueta `Medio mes`.
+**Estado de entornos — todo desplegado, `main` y `develop` emparejados.** Producción corre **v0.15.0** (release del 2026-09-28), que llevó la Fase 9, la suite e2e, los unit tests y el emparejamiento de este plan. Prod sigue con **0 usuarios con `v2_access`**, así que toda la UI de v2 viaja apagada.
 
-**Migraciones: al día.** La última aplicada en prod es `20260925103921` y dev está emparejado. **Nada de lo que vino después toca el schema** — ni la Fase 9, ni la suite e2e, ni los unit tests.
+**Migraciones: al día, y este release no llevó ninguna.** La última aplicada en prod sigue siendo `20260925103921`, de la v0.14.0, y dev está emparejado. **Nada de lo que entró después toca el schema.**
 
-**Lo que sí quedó pendiente de release:** `develop` está adelante de `main` con la Fase 9, las tres tandas de e2e y los unit tests. Como no hay migraciones de por medio y la UI de v2 viaja apagada, ese release no tiene orden de deploy que respetar: es `./scripts/release.sh minor` desde `develop` y listo.
+**Lo único que un operador de v1 ve de la v0.15.0** son refactors que preservan comportamiento: la validación del `?date=` de `/assistances` pasó a `assistance/date-range.ts` (compartida con v2) y `getAssistancesByDate` quedó como wrapper de `getAssistancesByDateResult`. El resto es código de v2 apagado, tests y documentación.
 
 > **Al abrir `/incomes` desde el release v0.14.0, junio 2026 muestra $0.** Es la reatribución del #59, no una pérdida: los 4 pagos de junio se habían cargado en julio y ahora se cuentan ahí. Sus cuotas siguen existiendo en `period_start`. Está en el ADR, pero conviene tenerlo a mano porque es lo primero que llama la atención en el dashboard.
 
@@ -1155,39 +1157,74 @@ También: el sidebar de las dos capturas desktop marca **`Inicio`** activo, no `
 
 ## Fase 10 — Sección Membresías (planes y precios)
 
-**Estado:** ⬜ pendiente
-**Figma:** desktop `2167:22905` (4 pantallas) · **mobile `2265:69683` (3 pantallas)**.
+**Estado:** ✅ completa — ADR [20260928112705](../architecture/decisions/20260928112705_v2-seccion-membresias-y-catalogo-de-planes.md)
+**Figma:** desktop `2167:22905` (4 pantallas) · **mobile `2265:69683` (3 pantallas)**. Verificado con capturas que pasó Ema el 2026-09-28.
 
-> Mobile resuelve el "crear plan" con un **CTA sticky al fondo** (`Container` 389×85 con botón de 341×36 en `2246:49888`), no con el botón del `PageHeader` como desktop.
-
-`PageHeader` (greeting + fecha + botón) + `DataTable` de planes + `FormModal` para crear/editar + Toast. Es un CRUD sobre `types_memberships`, no sobre las membresías de clientes.
-
-### Qué existe hoy
-
-`getMembershipTypes`, `updateMembershipPrices` ([src/membership/api/server.ts](../../src/membership/api/server.ts)). UI v1: `src/membership/components/amounts.tsx`, `amount-form.tsx`, `active-types.tsx`. Ruta v1: `/stats/membership/edit/[type]`.
-
-Los 5 tipos están hardcodeados en [src/membership/consts.ts](../../src/membership/consts.ts) (`MembershipTypeArray`) con traducciones por key. **Si el Figma permite crear planes nuevos desde la UI, esa constante deja de ser la fuente de verdad** — hay conflicto entre "tipos hardcodeados con i18n" y "CRUD dinámico". → [Decisiones abiertas](#decisiones-abiertas--riesgos) #7.
-
-> ✅ **La [decisión #7](#decisiones-abiertas--riesgos) se cerró el 2026-09-28: esta fase edita precios y estado, y no crea planes.** El catálogo de tipos queda cerrado en código porque la clave gobierna el cupo semanal, si el plan se cobra, si tiene modalidades y tres ramas del RPC de alta escritas en SQL. **`MembershipTypeArray` sigue siendo la fuente de verdad y la i18n por key se conserva** — el conflicto que bloqueaba la fase se disolvió, no se resolvió a medias.
+> ✅ **La decisión #7 se cerró en catálogo híbrido: se crean planes, y los 5 originales conservan su comportamiento especial.**
 >
-> **Sigue faltando mirar las capturas reales** de las 4 pantallas desktop y 3 mobile antes de construir. La lección se repitió tres veces en este plan —la 6b, la decisión #5 y la 9— y acá es concreta: **si esos frames dibujan un botón "Crear plan", es una divergencia deliberada más** para avisarle al diseñador. El árbol de nodos dice que hay 4 pantallas; no dice qué hace cada una.
+> **La pregunta se respondió dos veces y la segunda invirtió la primera.** El primer cierre, sin las capturas, concluyó "la fase no crea planes" a partir de un inventario del código: la clave del tipo gobierna el cupo semanal, si el plan se cobra, si tiene modalidades y tres ramas del RPC escritas en SQL. Las capturas mostraron `Nueva membresía`, dos planes que no existen en el catálogo (`Plan familiar 5 días`, `Plan familiar 3 días`) y —lo decisivo— **el campo "Frecuencia de días" ya en el formulario**, que es la columna `weekly_quota` que el primer cierre proponía como fase previa.
+>
+> Con eso el argumento se da vuelta: las cuatro ramificaciones son excepciones de **VIP y Diaria**, dos planes que ya existen y de los que nadie va a crear más. Un plan nuevo es ordinario y cae en la rama por defecto en todos lados.
+>
+> **Cuarta vez en este plan que una inferencia sin la captura resulta falsa** — antes: el "dropdown de acciones de fila" de la 6b, la premisa de la decisión #5 y los tabs de la 9. La diferencia es que acá no fue leer mal el árbol de nodos: fue **razonar sobre el alcance de una pantalla sin haberla visto**. El inventario igual sirvió: sus cuatro hallazgos definieron la forma del catálogo híbrido.
 
-**Brechas de DB:** B6 — `types_memberships` no tiene `active` ni `description`. Sin `active` no se puede discontinuar un plan sin romper el histórico de `membership_payments` que lo referencia por FK.
+### Cómo quedó
 
-**Riesgo timezone:** bajo. `last_update` es informativo.
+**Ruta: `/v2/settings/memberships`.** Había stub en esa ruta *y* en `/v2/memberships`, con ítem de primer nivel en el sidebar. Las capturas la ponen bajo Configuraciones y su sidebar no dibuja `Membresías` en el primer nivel, así que se borró el stub duplicado, el ítem y la constante `V2_MEMBERSHIPS`.
+
+**Desktop** — card con título, resumen `N planes activos — N inactivos`, botón `Nueva membresía` a la derecha, y tabla de 5 columnas: Membresía / Precios / Frecuencia / Total clientes / Estado, con chevron por fila. Paginador de 10 al pie.
+
+**El VIP se muestra como `Sin costo`, y eso salió de medir la DB.** Está cargado con `amount = 0`, no con NULL — así que la primera versión, que comparaba contra NULL, le habría puesto `$ 0`. Por el mismo motivo los precios se guardan tal cual se tipean: convertir 0 → NULL lo habría sacado del listado de precios de v1, que filtra por `amount IS NOT NULL`.
+
+**Mobile** — sin tabla: filas con nombre, badge de estado, cantidad de clientes y precio, y el botón `Nueva membresía` como CTA al pie (`2246:49888`).
+
+**Los dos paneles son uno solo.** Crear y editar difieren en un campo: al crear se pide el nombre, al editar se muestra fijo como encabezado del card. Dos componentes que difieren en un campo divergen apenas alguien toque uno.
+
+### Decisiones que el diseño no cubría
+
+- **El campo Estado se agregó al formulario**, que el Figma no dibuja aunque la tabla muestre la columna. Criterio de Ema: asumir que el diseñador lo va a sumar. Sin él un plan se podría crear pero nunca discontinuar.
+- **El nombre de los 5 planes originales no se puede editar.** Su etiqueta vive en el diccionario i18n, no en la fila: renombrarlos desde la UI los cambiaría en un idioma y los dejaría intactos en el otro.
+- **Discontinuar es `active = false`; no hay botón de eliminar.** Un plan inactivo desaparece de los selects de alta y renovación y se sigue mostrando en los clientes que ya lo tienen. La sección es la única pantalla que lista inactivos, porque es donde se reactivan.
+- **Un precio en 0 se guarda como NULL** y la tabla lo muestra como `Sin costo`. Es lo que hace que el VIP no se cobre; un 0 literal sería un plan que se cobra a cero.
+- **La clave del plan se deriva del nombre** (`Plan familiar 5 días` → `PLAN_FAMILIAR_5_DIAS`). El form pide un nombre porque lo usa el dueño del gimnasio. Dos nombres pueden colapsar en la misma clave: lo frena el `UNIQUE` que `type` ya tenía, y el error llega como frase, no como código de Postgres.
+
+### Defectos del diseño — avisar al diseñador
+
+- **Dos campos "Precio base" en el panel de editar**: uno full-width arriba ($18.000) y otro abajo ($9.000). En `Nueva membresía` ese lugar lo ocupa el nombre del plan, así que probablemente sea eso.
+- **Concordancia de número**: `1 Plan inactivos` y `1 días/ semana`. Implementado con singular propio.
+- **`Ultima actualización`** sin tilde.
+- **Los conteos no cierran**: dice `7 activos — 1 inactivo` pero la tabla muestra 7 filas todas activas y el pie dice `7 planes`. **Nunca se ve cómo se ve un plan inactivo.**
+- **El paginador dibuja 3 páginas para 7 planes**, con la página 2 activa. Relleno.
+- **Los precios del formulario son incoherentes**: medio mes ($21.000) sale más caro que el precio base ($9.000), y el recargo es igual al base.
+- **El sidebar de las capturas tiene 3 sub-ítems de Configuraciones** (Negocio, Membresías, Promociones) y no dibuja `Usuarios`. No se tocó — cruza con la [decisión #1](#decisiones-abiertas--riesgos) y se resuelve en la Fase 14.
+
+### Qué se construyó
+
+- [src/membership/catalog.ts](../../src/membership/catalog.ts) — `isCatalogMembershipType`, `getMembershipLabel`, `getWeeklySlots`, `membershipTypeKeyFromName`. **Evita abrir `MembershipTypes` a `string`, que son 79 usos en 26 archivos**, la mitad en v1.
+- `MembershipPlansSection.tsx` y `PlanFormPanel.tsx` en `src/membership/components/v2/`.
+- `getMembershipPlans` (con el conteo de clientes por plan), `createMembershipPlan`, `updateMembershipPlan`, y `includeUnpriced` / `includeInactive` en `getMembershipTypes`.
+- `MEMBERSHIP_TYPE_COLUMNS` en consts: la lista de columnas estaba repetida en cuatro queries.
+- **Tres call sites que duplicaban la lógica de fallback, unificados.** `formatMembershipLabel` y `AssistanceModal` lo tenían escrito a mano de dos formas distintas; **`CustomerCounter` no lo tenía** — un mapa duplicado de `SLOTS_BY_TYPE` que devolvía `undefined` y renderizaba **cero casilleros de asistencia sin ningún error**.
+
+**Brechas de DB:** B6 cerrada. Migración **aditiva** `20260928110544` — `name`, `weekly_quota`, `active`, backfill del cupo, trigger de `last_update`. Va a prod **antes** del release.
+
+**Dos defectos preexistentes que se arreglaron de paso:**
+
+- **El INSERT en `types_memberships` queda admin-only, y el punto de partida difería entre entornos.** En **dev** no había ninguna policy de INSERT (verificado: el bloque que las dropea no emitió NOTICE), y sin policy RLS deniega — o sea que ahí la migración *habilita* la creación. En **prod** el comentario de `20260630180001` dice que existía una abierta a cualquier `authenticated`, en cuyo caso la migración *cierra* un hueco. **Confirmar prod antes del `db:push-prod`.**
+- **`customer_membership.membership_type` tenía `ON DELETE CASCADE`.** Borrar un plan **borraba la membresía de todos sus clientes** — la policy de DELETE existe y es admin-only, así que un admin lo podía hacer desde la API. Pasa a `RESTRICT`. `ON DELETE CASCADE` en una FK a tabla de catálogo es casi siempre un copy/paste de la FK de al lado.
+
+**`last_update` mostraba la fecha de creación, no la del último cambio.** Es `DEFAULT now()`, que sólo dispara en el INSERT, y `updateMembershipPrices` nunca la escribía — así que tanto la tabla de v1 como el panel del rediseño la rotulaban mal. Se arregla con trigger y no pidiéndole a cada caller que la escriba.
+
+**Riesgo timezone:** bajo, y sin fechas nuevas. `last_update` lo escribe el trigger con `now()` del server, que es un instante y no una fecha de calendario.
 
 **Definición de hecho:**
-- [ ] Listado de planes con precios (normal / recargo / media)
-- [ ] **Editar** los tres precios de un plan *(crear plan queda fuera de alcance — decisión #7)*
-- [ ] Discontinuar y reactivar un plan sin romper el histórico de `membership_payments`
-- [ ] Un plan discontinuado desaparece de los selects de alta y renovación, y **sigue mostrándose** en los clientes y pagos que ya lo tienen
-- [x] ~~Resuelto el conflicto tipos-hardcodeados vs CRUD dinámico~~ — cerrado el 2026-09-28
-- [ ] Toast + refresh
-- [ ] Specs e2e de la fase + unit tests si toca alguna regla de precio
-
-**ADR:** sí — la decisión sobre tipos dinámicos vs hardcodeados tiene impacto en todo el dominio de membresías, y la migración de `active` define cómo se discontinúa un plan sin romper el histórico.
-
----
+- [x] Listado de planes con precios (normal / recargo / media), frecuencia, clientes y estado
+- [x] Crear y editar plan
+- [x] Discontinuar y reactivar sin romper el histórico
+- [x] Un plan discontinuado desaparece de los selects de alta y renovación, y sigue en los clientes que ya lo tienen
+- [x] Resuelto el conflicto tipos-hardcodeados vs CRUD dinámico
+- [x] Confirmación + refresh
+- [x] **24 unit tests** de los resolvers, validados por mutación, y **5 specs e2e** con verificación contra la DB
 
 ## Fase 11 — Sección Gastos
 
@@ -1372,9 +1409,11 @@ Ordenadas por impacto. Las que bloquean una fase están marcadas.
 
 6. **`business_settings`: fila única o `tenant_id` desde ya (bloquea Fase 14).** Agregar `tenant_id` ahora cuesta poco; migrarlo después con datos cuesta bastante más.
 
-7. **~~Tipos de membresía: hardcodeados vs CRUD~~ → RESUELTO (2026-09-28). La Fase 10 edita precios y estado, y no crea planes.** El catálogo de tipos queda cerrado en código. La sección Membresías es un editor de `types_memberships` —precios normal / recargo / media, y activar / discontinuar— no un ABM de planes. `MembershipTypeArray` sigue siendo la fuente de verdad y la i18n por key se conserva. **Agregar un plan nuevo sigue siendo un PR**, que es la parte honesta de la decisión: agregar un plan *es* escribir su comportamiento, y un formulario no puede hacerlo.
+7. **~~Tipos de membresía: hardcodeados vs CRUD~~ → RESUELTO (2026-09-28): catálogo híbrido.** Se pueden crear planes desde la UI, y los 5 originales conservan su comportamiento especial. Los planes nuevos son **ordinarios** —mensuales, cobrables, con modalidades de cobro y con el cupo que se les cargó— y su nombre sale de `types_memberships.name`; los 5 del catálogo dejan `name` en NULL y siguen resolviendo por key i18n, así que **no se pierde la i18n por key**, que era el costo que la pregunta original temía.
 
-   **Lo que destrabó la decisión fue el inventario: la clave del tipo no es un nombre, es un contrato de comportamiento.** Cuatro lugares ramifican sobre el string literal, y ninguno se resuelve leyendo una fila de `types_memberships`:
+   **Se cerró dos veces, y la segunda invirtió la primera.** El primer cierre, hecho sin las capturas, concluyó "la fase no crea planes" a partir del inventario de abajo. Las capturas mostraron `Nueva membresía`, dos planes fuera del catálogo y **el campo "Frecuencia de días" ya en el formulario** — que es la columna `weekly_quota` que ese cierre proponía como fase previa. Con el cupo resuelto, las ramificaciones restantes son excepciones de VIP y Diaria, y un plan nuevo cae en la rama por defecto.
+
+   **El inventario igual fue lo que definió la forma de la solución: la clave del tipo no es un nombre, es un contrato de comportamiento.** Cuatro lugares ramifican sobre el string literal, y ninguno se resuelve leyendo una fila de `types_memberships`:
 
    | Dónde | Qué decide la clave |
    |---|---|
@@ -1383,11 +1422,9 @@ Ordenadas por impacto. Las que bloquean una fase están marcadas.
    | [customer-counter.tsx:30-32](../../src/assistance/customer-counter.tsx) + [customer.tsx:70](../../src/assistance/customer.tsx) | El cupo semanal (5 / 3 / 2) sale de un mapa por clave |
    | Las migraciones del RPC de alta (`IF p_membership_type = 'MEMBERSHIP_TYPE_VIP'`, `v_is_daily := ...`) | Vencimiento de la diaria, gate de admin del VIP, asistencia automática |
 
-   **Un plan creado desde la UI nacería sin key i18n, sin cupo semanal, sin modalidad de cobro y desconocido para el RPC** — y nada de eso fallaría ruidosamente. Sería un plan que existe en la tabla de precios y no funciona en ninguna pantalla. Ese es el modo de fallo que la decisión evita.
+   **Cómo quedó cubierta cada una:** el cupo pasó a la columna `weekly_quota` que el diseño ya pedía; "si se cobra" se deriva del precio (sin precio = `Sin costo`, que es lo que la tabla muestra para el VIP); y las modalidades de cobro y las tres ramas del RPC **siguen atadas a las claves literales de VIP y Diaria**, que es correcto porque son excepciones de esos dos planes y no reglas generales. El RPC ya valida contra `types_memberships`, así que un tipo nuevo pasa solo y esas ramas no disparan.
 
-   **Si más adelante el negocio necesita planes arbitrarios**, el paso previo es extraer esas cuatro ramificaciones a columnas de la tabla (`weekly_quota`, `is_chargeable`, `has_charge_modes`) y hacer que el RPC las lea en vez de comparar strings. Es una fase propia **antes** de la 10, no un renglón adentro.
-
-   **Qué queda por verificar contra el diseño:** si los frames de la Fase 10 dibujan un botón "Crear plan", esta decisión choca contra el Figma y hay que avisarle al diseñador. No cambia la decisión —el botón no puede hacer lo que promete— pero sí es una divergencia deliberada más para la lista.
+   **Lo que queda deliberadamente sin resolver:** un plan nuevo no puede ser "como el VIP" ni "como la Diaria". Si el negocio alguna vez quiere un segundo plan sin cargo o un segundo pase de un día, eso sí requiere mover esas ramificaciones a columnas (`is_chargeable`, `has_charge_modes`) y que el SQL las lea. Es una fase propia, y hoy no hace falta.
 
 8. **Histórico de gastos sin `payment_method` (bloquea Fase 11).** ¿Los gastos existentes se backfillean a "efectivo" o quedan como "sin especificar"? Decisión del negocio.
 
@@ -1631,4 +1668,27 @@ Aplica a **toda** fase antes de pedir review. Está pensado para que el otro dev
   - **La pregunta original estaba mal encuadrada.** El plan la planteaba como un conflicto de *nombres*: "si se crean planes desde la UI, los nombres salen de la DB y se pierde la i18n por key". El inventario mostró que el nombre es lo de menos — la clave del tipo también decide el cupo semanal (5/3/2), si el plan se cobra (VIP no), si tiene modalidades de cobro (Diaria y VIP no) y tres ramas del RPC de alta comparando el string en SQL.
   - **Un plan creado desde un formulario habría fallado en silencio.** No habría reventado nada: existiría en `types_memberships`, aparecería en el select, y después no tendría cupo, ni modalidad, ni el RPC sabría qué hacer con él. El modo de fallo favorito de este repo — ver el alta rota de v1, que vivió dos meses.
   - **El costo aceptado, explícito:** agregar un plan nuevo sigue requiriendo un PR. Es honesto, porque agregar un plan *es* escribir su comportamiento. Si el negocio termina necesitando planes arbitrarios, el paso previo es mover esas cuatro ramificaciones a columnas (`weekly_quota`, `is_chargeable`, `has_charge_modes`) y que el RPC las lea — una fase propia **antes** de la 10, no un renglón adentro.
+  — Ema + Claude.
+- 2026-09-28 — **Release v0.15.0 a producción.** Llevó la Fase 9 (Asistencias), las tres tandas de e2e, los unit tests de Vitest y el emparejamiento de este plan. **Sin migraciones**, así que no hubo `db:push-prod` ni orden de deploy que respetar — la última migración en prod sigue siendo `20260925103921`, de la v0.14.0.
+  - **Lo que un operador de v1 ve de este release: nada nuevo.** Los únicos archivos compartidos que cambiaron son refactors que preservan comportamiento — la validación del `?date=` de `/assistances` se extrajo a `assistance/date-range.ts` para compartirla con v2, y `getAssistancesByDate` quedó como wrapper de `getAssistancesByDateResult`. Todo lo demás es v2 (apagado, 0 usuarios con `v2_access`), tests o documentación.
+  - **`public/sw.js` dejó de versionarse** y pasa a generarse en cada build. Verificado antes del release: el script `build` corre `generate-sw.js` explícitamente, así que Vercel lo regenera.
+  - **Anotado, no resuelto: el release script esquiva la protección de `main`.** El push reportó `Bypassed rule violations for refs/heads/main: Changes must be made through a pull request`. Pasa porque la cuenta que releasea tiene permiso de bypass, y pasa en **todos** los releases, no sólo en este — la protección del ADR [20260706170431](../architecture/decisions/20260706170431_proteger-main-y-cambiar-default-branch.md) no cubre el camino del script. O el script abre un PR de release, o la excepción se documenta como deliberada.
+  — Ema + Claude.
+- 2026-09-28 — **Fase 10 completa** (`feat/v2-membresias`). ADR [20260928112705](../architecture/decisions/20260928112705_v2-seccion-membresias-y-catalogo-de-planes.md). **Con migración aditiva** `20260928110544`, que va a prod antes del release.
+  - **La decisión #7 se cerró dos veces en el mismo día y la segunda invirtió la primera.** El primer cierre, sin las capturas, dijo "la fase no crea planes": el inventario del código mostró que la clave del tipo gobierna cupo semanal, cobrabilidad, modalidades y tres ramas del RPC en SQL. Las capturas mostraron `Nueva membresía`, dos planes que no existen en el catálogo, y **"Frecuencia de días" ya como campo del formulario** — la columna `weekly_quota` que ese cierre proponía como fase previa. Con el cupo resuelto, lo que queda son excepciones de VIP y Diaria, y un plan nuevo cae en la rama por defecto.
+  - **Cuarta vez que una inferencia sin la captura resulta falsa** (antes: el dropdown de fila de la 6b, la premisa de la #5, los tabs de la 9). La diferencia: acá no fue leer mal el árbol de nodos, fue **razonar sobre el alcance de una pantalla sin haberla visto**. El inventario igual sirvió — sus cuatro hallazgos definieron la forma del catálogo híbrido. La conclusión estaba mal, el relevamiento no.
+  - **Se evitó abrir `MembershipTypes` a `string`: eran 79 usos en 26 archivos**, la mitad en v1. En vez de eso, resolvers en `membership/catalog.ts` y la unión queda representando lo que realmente es, los 5 tipos con comportamiento especial. **El patrón ya existía dos veces en el repo** —`formatMembershipLabel` con cast, `AssistanceModal` con guard `in`— escrito distinto en cada lado.
+  - **El call site que no había copiado el fallback era el que fallaba en silencio.** `CustomerCounter` duplicaba `SLOTS_BY_TYPE` inline sin guard: para un tipo desconocido devolvía `undefined`, y `Array.from({ length: undefined })` da `[]`. **Cero casilleros de asistencia en pantalla, sin error.** Mientras los tipos eran 5 y fijos no se podía disparar; desde que se crean desde la app, sí.
+  - **Dos defectos preexistentes que aparecieron leyendo migraciones para escribir otra.** El INSERT en `types_memberships` estaba abierto a cualquier `authenticated` —el comentario de `20260630180001` lo dejaba anotado, y era teórico hasta que esta fase construyó la UI que lo alcanza—. Y `customer_membership.membership_type` tenía **`ON DELETE CASCADE`**: borrar un plan borraba la membresía de todos sus clientes, y la policy de DELETE admin-only existe, así que era alcanzable. **`ON DELETE CASCADE` en una FK a tabla de catálogo es casi siempre un copy/paste de la FK de al lado.**
+  - **`last_update` venía mostrando la fecha de creación de la fila, no la del último cambio de precio**, y tanto v1 como el panel nuevo la rotulan "Última actualización". Es `DEFAULT now()`, que sólo dispara en el INSERT, y ningún caller la escribía. Se arregló con trigger en vez de pedirle a cada caller que la ponga: el que se olvide reintroduce el bug en silencio.
+  - **Había dos rutas para la misma pantalla**, `/v2/memberships` (ítem de primer nivel) y `/v2/settings/memberships`, las dos con stub. Las capturas la ponen bajo Configuraciones y no dibujan el ítem de primer nivel. Se borró el stub duplicado, el ítem del sidebar y la constante.
+  - **Siete defectos del diseño anotados** para el diseñador, incluidos dos campos "Precio base" en el mismo panel y un paginador de 3 páginas sobre 7 planes. Lista completa en [Fase 10](#fase-10--sección-membresías-planes-y-precios).
+  - **La suite e2e encontró un bug que tiraba la app entera, porque los tests nuevos escriben datos que los viejos leen.** Cuatro specs de `payment-accounting` fallaron al correr la suite completa: el alta de cliente resolvía la etiqueta con `MembershipTranslation[type]`, que para los planes `[E2E]` recién creados da `undefined`, y `t(undefined)` revienta con `Cannot read properties of undefined (reading 'split')`. **Pantalla completa caída, no una fila rota.** El spec de membresías creó los planes y el spec de altas —escrito meses antes— los encontró; ninguna revisión de código lo iba a ver, porque cada call site leído por separado parece correcto.
+  - **El alcance estaba subestimado por un factor de 7.** El plan decía "migrar los tres call sites que duplicaban la lógica"; eran **~20**, entre v1 y v2 — toda pantalla que muestre el plan de un cliente o de un pago. No abrir `MembershipTypes` a `string` sigue siendo la decisión correcta (eran 79 usos), pero **evitar el cambio de tipos no evitaba el cambio de runtime**, y eso era lo que había que contar.
+  - **Dos guards defensivos preexistentes evitaban el crash cambiando el significado del dato.** `AttendanceList` mostraba **"Sin membresía" a un cliente que sí tiene una**, y `AssistanceModal` caía a 5 casilleros. Es peor que el crash: nadie abre un ticket por un cliente que figura sin membresía, lo asume mal cargado.
+  - **Medir la DB desmintió tres supuestos ya escritos.** El VIP tiene `amount = 0` y no NULL, así que el filtro no lo excluía de v1 y la primera versión le habría puesto `$ 0` donde el diseño dice "Sin costo"; y en dev no había policy de INSERT, o sea que ahí la migración *habilita* en vez de *cerrar*. Los tres venían de leer código y migraciones; los tres se cayeron con una query.
+  - **`router.refresh()` no alcanza cuando hay dos cachés.** Ema probó la fase y un plan recién creado no aparecía en el select de renovación hasta recargar: el `refresh()` revalidaba el server component de la sección, pero los selects de alta y renovación leen el catálogo con React Query y 5 minutos de `staleTime`. La key estaba como literal en cinco archivos —por eso agregar una pantalla que escribe no disparó ninguna alarma— y ahora vive en `hooks/use-membership-types-cache.ts` con su hook de invalidación.
+  - **El primer spec de ese bug pasaba con y sin el arreglo.** Creaba el plan antes de abrir el alta, así que la caché estaba fría y el fetch traía el plan igual. **Calentar la caché antes de crear era la condición esencial**, y sólo se vio al validar por mutación. En un test contra caché, *cuándo* se puebla es parte del caso, no preparación.
+  - **Dos specs míos eran falsos positivos por mirar el paso equivocado del formulario.** El select de membresía está en el paso 2 del alta y yo afirmaba sobre él en el paso 1, donde no existe: "el plan discontinuado no aparece" daba verdadero por el motivo equivocado. Ahora avanzan al paso 2, y el assert negativo va con uno positivo al lado.
+  - **Un `test.skip` puede estar roto igual que el código que testea.** El guard del spec de asistencias contaba filas renderizadas para decidir si el día tuvo movimiento — y con un `?q=` que no matchea son cero también en un día con asistencias. Arreglado acá (mira si el buscador se renderizó); venía de la Fase 9.
   — Ema + Claude.

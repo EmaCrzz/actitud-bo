@@ -1,7 +1,7 @@
 import { CustomerMembership } from '@/customer/types'
 import { createClient } from '@/lib/supabase/server'
-import { ActiveMembership, MembershipType } from '@/membership/types'
-import { MembershipTypes } from '../consts'
+import { ActiveMembership, MembershipPlan, MembershipType } from '@/membership/types'
+import { MEMBERSHIP_TYPE_COLUMNS } from '../consts'
 import { getMonthRangeInAppTz, getTodayRangeInAppTz } from '@/lib/timezone'
 
 type MembershipStatsRPCResult = {
@@ -215,19 +215,44 @@ export async function getMembershipStats(year?: number, month?: number) {
   }
 }
 
-// Función para obtener tipos de membresías activos con sus amounts
-export async function getMembershipTypes(typeFilter?: MembershipTypes) {
+interface GetMembershipTypesOptions {
+  /** Filtrar a un solo tipo. */
+  type?: string
+  /**
+   * Incluir los planes con `amount IS NULL`. **Por defecto `false`, que es lo
+   * que v1 espera.**
+   *
+   * El filtro vive acá desde siempre y hoy no excluye a nadie: las 5 filas
+   * tienen precio, **el VIP incluido, cargado con `0` y no con NULL** (medido
+   * en dev el 2026-09-28). O sea que la tabla de precios de v1 sí lista el
+   * VIP, y sólo bloquea su edición más adelante.
+   *
+   * Se mantiene porque la columna es nullable y un plan sin precio sería
+   * invisible en la sección que existe justamente para administrarlos. La
+   * sección de la Fase 10 lo pone en `true`; v1 se queda con el default para
+   * no cambiar de comportamiento sin que nadie lo haya pedido.
+   */
+  includeUnpriced?: boolean
+  /** Incluir los planes discontinuados (`active = false`). Por defecto `false`. */
+  includeInactive?: boolean
+}
+
+// Tipos de membresía con sus precios.
+export async function getMembershipTypes({
+  type,
+  includeUnpriced = false,
+  includeInactive = false,
+}: GetMembershipTypesOptions = {}) {
   const supabase = await createClient()
 
   let query = supabase
     .from('types_memberships')
-    .select('id, type, amount, amount_surcharge, middle_amount, last_update')
-    .not('amount', 'is', null)
+    .select(MEMBERSHIP_TYPE_COLUMNS)
     .order('type', { ascending: true })
 
-  if (typeFilter) {
-    query = query.eq('type', typeFilter)
-  }
+  if (!includeUnpriced) query = query.not('amount', 'is', null)
+  if (!includeInactive) query = query.eq('active', true)
+  if (type) query = query.eq('type', type)
 
   const { data, error } = await query
 
@@ -239,6 +264,49 @@ export async function getMembershipTypes(typeFilter?: MembershipTypes) {
   }
 
   return { data: data as MembershipType[], error: null }
+}
+
+/**
+ * Los planes como los muestra la sección Membresías (Fase 10): todos, con
+ * precio o sin él, activos e inactivos, y con la cantidad de clientes que
+ * tiene cada uno.
+ *
+ * El conteo sale de una consulta aparte y no de un `select` embebido porque
+ * PostgREST sólo sabe contar relaciones con `count` agregado sobre el embed,
+ * y eso obliga a traer las filas de `customer_membership`. Son ~600 y sólo
+ * queremos el número por tipo, así que se agrega en memoria sobre una lista de
+ * claves — una columna, sin joins.
+ */
+export async function getMembershipPlans() {
+  const supabase = await createClient()
+
+  const [{ data: types, error: typesError }, { data: memberships, error: countError }] =
+    await Promise.all([
+      getMembershipTypes({ includeUnpriced: true, includeInactive: true }),
+      supabase.from('customer_membership').select('membership_type'),
+    ])
+
+  if (typesError || countError) {
+    // eslint-disable-next-line no-console
+    console.error('Error fetching membership plans:', typesError ?? countError)
+
+    return { data: [] as MembershipPlan[], error: typesError ?? countError }
+  }
+
+  const countByType = new Map<string, number>()
+
+  for (const row of memberships ?? []) {
+    const key = row.membership_type
+
+    if (key) countByType.set(key, (countByType.get(key) ?? 0) + 1)
+  }
+
+  const plans: MembershipPlan[] = types.map((plan) => ({
+    ...plan,
+    customer_count: countByType.get(plan.type) ?? 0,
+  }))
+
+  return { data: plans, error: null }
 }
 
 // Función para actualizar precios de membresía
@@ -256,7 +324,7 @@ export async function updateMembershipPrices(
     .from('types_memberships')
     .update(prices)
     .eq('id', membershipId)
-    .select('id, type, amount, amount_surcharge, middle_amount, last_update')
+    .select(MEMBERSHIP_TYPE_COLUMNS)
     .single()
 
   if (error) {

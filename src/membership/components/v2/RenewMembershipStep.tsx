@@ -19,7 +19,6 @@ import { getPeriodModeOptions, type PeriodMode } from '@/membership/charge-mode'
 import {
   MEMBERSHIP_TYPE_DAILY,
   MEMBERSHIP_TYPE_VIP,
-  MembershipTranslationWeekly,
   PaymentTypeArray,
   PaymentsTranslation,
   type MembershipTypes,
@@ -35,6 +34,7 @@ import {
 } from '@/membership/renewal'
 import type { MembershipType } from '@/membership/types'
 import AmountChoiceField, { type AmountChoiceOption } from './AmountChoiceField'
+import { getMembershipLabel } from '@/membership/catalog'
 
 interface Props {
   values: RenewalFormValues
@@ -168,7 +168,7 @@ export default function RenewMembershipStep({
           <SelectContent>
             {membershipTypes.map((type) => (
               <SelectItem key={type.type} value={type.type}>
-                {t(MembershipTranslationWeekly[type.type as MembershipTypes])}
+                {getMembershipLabel(type.type, t, { name: type.name, variant: 'weekly' })}
               </SelectItem>
             ))}
           </SelectContent>

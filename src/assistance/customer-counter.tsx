@@ -1,16 +1,15 @@
 import { cn } from '@/lib/utils'
-import {
-  MEMBERSHIP_TYPE_2_DAYS,
-  MEMBERSHIP_TYPE_3_DAYS,
-  MEMBERSHIP_TYPE_5_DAYS,
-  MEMBERSHIP_TYPE_DAILY,
-  MEMBERSHIP_TYPE_VIP,
-  MembershipTypes,
-} from '@/membership/consts'
+import { DEFAULT_WEEKLY_SLOTS, getWeeklySlots } from '@/membership/catalog'
 import { useTranslations } from '@/lib/i18n/context'
 
 interface Porps {
-  membershipType: MembershipTypes
+  /**
+   * Clave del plan. `string` y no `MembershipTypes` desde la Fase 10: los
+   * planes creados desde la UI no están en esa unión.
+   */
+  membershipType: string
+  /** Cupo semanal del plan, cuando el caller lo tiene a mano. */
+  weeklyQuota?: number | null
   assistanceCount?: number
   selectedDay?: string
   isDisabled?: boolean
@@ -19,20 +18,18 @@ interface Porps {
 
 export default function CustomerCounter({
   membershipType,
+  weeklyQuota,
   assistanceCount = 1,
   selectedDay = undefined,
   isDisabled = false,
   handleSelectedDay,
 }: Porps) {
   const { t } = useTranslations()
-  const membershipItems: Record<MembershipTypes, number> = {
-    [MEMBERSHIP_TYPE_VIP]: 5,
-    [MEMBERSHIP_TYPE_5_DAYS]: 5,
-    [MEMBERSHIP_TYPE_3_DAYS]: 3,
-    [MEMBERSHIP_TYPE_2_DAYS]: 2,
-    [MEMBERSHIP_TYPE_DAILY]: 1,
-  }
-  const items = membershipItems[membershipType]
+  // Antes esto era un `Record<MembershipTypes, number>` declarado acá adentro,
+  // duplicando `SLOTS_BY_TYPE`. Para un tipo fuera del mapa devolvía
+  // `undefined`, y `Array.from({ length: undefined })` da `[]`: cero casilleros
+  // en pantalla, sin error. Ahora el faltante es explícito.
+  const items = getWeeklySlots(membershipType, weeklyQuota) ?? DEFAULT_WEEKLY_SLOTS
 
   return (
     <>

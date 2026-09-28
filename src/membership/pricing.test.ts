@@ -28,6 +28,9 @@ const PLAN_5_DIAS: MembershipType = {
   amount_surcharge: 23000, // recargo configurado: 3000
   middle_amount: 10000,
   last_update: null,
+  name: null, // los del catálogo resuelven por key i18n
+  weekly_quota: 5,
+  active: true,
 }
 
 describe('getSuggestedCharge · casos sin cobro o con precio único', () => {

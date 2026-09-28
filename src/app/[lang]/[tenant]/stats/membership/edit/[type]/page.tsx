@@ -31,7 +31,7 @@ export default async function EditMembershipPage({
   }
 
   const { t } = await getServerT()
-  const { data, error } = await getMembershipTypes(type)
+  const { data, error } = await getMembershipTypes({ type })
 
   if (error || data?.length === 0) {
     return <div>Error: {error?.message}</div>

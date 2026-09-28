@@ -7,10 +7,10 @@ import { useTranslations } from '@/lib/i18n/context'
 import { BicepsFlexed, SearchIcon, X } from 'lucide-react'
 import { normalizeText } from '@/lib/utils/text'
 import { Button } from '@/components/ui/button'
-import { MembershipTranslation } from '@/membership/consts'
 import AlertContainedIcon from '@/components/icons/alert-contained'
 import { LoadingCustomerListStats } from './loading'
 import { usePendingCustomers } from '@/customer/hooks/use-customer-stats'
+import { getMembershipLabel } from '@/membership/catalog'
 
 export default function CustomerPendings() {
   const { t } = useTranslations()
@@ -108,11 +108,11 @@ export default function CustomerPendings() {
                   {first_name} {last_name}
                 </p>
                 <p className='text-xs text-left'>
-                  {t(
-                    MembershipTranslation[
-                      customer_membership?.membership_type as keyof typeof MembershipTranslation
-                    ]
-                  ) || ''}
+                  {customer_membership?.membership_type
+                    ? getMembershipLabel(customer_membership.membership_type, t, {
+                        variant: 'full',
+                      })
+                    : ''}
                 </p>
               </div>
               <AlertContainedIcon className='text-red-500 size-8' />

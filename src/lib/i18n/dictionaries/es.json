@@ -956,6 +956,77 @@
         "share": "Compartir",
         "sharing": "Generando...",
         "shareText": "Comprobante de pago de {name}"
+      },
+      "plans": {
+        "title": "Membresías",
+        "summary": {
+          "active": "{count} planes activos",
+          "activeOne": "1 plan activo",
+          "inactive": "{count} planes inactivos",
+          "inactiveOne": "1 plan inactivo"
+        },
+        "new": "Nueva membresía",
+        "total": "{count} planes",
+        "totalOne": "1 plan",
+        "columns": {
+          "plan": "Membresía",
+          "prices": "Precios",
+          "frequency": "Frecuencia",
+          "customers": "Total clientes",
+          "status": "Estado"
+        },
+        "free": "Sin costo",
+        "frequency": "{count} días/semana",
+        "frequencyOne": "1 día/semana",
+        "customerCount": "{count} clientes",
+        "customerCountOne": "1 cliente",
+        "status": {
+          "active": "Activo",
+          "inactive": "Inactivo"
+        },
+        "edit": {
+          "title": "Editar membresía",
+          "description": "Cambiá los valores de la membresía.",
+          "sectionTitle": "Membresía {name}",
+          "lastUpdate": "* Última actualización: {date}",
+          "lastUpdateNever": "* Todavía no se editó",
+          "submit": "Confirmar",
+          "success": "Membresía editada correctamente",
+          "error": "No pudimos guardar los cambios"
+        },
+        "create": {
+          "title": "Nueva membresía",
+          "description": "Creá una nueva membresía con los siguientes datos.",
+          "sectionTitle": "Información del plan",
+          "submit": "Crear membresía",
+          "success": "Membresía creada correctamente",
+          "error": "No pudimos crear la membresía",
+          "duplicate": "Ya existe un plan con ese nombre"
+        },
+        "fields": {
+          "name": "Nombre de la nueva membresía/plan",
+          "namePlaceholder": "Ej: 5 días semanales",
+          "amount": "Precio base",
+          "middleAmount": "Precio por medio mes",
+          "surcharge": "Precio con recargo",
+          "weeklyQuota": "Frecuencia de días",
+          "weeklyQuotaPlaceholder": "Selecciona...",
+          "status": "Estado",
+          "statusHint": "Un plan inactivo deja de ofrecerse en el alta y en la renovación. Los clientes que ya lo tienen no se ven afectados."
+        },
+        "validation": {
+          "nameRequired": "Poné un nombre para el plan",
+          "quotaRequired": "Elegí la frecuencia de días",
+          "amountInvalid": "El precio no puede ser negativo"
+        },
+        "empty": {
+          "title": "Sin membresías cargadas",
+          "description": "Creá el primer plan para poder asignarlo en el alta de clientes."
+        },
+        "error": {
+          "title": "No pudimos cargar las membresías",
+          "description": "Revisá la conexión y volvé a intentar."
+        }
       }
     }
   }

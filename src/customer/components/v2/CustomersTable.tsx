@@ -14,8 +14,8 @@ import { getCustomerMembershipStatus } from '@/customer/utils'
 import { formatDate } from '@/lib/format-date'
 import { getInitials } from '@/lib/format-person'
 import { useTranslations } from '@/lib/i18n/context'
-import { MembershipTranslation, MembershipTranslationWeekly } from '@/membership/consts'
 import { CUSTOMER_STATUS_LABEL, CUSTOMER_STATUS_TONE } from './customer-status'
+import { getMembershipLabel } from '@/membership/catalog'
 
 interface CustomersTableProps {
   customers: CustomerWithMembership[]
@@ -68,7 +68,7 @@ export default function CustomersTable({
       header: t('v2.customers.columns.membership'),
       cell: (customer) =>
         customer.membership_type ? (
-          t(MembershipTranslationWeekly[customer.membership_type])
+          getMembershipLabel(customer.membership_type, t, { variant: 'weekly' })
         ) : (
           <span className='text-muted-foreground'>{t('v2.customers.row.noMembership')}</span>
         ),
@@ -202,7 +202,7 @@ function CustomerMobileRow({
       initials={getInitials(name)}
       subtitle={
         customer.membership_type
-          ? t(MembershipTranslation[customer.membership_type])
+          ? getMembershipLabel(customer.membership_type, t, { variant: 'full' })
           : t('v2.customers.row.noMembership')
       }
       title={name}
