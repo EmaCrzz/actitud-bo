@@ -28,7 +28,7 @@
 | 7 | Alta de cliente (desde Home y desde Clientes) | ✅ completa | Rama `feat/v2-alta-cliente`. ADR [20260918112629](../architecture/decisions/20260918112629_v2-alta-de-cliente.md). Un panel con dos entradas, **toda alta cobra** (excepto VIP), B12 cerrada, residuo del defecto C eliminado. **Dos migraciones con orden de deploy obligatorio** — ver [Fase 7](#fase-7--alta-de-cliente). |
 | 8 | Registrar pago / renovar membresía + comprobante | ✅ completa | Fundaciones en prod con **v0.13.0/v0.13.1**. Panel de renovación: PR [#62](https://github.com/EmaCrzz/actitud-bo/pull/62), ADR [20260922173000](../architecture/decisions/20260922173000_v2-panel-de-renovacion-de-membresia.md). Comprobante + cobro desde el home: rama `feat/v2-comprobante-y-pago-desde-home`, ADR [20260923140000](../architecture/decisions/20260923140000_v2-comprobante-de-pago-y-cobro-desde-el-home.md). **Ninguno de los dos llevó migraciones.** |
 | 9 | Sección Asistencias | ✅ completa | Rama `feat/v2-asistencias`. ADR [20260926171200](../architecture/decisions/20260926171200_v2-seccion-asistencias.md). **Desktop con tabs, mobile sin ellos** — la divergencia es deliberada y está en el Figma. Sin migraciones. Primera fase que entrega con specs e2e. |
-| 10 | Sección Membresías (planes y precios) | ⬜ pendiente | |
+| 10 | Sección Membresías (planes y precios) | ⬜ pendiente | **Desbloqueada el 2026-09-28**: la [decisión #7](#decisiones-abiertas--riesgos) se cerró en *editar precios y estado, sin crear planes*. Requiere migración: `active` en `types_memberships` (brecha B6). Falta ver las capturas. |
 | 11 | Sección Gastos (crear/editar/eliminar) | ⬜ pendiente | Requiere migración: `payment_method` en `expenses`. |
 | 12 | Sección Ventas (productos) | ⚠️ bloqueada | **No existe modelo de datos.** Requiere diseño de schema completo. |
 | 13 | Balance | ⬜ pendiente | Depende de 11 y 12. |
@@ -39,7 +39,15 @@
 
 ## Por dónde seguir
 
-> Última actualización: **2026-09-25**. Esta sección es el arranque de cualquier sesión nueva: decí en qué estado quedó todo y cuál es el siguiente movimiento, sin tener que leer el documento entero.
+> Última actualización: **2026-09-28**. Esta sección es el arranque de cualquier sesión nueva: decí en qué estado quedó todo y cuál es el siguiente movimiento, sin tener que leer el documento entero.
+
+**Las fases 0–9 están cerradas. Quedan seis: 10 Membresías, 11 Gastos, 12 Ventas, 13 Balance, 14 Configuración y 15 promoción de v2.** De las doce pantallas de v2, **ocho siguen siendo `UnderConstruction`** — `memberships`, `expenses`, `sales`, `balance` y las cuatro de `settings`. Vale tenerlo presente al leer el número de tests en verde: el smoke e2e de "7 pantallas cargan" está recorriendo mayormente placeholders (lo señala el ADR [20260926164830](../architecture/decisions/20260926164830_unit-tests-para-la-logica-de-negocio.md)).
+
+**El movimiento siguiente es la Fase 10** (Membresías), **desbloqueada el 2026-09-28**: la [decisión #7](#decisiones-abiertas--riesgos) se cerró en **editar precios y estado, sin crear planes**. El catálogo de tipos queda cerrado en código porque la clave del tipo gobierna comportamiento —cupo semanal, si el plan se cobra, si tiene modalidades, y tres ramas del RPC de alta escritas en SQL— y un plan creado desde un formulario nacería sin nada de eso, sin fallar ruidosamente.
+
+**Lo que falta para arrancarla:** las capturas de las 4 pantallas desktop (`2167:22905`) y 3 mobile (`2265:69683`), y decidir la migración de `active` en `types_memberships` (brecha B6). Sin `active` no se puede discontinuar un plan sin romper el histórico de `membership_payments` que lo referencia por FK.
+
+---
 
 **Dónde estamos: la Fase 8 está cerrada y desplegada.** Las fundaciones (modelo de precio, recargo explícito, número de comprobante) viajaron en **v0.13.0/v0.13.1**; el panel de renovación en el PR [#62](https://github.com/EmaCrzz/actitud-bo/pull/62); el comprobante compartible y el cobro desde el home en el [#63](https://github.com/EmaCrzz/actitud-bo/pull/63). **Ninguno de los dos PRs de UI llevó migraciones.** Ver [Fase 8](#fase-8--registrar-pago--renovar-membresía--comprobante).
 
@@ -49,13 +57,17 @@
 
 **Desde el 2026-09-26 el repo tiene suite e2e con Playwright** (PRs [#65](https://github.com/EmaCrzz/actitud-bo/pull/65), [#66](https://github.com/EmaCrzz/actitud-bo/pull/66), [#67](https://github.com/EmaCrzz/actitud-bo/pull/67); ADR [20260926131436](../architecture/decisions/20260926131436_suite-e2e-playwright-para-v2.md)). **Toda fase nueva suma su spec** — la 9 fue la primera. Lo que la suite cambia para este plan: la línea "Riesgo timezone" de cada fase deja de auditarse sólo leyendo código y pasa a tener verificación ejecutable contra la DB (`e2e/support/db.ts` + `toAppTzIsoDate`), que es la única forma de detectar el bug que no se ve en pantalla.
 
-**El movimiento siguiente es la Fase 10** (Membresías), que tiene una decisión de negocio abierta y bloqueante: si la sección permite crear planes, `MembershipTypeArray` deja de ser la fuente de verdad y los nombres salen de la DB, perdiendo i18n por key ([decisión #7](#decisiones-abiertas--riesgos)). Resolverla antes de construir.
+**Y desde el 2026-09-26 también tiene unit tests con Vitest** (PR [#69](https://github.com/EmaCrzz/actitud-bo/pull/69), ADR [20260926164830](../architecture/decisions/20260926164830_unit-tests-para-la-logica-de-negocio.md)). **60 tests en 60ms** sobre la política de cobro, la sugerencia de precio y los helpers de timezone — la lógica donde vive el riesgo real y que no tenía una sola verificación. Corren con `npm run test`, sin DB, sin secrets y sin dejar residuo, así que son lo primero que debería ir a CI si alguna vez se monta. **La división de trabajo entre las dos suites:** Vitest fija las reglas de negocio (que el día 11 cobre recargo), Playwright verifica que la pantalla las ejecute y que la fecha aterrice bien en la DB.
 
 **Lo que cambió el diseño el 2026-09-22:** el paso 1 ahora tiene los **dos datepickers** (inicio y vencimiento), que antes no estaban. El panel los muestra con prefill derivado — inicio = día siguiente al vencimiento vigente, o hoy si ya venció — y con eso la renovación anticipada arranca sola en el período correcto.
 
-**Estado de entornos — todo desplegado y sin deuda.** Producción corre **v0.14.0** (release del 2026-09-25), que llevó la Fase 8 completa —panel de renovación, comprobante y cobro desde el home— junto con el cierre del #59. Migraciones aplicadas en prod hasta `20260925103921`; dev está emparejado y no hay pendientes en ningún entorno. Prod sigue con **0 usuarios con `v2_access`**, así que toda la UI de v2 viaja apagada: lo único de este release que un operador de v1 ve son los números corregidos de `/incomes` y la etiqueta `Medio mes`.
+**Estado de entornos — sin deuda de migraciones, con código sin releasear.** Producción corre **v0.14.0** (release del 2026-09-25), que llevó la Fase 8 completa —panel de renovación, comprobante y cobro desde el home— junto con el cierre del #59. Prod sigue con **0 usuarios con `v2_access`**, así que toda la UI de v2 viaja apagada: lo único de ese release que un operador de v1 ve son los números corregidos de `/incomes` y la etiqueta `Medio mes`.
 
-> **Al abrir `/incomes` después de este release, junio 2026 muestra $0.** Es la reatribución del #59, no una pérdida: los 4 pagos de junio se habían cargado en julio y ahora se cuentan ahí. Sus cuotas siguen existiendo en `period_start`. Está en el ADR, pero conviene tenerlo a mano porque es lo primero que llama la atención en el dashboard.
+**Migraciones: al día.** La última aplicada en prod es `20260925103921` y dev está emparejado. **Nada de lo que vino después toca el schema** — ni la Fase 9, ni la suite e2e, ni los unit tests.
+
+**Lo que sí quedó pendiente de release:** `develop` está adelante de `main` con la Fase 9, las tres tandas de e2e y los unit tests. Como no hay migraciones de por medio y la UI de v2 viaja apagada, ese release no tiene orden de deploy que respetar: es `./scripts/release.sh minor` desde `develop` y listo.
+
+> **Al abrir `/incomes` desde el release v0.14.0, junio 2026 muestra $0.** Es la reatribución del #59, no una pérdida: los 4 pagos de junio se habían cargado en julio y ahora se cuentan ahí. Sus cuotas siguen existiendo en `period_start`. Está en el ADR, pero conviene tenerlo a mano porque es lo primero que llama la atención en el dashboard.
 
 **Lo que este release cambió para los usuarios de v1:** el corte del recargo pasó del día 16 al 11, así que el dashboard de ingresos reclasifica los pagos de los días 11–15 —históricos incluidos— como "con recargo", y la barra del ciclo se pone amarilla cinco días antes. **No se migró ningún dato**: esa clasificación se calcula al leer. La auditoría de integridad antes y después del push salió byte a byte idéntica.
 
@@ -1156,18 +1168,24 @@ También: el sidebar de las dos capturas desktop marca **`Inicio`** activo, no `
 
 Los 5 tipos están hardcodeados en [src/membership/consts.ts](../../src/membership/consts.ts) (`MembershipTypeArray`) con traducciones por key. **Si el Figma permite crear planes nuevos desde la UI, esa constante deja de ser la fuente de verdad** — hay conflicto entre "tipos hardcodeados con i18n" y "CRUD dinámico". → [Decisiones abiertas](#decisiones-abiertas--riesgos) #7.
 
+> ✅ **La [decisión #7](#decisiones-abiertas--riesgos) se cerró el 2026-09-28: esta fase edita precios y estado, y no crea planes.** El catálogo de tipos queda cerrado en código porque la clave gobierna el cupo semanal, si el plan se cobra, si tiene modalidades y tres ramas del RPC de alta escritas en SQL. **`MembershipTypeArray` sigue siendo la fuente de verdad y la i18n por key se conserva** — el conflicto que bloqueaba la fase se disolvió, no se resolvió a medias.
+>
+> **Sigue faltando mirar las capturas reales** de las 4 pantallas desktop y 3 mobile antes de construir. La lección se repitió tres veces en este plan —la 6b, la decisión #5 y la 9— y acá es concreta: **si esos frames dibujan un botón "Crear plan", es una divergencia deliberada más** para avisarle al diseñador. El árbol de nodos dice que hay 4 pantallas; no dice qué hace cada una.
+
 **Brechas de DB:** B6 — `types_memberships` no tiene `active` ni `description`. Sin `active` no se puede discontinuar un plan sin romper el histórico de `membership_payments` que lo referencia por FK.
 
 **Riesgo timezone:** bajo. `last_update` es informativo.
 
 **Definición de hecho:**
 - [ ] Listado de planes con precios (normal / recargo / media)
-- [ ] Crear y editar plan
-- [ ] Discontinuar plan sin romper histórico
-- [ ] Resuelto el conflicto tipos-hardcodeados vs CRUD dinámico
+- [ ] **Editar** los tres precios de un plan *(crear plan queda fuera de alcance — decisión #7)*
+- [ ] Discontinuar y reactivar un plan sin romper el histórico de `membership_payments`
+- [ ] Un plan discontinuado desaparece de los selects de alta y renovación, y **sigue mostrándose** en los clientes y pagos que ya lo tienen
+- [x] ~~Resuelto el conflicto tipos-hardcodeados vs CRUD dinámico~~ — cerrado el 2026-09-28
 - [ ] Toast + refresh
+- [ ] Specs e2e de la fase + unit tests si toca alguna regla de precio
 
-**ADR:** sí — la decisión sobre tipos dinámicos vs hardcodeados tiene impacto en todo el dominio de membresías.
+**ADR:** sí — la decisión sobre tipos dinámicos vs hardcodeados tiene impacto en todo el dominio de membresías, y la migración de `active` define cómo se discontinúa un plan sin romper el histórico.
 
 ---
 
@@ -1354,7 +1372,22 @@ Ordenadas por impacto. Las que bloquean una fase están marcadas.
 
 6. **`business_settings`: fila única o `tenant_id` desde ya (bloquea Fase 14).** Agregar `tenant_id` ahora cuesta poco; migrarlo después con datos cuesta bastante más.
 
-7. **Tipos de membresía: hardcodeados vs CRUD (bloquea Fase 10).** Hoy los 5 tipos están en `MembershipTypeArray` con traducciones por key i18n. Si la sección Membresías permite crear planes nuevos, esa constante deja de ser la fuente de verdad y los nombres tienen que salir de la DB (perdiendo i18n por key). Decidir antes de construir.
+7. **~~Tipos de membresía: hardcodeados vs CRUD~~ → RESUELTO (2026-09-28). La Fase 10 edita precios y estado, y no crea planes.** El catálogo de tipos queda cerrado en código. La sección Membresías es un editor de `types_memberships` —precios normal / recargo / media, y activar / discontinuar— no un ABM de planes. `MembershipTypeArray` sigue siendo la fuente de verdad y la i18n por key se conserva. **Agregar un plan nuevo sigue siendo un PR**, que es la parte honesta de la decisión: agregar un plan *es* escribir su comportamiento, y un formulario no puede hacerlo.
+
+   **Lo que destrabó la decisión fue el inventario: la clave del tipo no es un nombre, es un contrato de comportamiento.** Cuatro lugares ramifican sobre el string literal, y ninguno se resuelve leyendo una fila de `types_memberships`:
+
+   | Dónde | Qué decide la clave |
+   |---|---|
+   | [pricing.ts:99-100](../../src/membership/pricing.ts) | VIP no se cobra; Diaria va a precio único |
+   | [charge-mode.ts:54, 141, 182](../../src/membership/charge-mode.ts) | VIP y Diaria no tienen modalidades ni recargo |
+   | [customer-counter.tsx:30-32](../../src/assistance/customer-counter.tsx) + [customer.tsx:70](../../src/assistance/customer.tsx) | El cupo semanal (5 / 3 / 2) sale de un mapa por clave |
+   | Las migraciones del RPC de alta (`IF p_membership_type = 'MEMBERSHIP_TYPE_VIP'`, `v_is_daily := ...`) | Vencimiento de la diaria, gate de admin del VIP, asistencia automática |
+
+   **Un plan creado desde la UI nacería sin key i18n, sin cupo semanal, sin modalidad de cobro y desconocido para el RPC** — y nada de eso fallaría ruidosamente. Sería un plan que existe en la tabla de precios y no funciona en ninguna pantalla. Ese es el modo de fallo que la decisión evita.
+
+   **Si más adelante el negocio necesita planes arbitrarios**, el paso previo es extraer esas cuatro ramificaciones a columnas de la tabla (`weekly_quota`, `is_chargeable`, `has_charge_modes`) y hacer que el RPC las lea en vez de comparar strings. Es una fase propia **antes** de la 10, no un renglón adentro.
+
+   **Qué queda por verificar contra el diseño:** si los frames de la Fase 10 dibujan un botón "Crear plan", esta decisión choca contra el Figma y hay que avisarle al diseñador. No cambia la decisión —el botón no puede hacer lo que promete— pero sí es una divergencia deliberada más para la lista.
 
 8. **Histórico de gastos sin `payment_method` (bloquea Fase 11).** ¿Los gastos existentes se backfillean a "efectivo" o quedan como "sin especificar"? Decisión del negocio.
 
@@ -1393,9 +1426,10 @@ Aplica a **toda** fase antes de pedir review. Está pensado para que el otro dev
 2. `npm run lint` — sin errores nuevos.
 3. **`npm run build` — obligatorio si la fase agrega una pantalla o un componente client.** Los dos pasos anteriores **no** detectan que un componente `'use client'` importe un valor de un módulo que toca `next/headers` o el cliente de Supabase del server: pasan limpios y el build revienta. Pasó en la Fase 9 — ver la lección del ADR [20260926171200](../architecture/decisions/20260926171200_v2-seccion-asistencias.md).
 4. `npm run dev` — arranca sin warnings nuevos en consola.
-5. `npm run test:e2e` — la suite en verde, incluidos los specs que agrega la fase.
-6. Responsive: 1440px → 768px → 375px sin overflow horizontal.
-7. Auditoría de timezone: cada fecha nueva que llega a un RPC o a la DB pasa por un helper de `src/lib/timezone.ts`.
+5. `npm run test` — los unit tests en verde. Si la fase toca una regla de negocio (precio, recargo, fecha), **suma su test acá y se lo valida por mutación** antes de darlo por escrito.
+6. `npm run test:e2e` — la suite en verde, incluidos los specs que agrega la fase.
+7. Responsive: 1440px → 768px → 375px sin overflow horizontal.
+8. Auditoría de timezone: cada fecha nueva que llega a un RPC o a la DB pasa por un helper de `src/lib/timezone.ts`.
 
 ### En el preview
 1. **User sin `v2_access`:** `/home` (v1) funciona; `/v2/*` redirige a `/home`.
@@ -1575,4 +1609,26 @@ Aplica a **toda** fase antes de pedir review. Está pensado para que el otro dev
   - **Búsqueda y página arrancaron como estado local y se corrigieron a la URL.** La justificación original —"meterlas en la URL cuesta un round-trip por tecla"— sólo vale para `router.replace`; `history.replaceState` la actualiza sin navegación, y **eso ya estaba resuelto y comentado en `CustomersSection`**, la sección más parecida del mismo rediseño. La lección para las fases que vienen: **cuando una decisión se aparta de lo que hace una pantalla equivalente, abrir esa pantalla antes de argumentar.** De paso se extrajeron `readParam` y `parsePageParam` a `lib/search-params.ts`, que eran privados de `customer/filters.ts`.
 - **Dos defectos que sólo aparecieron mirando la pantalla con data real**, no leyendo el código: el `0` del contador sobre la lista vacía, y `capitalize` de Tailwind produciendo "Jueves, 24 **De** Septiembre" (capitaliza cada palabra; `Intl` ya devuelve el día bien y sólo hay que subir la primera letra). Refuerza la regla operativa #4: **mirar cada pantalla nueva con data real antes de cerrarla**. El `DayNavigator` de v1 arrastra el mismo defecto del `capitalize` y no se tocó — está en producción y es cosmético.
   - **`type-check` + `lint` en verde no prueban que la pantalla levante.** La primera versión dejó el tipo de fila y su normalizador en `api/server.ts`; los componentes client importaban el tipo con `import type` pero la función como valor, y eso arrastra `next/headers` al bundle. Los dos chequeos pasaron limpios y la ruta reventó al abrirla. **Se agregó `npm run build` al checklist local** para las fases que suman pantallas o componentes client.
+  — Ema + Claude.
+- 2026-09-26 — **Suite e2e con Playwright, en tres tandas** (PRs [#65](https://github.com/EmaCrzz/actitud-bo/pull/65), [#66](https://github.com/EmaCrzz/actitud-bo/pull/66), [#67](https://github.com/EmaCrzz/actitud-bo/pull/67)). ADRs [20260926131436](../architecture/decisions/20260926131436_suite-e2e-playwright-para-v2.md) (la suite), [20260926144952](../architecture/decisions/20260926144952_e2e-fechas-de-cobro-y-mes-contable.md) (fechas de cobro y mes contable) y [20260926150338](../architecture/decisions/20260926150338_e2e-limpieza-automatica-de-datos-de-test.md) (teardown automático). Cubre v2; v1 no.
+  - **Los selectores van por clave de i18n, no por strings en español.** Los specs importan el mismo diccionario que la app, así que un cambio de copy mueve el selector solo y lo que rompe un test es que desaparezca la *clave*, que es justamente lo que debería romperlo.
+  - **Lo que la UI no muestra se verifica contra la DB** (`e2e/support/db.ts` + `toAppTzIsoDate`). Es la única forma de detectar el bug de canonicalización de fechas: la pantalla se ve bien y sólo cambia un timestamp que nadie renderiza. Este es el caso que justifica la suite entera.
+  - **Los datos de test son efímeros, con prefijo `[E2E]` y DNI en el rango `99.xxx.xxx`** — no asignado en Argentina. La suite corre contra la DB de dev, que es un backup de prod con gente real, así que el aislamiento no es una formalidad.
+  - **Lo que cambia para este plan:** la línea "Riesgo timezone" de cada fase deja de auditarse sólo leyendo código y pasa a tener verificación ejecutable. Y **toda fase nueva suma su spec** — la 9 fue la primera.
+  — Ema + Claude.
+- 2026-09-26 — **Unit tests de la lógica de negocio con Vitest** (PR [#69](https://github.com/EmaCrzz/actitud-bo/pull/69)). ADR [20260926164830](../architecture/decisions/20260926164830_unit-tests-para-la-logica-de-negocio.md). 60 tests sobre `billing-policy`, `pricing` y `timezone`.
+  - **El inventario cambió el plan que se venía siguiendo.** La lista de pendientes decía "cubrir el resto de las pantallas v2"; el conteo mostró que **9 de las 12 son `UnderConstruction`**. Media hora de inventario evitó escribir tests de placeholders — y dejó una nota incómoda sobre lo ya entregado: el smoke de "7 pantallas cargan sin errores" está recorriendo mayormente pantallas vacías. No es inútil (confirma layout, flag y routing) pero conviene saberlo al leer el número de tests en verde.
+  - **La política de cobro se priorizó sobre más cobertura de UI**, y el motivo lo documenta el propio código: hubo **tres reglas de recargo conviviendo desincronizadas** —el dashboard contaba un pago del día 13 como "sin recargo" mientras el formulario ya sugería cobrarlo con recargo— y eso vivió en producción hasta que alguien lo notó de casualidad.
+  - **Herramienta distinta porque la pregunta es distinta.** Verificar "el día 11 sugiere recargo" por e2e exigiría manipular el reloj del sistema o esperar al día 11; las funciones ya reciben la fecha por parámetro. **60 tests en 60ms contra 2.3 minutos de los 19 e2e**, y sin DB ni secrets, así que son lo primero que debería ir a CI si se monta.
+  - **Los 60 pasaron al primer intento, lo que no prueba nada.** Un test escrito mirando la implementación tiende a confirmarla en vez de verificarla, así que se validó por mutación: volver `gracePeriodEnd` a 10→15 puso 7 en rojo, y reemplazar `parseAppTzDateString` por `new Date(iso)` —el bug histórico— otros 7. **Para un test de regresión, verlo fallar es parte de escribirlo.**
+  — Ema + Claude.
+- 2026-09-28 — **Plan emparejado con el repo** (`docs/emparejar-plan-v2`). Sin ADR: es sincronización de documentación, sin decisión de diseño nueva. Qué se corrigió:
+  - Faltaban en el log las **tres tandas de e2e y los unit tests** — estaban mencionados en "Por dónde seguir" pero nunca registrados, así que los cuatro ADRs del 26/09 no tenían entrada.
+  - **"Estado de entornos — todo desplegado y sin deuda" había quedado falso.** `develop` está adelante de `main` con la Fase 9, la suite e2e y los unit tests. Se separó en dos afirmaciones que envejecen distinto: las migraciones están al día (nada posterior a `20260925103921` toca el schema) y el código está pendiente de release.
+  - **Se inventarió la [decisión #7](#decisiones-abiertas--riesgos) en vez de dejarla planteada como estaba.** El relevamiento mostró que la clave del tipo de membresía gobierna cupo semanal, si el plan se cobra, si tiene modalidades y tres ramas del RPC escritas en SQL — o sea que **no es una decisión sobre nombres, es sobre comportamiento**.
+  — Ema + Claude.
+- 2026-09-28 — **Decisión #7 cerrada: la Fase 10 edita precios y estado, y no crea planes.** El catálogo de tipos queda cerrado en código y `MembershipTypeArray` sigue siendo la fuente de verdad, así que la i18n por key se conserva. La Fase 10 queda desbloqueada — Ema.
+  - **La pregunta original estaba mal encuadrada.** El plan la planteaba como un conflicto de *nombres*: "si se crean planes desde la UI, los nombres salen de la DB y se pierde la i18n por key". El inventario mostró que el nombre es lo de menos — la clave del tipo también decide el cupo semanal (5/3/2), si el plan se cobra (VIP no), si tiene modalidades de cobro (Diaria y VIP no) y tres ramas del RPC de alta comparando el string en SQL.
+  - **Un plan creado desde un formulario habría fallado en silencio.** No habría reventado nada: existiría en `types_memberships`, aparecería en el select, y después no tendría cupo, ni modalidad, ni el RPC sabría qué hacer con él. El modo de fallo favorito de este repo — ver el alta rota de v1, que vivió dos meses.
+  - **El costo aceptado, explícito:** agregar un plan nuevo sigue requiriendo un PR. Es honesto, porque agregar un plan *es* escribir su comportamiento. Si el negocio termina necesitando planes arbitrarios, el paso previo es mover esas cuatro ramificaciones a columnas (`weekly_quota`, `is_chargeable`, `has_charge_modes`) y que el RPC las lea — una fase propia **antes** de la 10, no un renglón adentro.
   — Ema + Claude.

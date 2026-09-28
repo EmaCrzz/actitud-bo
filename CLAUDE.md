@@ -107,7 +107,21 @@ npm run test:e2e:clean    # Borrar los datos de test de la DB de dev
 - **Lo que la UI no muestra se verifica contra la DB** (`e2e/support/db.ts` + `toAppTzIsoDate` de `e2e/support/dates.ts`). Es la única forma de detectar el bug de canonicalización de fechas: la pantalla se ve correcta y sólo cambia un timestamp que nadie renderiza.
 - **Datos efímeros con prefijo `[E2E]` y DNI en el rango `99.xxx.xxx`**, no asignado en Argentina. La suite corre contra la DB de dev, que es un backup de producción con gente real.
 
-Los tests verifican **funcionamiento**, no criterio de negocio. Que el recargo del día 11 sea el correcto lo sigue evaluando QA humano en el Preview (`actitud-bo-git-develop-*.vercel.app`), así que todo PR mantiene su checklist manual.
+Los e2e verifican **que la pantalla funcione**, no el criterio de negocio: eso lo fijan los unit tests (abajo) y lo valida QA humano en el Preview (`actitud-bo-git-develop-*.vercel.app`), así que todo PR mantiene su checklist manual.
+
+#### Unit tests (Vitest)
+
+Desde el 2026-09-26 (ADR [20260926164830](docs/architecture/decisions/20260926164830_unit-tests-para-la-logica-de-negocio.md)). Cubren la **lógica de negocio pura**: política de cobro, sugerencia de precio y helpers de timezone.
+
+```bash
+npm run test          # Correr la suite (vitest run)
+npm run test:watch    # Modo watch
+```
+
+- **Los tests viven junto al código** (`src/**/*.test.ts`), no en una carpeta aparte. Quedan cubiertos por `type-check` y `lint`, que ya barren `src/`.
+- **Sin `globals`:** cada archivo importa `describe`/`it`/`expect` de `vitest`.
+- **Acá va toda regla de negocio nueva.** Las funciones reciben la fecha y la política por parámetro (`getCyclePhaseForDay(dayOfMonth, policy)`), justamente para poder fijarlas sin manipular el reloj. Verificarlo por e2e exigiría esperar al día 11 del mes.
+- **Validar por mutación antes de dar un test por escrito.** Romper a propósito la regla que el test protege y ver el rojo — un test escrito mirando la implementación tiende a confirmarla en vez de verificarla.
 
 ## Architecture Overview
 
