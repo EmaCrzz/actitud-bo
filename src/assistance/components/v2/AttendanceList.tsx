@@ -5,10 +5,10 @@ import EmptyState from '@/components/v2/EmptyState'
 import Button from '@/components/v2/ui/Button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { getAssistanceMembershipType, type AssistanceByDate } from '@/assistance/utils'
-import { MembershipTranslation, type MembershipTypes } from '@/membership/consts'
 import { formatTimeInAppTz } from '@/lib/format-date'
 import { getInitials } from '@/lib/format-person'
 import { useTranslations } from '@/lib/i18n/context'
+import { getMembershipLabel } from '@/membership/catalog'
 
 interface AttendanceListProps {
   assistances: AssistanceByDate[]
@@ -116,13 +116,13 @@ function AttendanceRow({ assistance }: { assistance: AssistanceByDate }) {
   const fullName = `${firstName} ${lastName}`.trim()
   const membershipType = getAssistanceMembershipType(assistance)
 
-  // El tipo viene de la DB como string. Sólo se traduce si está en el catálogo:
-  // un plan dado de baja en `types_memberships` dejaría una key sin entrada en
-  // el diccionario y `t()` devolvería la key cruda en pantalla.
-  const membershipLabel =
-    membershipType && membershipType in MembershipTranslation
-      ? t(MembershipTranslation[membershipType as MembershipTypes])
-      : t('v2.attendance.row.noMembership')
+  // El tipo viene de la DB como string. La condición es sólo "¿tiene plan?":
+  // antes también exigía que estuviera en el diccionario, y desde que los
+  // planes se crean desde la UI eso mostraba **"Sin membresía" a un cliente
+  // que sí tiene una** — el resolver ya se ocupa de los que no tienen key.
+  const membershipLabel = membershipType
+    ? getMembershipLabel(membershipType, t, { variant: 'full' })
+    : t('v2.attendance.row.noMembership')
 
   return (
     <li className='flex items-center gap-3 py-3'>

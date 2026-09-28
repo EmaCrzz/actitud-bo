@@ -33,4 +33,25 @@ export interface MembershipType {
   amount_surcharge: number | null
   middle_amount: number | null
   last_update: string | null
+  /**
+   * Nombre visible, sólo en los planes creados desde la UI. NULL en los 5 del
+   * catálogo original, que resuelven por key i18n. No leer directo: usar
+   * `getMembershipLabel()` de `membership/catalog.ts`.
+   */
+  name: string | null
+  /** Días por semana. NULL si el plan no lo tiene cargado. */
+  weekly_quota: number | null
+  active: boolean
+}
+
+/**
+ * Un plan con el dato que la tabla de la Fase 10 muestra y la tabla de precios
+ * no tiene: cuántos clientes lo usan hoy.
+ *
+ * Va separado de `MembershipType` porque el conteo no es una columna sino una
+ * agregación sobre `customer_membership`, y arrastrarlo en el tipo base
+ * obligaría a todas las pantallas que sólo quieren precios a pagar el join.
+ */
+export interface MembershipPlan extends MembershipType {
+  customer_count: number
 }

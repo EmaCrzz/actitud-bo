@@ -1,5 +1,6 @@
 'use client'
 
+import { MEMBERSHIP_TYPES_QUERY_KEY_V2 } from '@/membership/hooks/use-membership-types-cache'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { CheckCircle2, Loader2 } from 'lucide-react'
@@ -86,7 +87,7 @@ export default function CustomerFormPanel({
   const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const { data: membershipTypes = [] } = useQuery({
-    queryKey: ['membership-types', 'v2'],
+    queryKey: MEMBERSHIP_TYPES_QUERY_KEY_V2,
     queryFn: async () => {
       const { data } = await getMembershipTypes()
 

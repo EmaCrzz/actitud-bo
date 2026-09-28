@@ -1,4 +1,5 @@
 'use client'
+import { MEMBERSHIP_TYPES_QUERY_KEY } from '@/membership/hooks/use-membership-types-cache'
 import ArrowLeftIcon from '@/components/icons/arrow-left'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -27,7 +28,6 @@ import { HybridSelect } from '@/components/ui/select-hybrid'
 import {
   MEMBERSHIP_TYPE_DAILY,
   MEMBERSHIP_TYPE_VIP,
-  MembershipTranslation,
   PaymentTypeArray,
   PaymentsTranslation,
 } from '@/membership/consts'
@@ -37,6 +37,7 @@ import { InputCurrency } from '@/components/ui/input-currency'
 import MoneyIcon from '@/components/icons/money'
 import { usePermissions } from '@/auth/hooks/use-permissions'
 import { ApplicableDiscount } from '@/group/types'
+import { getMembershipLabel } from '@/membership/catalog'
 import {
   getChargeAmount,
   getChargeModeOptions,
@@ -68,7 +69,7 @@ export default function MembershipForm({
   const { t } = useTranslations()
   const { isAdmin } = usePermissions()
   const { data: memberships = [], isLoading: isLoadingMemberships } = useQuery({
-    queryKey: ['membership-types'],
+    queryKey: MEMBERSHIP_TYPES_QUERY_KEY,
     queryFn: () => getMembershipTypes(),
     select: (response) => response.data,
   })
@@ -96,7 +97,7 @@ export default function MembershipForm({
     )
     .map((membership) => ({
       value: membership.type,
-      label: t(MembershipTranslation[membership.type as keyof typeof MembershipTranslation]),
+      label: getMembershipLabel(membership.type, t, { name: membership.name, variant: 'full' }),
     }))
 
   const paymentTypeOptions = PaymentTypeArray.map((paymentType) => ({
@@ -496,13 +497,9 @@ export default function MembershipForm({
                     </span>
                     <span className='text-xs text-white/80'>
                       El cliente pasa de{' '}
-                      {t(
-                        MembershipTranslation[
-                          currentMembershipType as keyof typeof MembershipTranslation
-                        ]
-                      )}{' '}
+                      {getMembershipLabel(currentMembershipType, t, { variant: 'full' })}{' '}
                       a{' '}
-                      {t(MembershipTranslation[selectedType as keyof typeof MembershipTranslation])}
+                      {getMembershipLabel(selectedType, t, { variant: 'full' })}
                       . Diferencia calculada:{' '}
                       <strong>${Math.abs(suggestedAdjustment).toLocaleString('es-AR')}</strong>.
                     </span>

@@ -7,7 +7,7 @@ import { getMembershipPayments } from '@/accounting/api/client'
 import { formatCurrency } from '@/lib/format-currency'
 import { formatDate } from '@/lib/format-date'
 import { useTranslations } from '@/lib/i18n/context'
-import { MembershipTranslationShort, type MembershipTypes } from '@/membership/consts'
+import { getMembershipLabel } from '@/membership/catalog'
 
 interface CustomerProfilePaymentsProps {
   customerId: string
@@ -64,7 +64,7 @@ export default function CustomerProfilePayments({
         >
           <div className='flex min-w-0 flex-col gap-0.5'>
             <span className='truncate text-sm font-medium'>
-              {t(MembershipTranslationShort[payment.membership_type as MembershipTypes])}
+              {getMembershipLabel(payment.membership_type, t)}
             </span>
             <span className='text-sm text-muted-foreground'>
               {t('v2.customers.profile.payments.date')} {formatDate(payment.payment_date)}

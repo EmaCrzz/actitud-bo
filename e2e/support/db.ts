@@ -149,3 +149,79 @@ export async function countPaymentsByPersonId(personId: string): Promise<number>
 
   return count ?? 0
 }
+
+export interface MembershipTypeRow {
+  id: string
+  type: string
+  name: string | null
+  amount: number | null
+  amount_surcharge: number | null
+  middle_amount: number | null
+  weekly_quota: number | null
+  active: boolean
+}
+
+/**
+ * Un plan del catálogo, buscándolo por su nombre visible.
+ *
+ * Por nombre y no por `type` porque el formulario sólo pide el nombre: la
+ * clave la deriva `membershipTypeKeyFromName`, y que esa derivación sea la
+ * esperada es justamente una de las cosas que el spec verifica.
+ */
+export async function findMembershipTypeByName(name: string): Promise<MembershipTypeRow | null> {
+  const client = await getDbClient()
+
+  const { data, error } = await client
+    .from('types_memberships')
+    .select('id, type, name, amount, amount_surcharge, middle_amount, weekly_quota, active')
+    .eq('name', name)
+    .maybeSingle()
+
+  if (error) throw new Error(`Error buscando el plan: ${error.message}`)
+
+  return data as MembershipTypeRow | null
+}
+
+/**
+ * Inserta un plan directo en la DB, sin pasar por la UI.
+ *
+ * Lo usa el smoke de v1, que necesita que exista un plan fuera del catálogo
+ * para verificar que sus pantallas no se rompen con él. Va por DB y no por la
+ * pantalla de v2 porque el caso a reproducir es justamente **que v1 se lo
+ * encuentre sin haberlo pedido**, y porque v1 no tiene dónde crearlo.
+ */
+export async function createMembershipPlanInDb(plan: {
+  type: string
+  name: string
+  amount: number
+  weeklyQuota: number
+}): Promise<void> {
+  const client = await getDbClient()
+
+  const { error } = await client.from('types_memberships').insert({
+    type: plan.type,
+    name: plan.name,
+    amount: plan.amount,
+    amount_surcharge: plan.amount,
+    middle_amount: plan.amount,
+    weekly_quota: plan.weeklyQuota,
+    active: true,
+  })
+
+  if (error) throw new Error(`No se pudo crear el plan de prueba: ${error.message}`)
+}
+
+/**
+ * Borra un plan de prueba. Va en un `finally` para que un assert en rojo no
+ * deje el plan suelto en la DB de dev, que comparte con el preview.
+ *
+ * Falla si el plan tiene membresías asociadas — la FK es `ON DELETE RESTRICT`
+ * desde la migración `20260928110544`, y que falle es el comportamiento
+ * correcto.
+ */
+export async function deleteMembershipPlanInDb(type: string): Promise<void> {
+  const client = await getDbClient()
+  const { error } = await client.from('types_memberships').delete().eq('type', type)
+
+  if (error) throw new Error(`No se pudo borrar el plan de prueba: ${error.message}`)
+}
