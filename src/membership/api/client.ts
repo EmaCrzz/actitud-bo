@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/client'
 import { CustomerMembership } from '@/customer/types'
 import { ActiveMembership, MembershipType } from '@/membership/types'
 import type { MembershipTypes } from '@/membership/consts'
+import { MEMBERSHIP_TYPE_COLUMNS } from '@/membership/consts'
+import { membershipTypeKeyFromName } from '@/membership/catalog'
 import { getMembershipPeriodStart } from '@/membership/period'
 import { getMonthRangeInAppTz, getTodayRangeInAppTz } from '@/lib/timezone'
 
@@ -211,13 +213,23 @@ export async function getMembershipStats(year?: number, month?: number) {
   }
 }
 
-// Función para obtener tipos de membresías activos con sus amounts
+/**
+ * Tipos de membresía **ofrecibles**: los que un operador puede elegir hoy.
+ *
+ * Los cuatro callers son selects —alta de cliente (v1 y v2), renovación, y la
+ * tabla de precios de v1— y ninguno debería ofrecer un plan discontinuado, así
+ * que el filtro por `active` es el default y no una opción.
+ *
+ * A diferencia de la versión del server, **no** filtra por precio cargado: el
+ * VIP no tiene y aun así es asignable.
+ */
 export async function getMembershipTypes(typeFilter?: string) {
   const supabase = createClient()
 
   let query = supabase
     .from('types_memberships')
-    .select('id, type, amount, amount_surcharge, middle_amount, last_update')
+    .select(MEMBERSHIP_TYPE_COLUMNS)
+    .eq('active', true)
     .order('type', { ascending: true })
 
   if (typeFilter) {
@@ -305,15 +317,28 @@ export async function fetchRenewalContext(customerId: string): Promise<RenewalCo
   }
 }
 
-// Función para actualizar precios de membresía
-export async function updateMembershipPrices(
-  membershipId: string,
-  prices: {
-    amount?: number
-    amount_surcharge?: number
-    middle_amount?: number
-  }
-) {
+/**
+ * Campos editables de un plan.
+ *
+ * `type` no está: es la clave que referencian las FKs y la que comparan los
+ * RPCs. Cambiarla propagaría por el `ON UPDATE CASCADE`, pero rompería las
+ * comparaciones literales del SQL sin que nada falle. Un plan se renombra
+ * cambiando `name`, que es lo que se muestra.
+ */
+export interface MembershipPlanPatch {
+  name?: string
+  amount?: number | null
+  amount_surcharge?: number | null
+  middle_amount?: number | null
+  weekly_quota?: number | null
+  active?: boolean
+}
+
+/**
+ * Actualiza un plan. Era `updateMembershipPrices` y sólo aceptaba los tres
+ * precios; la Fase 10 agregó nombre, cupo y estado al mismo formulario.
+ */
+export async function updateMembershipPlan(membershipId: string, patch: MembershipPlanPatch) {
   const supabase = createClient()
 
   // Primero verificar que el registro existe
@@ -338,14 +363,79 @@ export async function updateMembershipPrices(
 
   const { data, error } = await supabase
     .from('types_memberships')
-    .update(prices)
+    .update(patch)
     .eq('id', membershipId)
-    .select('id, type, amount, amount_surcharge, middle_amount, last_update')
+    .select(MEMBERSHIP_TYPE_COLUMNS)
     .single()
 
   if (error) {
     // eslint-disable-next-line no-console
-    console.error('Update error:', { error, membershipId, prices })
+    console.error('Update error:', { error, membershipId, patch })
+
+    return { data: null, error }
+  }
+
+  return { data: data as MembershipType, error: null }
+}
+
+export interface CreateMembershipPlanInput {
+  name: string
+  amount: number | null
+  amount_surcharge: number | null
+  middle_amount: number | null
+  weekly_quota: number
+}
+
+/**
+ * Crea un plan nuevo. La clave (`type`) se deriva del nombre.
+ *
+ * El plan nace **ordinario**: cobrable, con modalidades de cobro y con el cupo
+ * que se le cargó. Las excepciones del código —VIP no se cobra, DAILY vence el
+ * mismo día— están atadas a esas dos claves literales, así que un plan nuevo
+ * no las hereda, que es exactamente lo que queremos.
+ *
+ * El `UNIQUE` sobre `type` es la defensa contra nombres que colapsan en la
+ * misma clave. Se devuelve un código propio para que el formulario pueda
+ * decir "ya existe un plan con ese nombre" en vez de mostrar el error de
+ * Postgres.
+ */
+export async function createMembershipPlan(input: CreateMembershipPlanInput) {
+  const supabase = createClient()
+  const name = input.name.trim()
+  const type = membershipTypeKeyFromName(name)
+
+  if (!type) {
+    return {
+      data: null,
+      error: { message: 'El nombre del plan no produce una clave válida', code: 'INVALID_NAME' },
+    }
+  }
+
+  const { data, error } = await supabase
+    .from('types_memberships')
+    .insert({
+      type,
+      name,
+      amount: input.amount,
+      amount_surcharge: input.amount_surcharge,
+      middle_amount: input.middle_amount,
+      weekly_quota: input.weekly_quota,
+      active: true,
+    })
+    .select(MEMBERSHIP_TYPE_COLUMNS)
+    .single()
+
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error('Create membership plan error:', { error, type })
+
+    // 23505 = unique_violation. Es el caso esperado, no una falla.
+    if (error.code === '23505') {
+      return {
+        data: null,
+        error: { message: 'Ya existe un plan con ese nombre', code: 'DUPLICATE_NAME' },
+      }
+    }
 
     return { data: null, error }
   }

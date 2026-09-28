@@ -957,6 +957,77 @@
         "share": "Share",
         "sharing": "Generating...",
         "shareText": "Payment receipt for {name}"
+      },
+      "plans": {
+        "title": "Memberships",
+        "summary": {
+          "active": "{count} active plans",
+          "activeOne": "1 active plan",
+          "inactive": "{count} inactive plans",
+          "inactiveOne": "1 inactive plan"
+        },
+        "new": "New membership",
+        "total": "{count} plans",
+        "totalOne": "1 plan",
+        "columns": {
+          "plan": "Membership",
+          "prices": "Prices",
+          "frequency": "Frequency",
+          "customers": "Total customers",
+          "status": "Status"
+        },
+        "free": "Free",
+        "frequency": "{count} days/week",
+        "frequencyOne": "1 day/week",
+        "customerCount": "{count} customers",
+        "customerCountOne": "1 customer",
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "edit": {
+          "title": "Edit membership",
+          "description": "Change the membership values.",
+          "sectionTitle": "{name} membership",
+          "lastUpdate": "* Last updated: {date}",
+          "lastUpdateNever": "* Not edited yet",
+          "submit": "Confirm",
+          "success": "Membership updated",
+          "error": "We couldn't save the changes"
+        },
+        "create": {
+          "title": "New membership",
+          "description": "Create a new membership with the following data.",
+          "sectionTitle": "Plan information",
+          "submit": "Create membership",
+          "success": "Membership created",
+          "error": "We couldn't create the membership",
+          "duplicate": "A plan with that name already exists"
+        },
+        "fields": {
+          "name": "New membership/plan name",
+          "namePlaceholder": "e.g. 5 days a week",
+          "amount": "Base price",
+          "middleAmount": "Half-month price",
+          "surcharge": "Price with surcharge",
+          "weeklyQuota": "Days frequency",
+          "weeklyQuotaPlaceholder": "Select...",
+          "status": "Status",
+          "statusHint": "An inactive plan is no longer offered at sign-up or renewal. Customers who already have it are unaffected."
+        },
+        "validation": {
+          "nameRequired": "Enter a name for the plan",
+          "quotaRequired": "Choose the days frequency",
+          "amountInvalid": "The price cannot be negative"
+        },
+        "empty": {
+          "title": "No memberships yet",
+          "description": "Create the first plan so it can be assigned when adding customers."
+        },
+        "error": {
+          "title": "We couldn't load the memberships",
+          "description": "Check your connection and try again."
+        }
       }
     }
   }

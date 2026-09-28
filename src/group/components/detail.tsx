@@ -39,7 +39,7 @@ import {
 import { Customer } from '@/customer/types'
 import { CUSTOMER, CUSTOMER_LIST_GROUPS } from '@/consts/routes'
 import { useTranslations } from '@/lib/i18n/context'
-import { MembershipTranslation } from '@/membership/consts'
+import { getMembershipLabel } from '@/membership/catalog'
 
 interface Props {
   groupId: string
@@ -215,11 +215,7 @@ export default function GroupDetail({ groupId }: Props) {
                   <div className='flex items-center gap-2 mt-1'>
                     {m.membership_type ? (
                       <span className='text-xs text-white/70'>
-                        {t(
-                          MembershipTranslation[
-                            m.membership_type as keyof typeof MembershipTranslation
-                          ]
-                        )}
+                        {getMembershipLabel(m.membership_type, t, { variant: 'full' })}
                       </span>
                     ) : (
                       <span className='text-xs text-white/70'>{t('membership.noMembership')}</span>

@@ -7,9 +7,9 @@ import { formatCurrency } from '@/lib/format-currency'
 import { formatDate } from '@/lib/format-date'
 import { useTranslations } from '@/lib/i18n/context'
 import { daysUntilInAppTz } from '@/lib/timezone'
-import { MembershipTranslationShort } from '@/membership/consts'
 import { getMembershipPeriodStart } from '@/membership/period'
 import { CUSTOMER_STATUS_LABEL, CUSTOMER_STATUS_TONE } from './customer-status'
+import { getMembershipLabel } from '@/membership/catalog'
 
 /**
  * Tab "Membresía" del Perfil del cliente.
@@ -35,7 +35,7 @@ export default function CustomerProfileMembership({ profile }: { profile: Custom
             {t('v2.customers.profile.membership.current')}
           </span>
           <span className='text-lg font-semibold'>
-            {t(MembershipTranslationShort[profile.membership_type])}
+            {getMembershipLabel(profile.membership_type, t)}
           </span>
         </div>
         <StatusBadge tone={CUSTOMER_STATUS_TONE[status]}>

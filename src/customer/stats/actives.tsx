@@ -15,8 +15,6 @@ import { normalizeText } from '@/lib/utils/text'
 import { Button } from '@/components/ui/button'
 import {
   MEMBERSHIP_TYPE_VIP,
-  MembershipTranslation,
-  MembershipTranslationTwoLines,
   PaymentsTranslation,
   PaymentType,
 } from '@/membership/consts'
@@ -25,6 +23,7 @@ import { useActiveCustomers } from '@/customer/hooks/use-customer-stats'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/format-currency'
 import { formatDate } from '@/lib/format-date'
+import { getMembershipTwoLineLabel } from '@/membership/catalog'
 
 export default function CustomerActives() {
   const { t } = useTranslations()
@@ -140,12 +139,7 @@ export default function CustomerActives() {
                           {customer.first_name} {customer.last_name}
                         </p>
                         <span className='flex items-center text-xs'>
-                          {isVIPMembership &&
-                            t(
-                              MembershipTranslationTwoLines[
-                                membership_type as keyof typeof MembershipTranslation
-                              ].two
-                            )}
+                          {isVIPMembership && getMembershipTwoLineLabel(membership_type, t).two}
                           {isVIPMembership && (
                             <StarIcon className='text-yellow-300 size-3 inline-block ml-1' />
                           )}
@@ -162,17 +156,8 @@ export default function CustomerActives() {
                           isVIPMembership && 'uppercase'
                         )}
                       >
-                        {t(
-                          MembershipTranslationTwoLines[
-                            membership_type as keyof typeof MembershipTranslation
-                          ].one
-                        ) || ''}{' '}
-                        {!isVIPMembership &&
-                          t(
-                            MembershipTranslationTwoLines[
-                              membership_type as keyof typeof MembershipTranslation
-                            ].two
-                          )}
+                        {getMembershipTwoLineLabel(membership_type, t).one}{' '}
+                        {!isVIPMembership && getMembershipTwoLineLabel(membership_type, t).two}
                         {isVIPMembership && (
                           <StarIcon className='text-yellow-300 size-3 inline-block ml-1' />
                         )}

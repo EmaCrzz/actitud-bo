@@ -16,7 +16,7 @@ import { Customer } from '@/customer/types'
 import { CUSTOMER_LIST_GROUPS } from '@/consts/routes'
 import { useTranslations } from '@/lib/i18n/context'
 import { cn } from '@/lib/utils'
-import { MembershipTranslation } from '@/membership/consts'
+import { getMembershipLabel } from '@/membership/catalog'
 
 interface SelectedMember {
   id: string
@@ -157,11 +157,7 @@ export default function CreateGroupForm() {
                       </span>
                       <span className='text-xs text-muted-foreground'>
                         {m.membership_type
-                          ? t(
-                              MembershipTranslation[
-                                m.membership_type as keyof typeof MembershipTranslation
-                              ]
-                            )
+                          ? getMembershipLabel(m.membership_type, t, { variant: 'full' })
                           : t('membership.noMembership')}
                       </span>
                     </div>

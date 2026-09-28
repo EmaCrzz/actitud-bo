@@ -5,8 +5,9 @@ import { ArrowUpRight } from 'lucide-react'
 import { formatCalendarDate } from '@/lib/format-date'
 import { formatCurrency } from '@/lib/format-currency'
 import { useTranslations } from '@/lib/i18n/context'
-import { MembershipTranslationShort, PaymentsTranslation } from '@/membership/consts'
+import { PaymentsTranslation } from '@/membership/consts'
 import type { MembershipTypes, PaymentType } from '@/membership/consts'
+import { getMembershipLabel } from '@/membership/catalog'
 
 /** El `id` que captura `useShareImage` para convertirlo en PNG. */
 export const PAYMENT_RECEIPT_ELEMENT_ID = 'v2-payment-receipt'
@@ -83,7 +84,7 @@ export default function PaymentReceipt({ data }: { data: PaymentReceiptData }) {
         <span className='font-semibold'>{data.customerName}</span>
         <span>
           {t('v2.membership.receipt.membershipLine', {
-            plan: t(MembershipTranslationShort[data.membershipType]),
+            plan: getMembershipLabel(data.membershipType, t),
           })}
         </span>
         <span>
@@ -98,7 +99,7 @@ export default function PaymentReceipt({ data }: { data: PaymentReceiptData }) {
 
       <section className='overflow-hidden rounded-lg border border-[#E5E5E5]'>
         <Row label={t('v2.membership.receipt.membership')}>
-          {t(MembershipTranslationShort[data.membershipType])}
+          {getMembershipLabel(data.membershipType, t)}
         </Row>
         {data.periodModeLabel && (
           <Row label={t('v2.membership.receipt.chargeMode')}>

@@ -244,12 +244,21 @@ test.describe('v2 · sección asistencias', () => {
 
     await gotoV2(page, `${ROUTES_V2.V2_ATTENDANCE}?date=${emptyDay}&q=zzzz-no-existe-zzzz`)
 
-    const hasRows = (await page.locator('#attendance-list').getByRole('listitem').count()) > 0
-
     // El día elegido es de hace casi dos semanas, pero la DB de dev es un
     // backup de producción: si resulta que tuvo movimiento, el caso a verificar
     // no se da y el test no tiene nada que afirmar.
-    test.skip(hasRows, 'el día elegido tiene asistencias; no aplica el caso vacío')
+    //
+    // La condición mira **si el buscador se renderizó**, no cuántas filas hay.
+    // Contar filas era el guard original y no funciona justamente acá: con un
+    // `?q=` que no matchea, un día con asistencias también muestra cero filas,
+    // así que el skip no se disparaba y el test fallaba contra el estado "sin
+    // resultados". El buscador, en cambio, aparece sólo si el día tuvo
+    // asistencias — es la señal que el guard necesita.
+    const dayHadAssistances = await page
+      .getByPlaceholder(t('v2.attendance.searchPlaceholder'))
+      .isVisible()
+
+    test.skip(dayHadAssistances, 'el día elegido tiene asistencias; no aplica el caso vacío')
 
     await expect(page.getByText(t('v2.attendance.empty.title'))).toBeVisible()
     await expect(page.getByText(t('v2.attendance.noResults.title'))).toBeHidden()

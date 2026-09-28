@@ -1,5 +1,6 @@
 'use client'
 
+import { MEMBERSHIP_TYPES_QUERY_KEY_V2 } from '@/membership/hooks/use-membership-types-cache'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
@@ -32,7 +33,6 @@ import {
 import { getPeriodBaseAmount, getPeriodModeOptions } from '@/membership/charge-mode'
 import {
   MEMBERSHIP_TYPE_VIP,
-  MembershipTranslationShort,
   type MembershipTypes,
   type PaymentType,
 } from '@/membership/consts'
@@ -51,6 +51,7 @@ import RenewCustomerSearchStep from './RenewCustomerSearchStep'
 import RenewMembershipStep from './RenewMembershipStep'
 import RenewSuccessDialog from './RenewSuccessDialog'
 import RenewSummaryStep from './RenewSummaryStep'
+import { getMembershipLabel } from '@/membership/catalog'
 
 export interface RenewableCustomer {
   id: string
@@ -112,7 +113,7 @@ export default function RenewMembershipPanel({
   const [receipt, setReceipt] = useState<PaymentReceiptData | null>(null)
 
   const { data: membershipTypes = [] } = useQuery({
-    queryKey: ['membership-types', 'v2'],
+    queryKey: MEMBERSHIP_TYPES_QUERY_KEY_V2,
     queryFn: async () => {
       const { data } = await getMembershipTypes()
 
@@ -543,7 +544,7 @@ function CustomerCard({
         <span className='text-muted-foreground truncate text-xs'>
           {context?.membership_type
             ? t('v2.membership.renew.currentPlan', {
-                plan: t(MembershipTranslationShort[context.membership_type]),
+                plan: getMembershipLabel(context.membership_type, t),
               })
             : t('v2.customers.status.none')}
         </span>

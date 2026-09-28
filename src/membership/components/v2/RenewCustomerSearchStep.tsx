@@ -14,7 +14,7 @@ import type { CustomerWithMembership } from '@/customer/types'
 import { getCustomerMembershipStatus } from '@/customer/utils'
 import { getInitials } from '@/lib/format-person'
 import { useTranslations } from '@/lib/i18n/context'
-import { MembershipTranslationShort } from '@/membership/consts'
+import { getMembershipLabel } from '@/membership/catalog'
 
 const SEARCH_DEBOUNCE_MS = 400
 const MAX_RESULTS = 8
@@ -128,7 +128,7 @@ function CustomerRow({
         <span className='text-muted-foreground truncate text-xs'>
           {customer.membership_type
             ? t('v2.membership.renew.currentPlan', {
-                plan: t(MembershipTranslationShort[customer.membership_type]),
+                plan: getMembershipLabel(customer.membership_type, t),
               })
             : t('v2.customers.row.noMembership')}
         </span>

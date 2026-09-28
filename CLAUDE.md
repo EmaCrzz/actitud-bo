@@ -89,7 +89,7 @@ npm run db:status       # Show current migration status
 
 ### Testing Environment
 
-Hay suite end-to-end con Playwright desde el 2026-09-26 (ADR [20260926131436](docs/architecture/decisions/20260926131436_suite-e2e-playwright-para-v2.md)). Cubre **v2**; v1 todavía no.
+Hay suite end-to-end con Playwright desde el 2026-09-26 (ADR [20260926131436](docs/architecture/decisions/20260926131436_suite-e2e-playwright-para-v2.md)). Cubre **v2** en profundidad y **v1 con un smoke** (`e2e/specs/v1-regression.spec.ts`, desde la Fase 10): que sus seis pantallas carguen sin errores de consola, y que un plan fuera del catálogo no las rompa. Ese smoke existe porque la regla operativa es que todo cambio de v2 deje v1 funcionando, y el código compartido es mucho — **correrlo es el chequeo mínimo de cualquier PR que toque `src/membership/`, `src/customer/` o `src/assistance/` fuera de `components/v2/`**.
 
 ```bash
 npm run test:e2e          # Correr la suite

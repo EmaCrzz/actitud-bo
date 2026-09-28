@@ -95,6 +95,17 @@ export const MembershipTranslationTwoLines: Record<
   },
 }
 
+/**
+ * Columnas de `types_memberships` que la app lee, en un solo lugar.
+ *
+ * Estaba repetida como string literal en cuatro queries entre `api/server.ts`
+ * y `api/client.ts`. Cuando la Fase 10 sumó tres columnas, actualizar tres de
+ * las cuatro y olvidar la restante habría dado un plan sin `active` que la UI
+ * renderizaba como inactivo — el tipo de bug que no falla, sólo miente.
+ */
+export const MEMBERSHIP_TYPE_COLUMNS =
+  'id, type, name, amount, amount_surcharge, middle_amount, weekly_quota, active, last_update' as const
+
 export const PAYMENT_CASH = 'PAYMENT_CASH' as const
 export const PAYMENT_TRANSFER = 'PAYMENT_TRANSFER' as const
 

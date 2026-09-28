@@ -29,7 +29,6 @@ export const V2 = '/v2' as const
 export const V2_HOME = `${V2}/home` as const
 export const V2_CUSTOMERS = `${V2}/customers` as const
 export const V2_ATTENDANCE = `${V2}/attendance` as const
-export const V2_MEMBERSHIPS = `${V2}/memberships` as const
 export const V2_SALES = `${V2}/sales` as const
 export const V2_EXPENSES = `${V2}/expenses` as const
 export const V2_BALANCE = `${V2}/balance` as const
@@ -45,7 +44,6 @@ export const ROUTES_V2 = {
   V2_CUSTOMERS,
   V2_EXPENSES,
   V2_HOME,
-  V2_MEMBERSHIPS,
   V2_SALES,
   V2_SETTINGS_BUSINESS,
   V2_SETTINGS_MEMBERSHIPS,

@@ -11,7 +11,7 @@ import type { CustomerModalData } from '@/assistance/api/client'
 import { useTranslations } from '@/lib/i18n/context'
 import type { Customer } from '@/customer/types'
 import { isSameDayInAppTz, isExpiredInAppTz, APP_TIMEZONE } from '@/lib/timezone'
-import { MembershipTranslation, SLOTS_BY_TYPE } from '@/membership/consts'
+import { DEFAULT_WEEKLY_SLOTS, getWeeklySlots } from '@/membership/catalog'
 import { CUSTOMER } from '@/consts/routes'
 import { cn } from '@/lib/utils'
 import { getInitials } from '@/lib/format-person'
@@ -20,6 +20,7 @@ import { buildWeekSlots, isDuplicateAssistanceError } from '@/assistance/utils'
 import type { WeekAssistance, WeekSlot } from '@/assistance/utils'
 import SuccessTick, { SuccessTickRing } from '@/components/SuccessTick'
 import AlertContainedIcon from '@/components/icons/alert-contained'
+import { getMembershipLabel } from '@/membership/catalog'
 
 // El modal permanece abierto este tiempo después de confirmar para que el
 // usuario vea la animación antes de que se cierre.
@@ -107,10 +108,9 @@ export default function AssistanceModal({ customer, open, onOpenChange }: Assist
     }, CLOSE_DELAY_MS)
   }
 
-  const slotsCount =
-    modalData?.membership?.type && modalData.membership.type in SLOTS_BY_TYPE
-      ? SLOTS_BY_TYPE[modalData.membership.type]
-      : 5
+  const slotsCount = modalData?.membership?.type
+    ? (getWeeklySlots(modalData.membership.type) ?? DEFAULT_WEEKLY_SLOTS)
+    : DEFAULT_WEEKLY_SLOTS
 
   // Merge optimista: si el usuario acaba de confirmar, añadimos su asistencia
   // localmente para que el slot reaccione sin esperar el refresh del servidor.
@@ -148,7 +148,7 @@ export default function AssistanceModal({ customer, open, onOpenChange }: Assist
   const membershipIsExpired = modalData?.membership != null && !membershipIsActive
 
   const membershipLabel = modalData?.membership
-    ? t(MembershipTranslation[modalData.membership.type])
+    ? getMembershipLabel(modalData.membership.type, t, { variant: 'full' })
     : null
 
   const fullName = customer ? `${customer.first_name} ${customer.last_name}` : ''

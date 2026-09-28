@@ -7,11 +7,11 @@ import { formatCurrency } from '@/lib/format-currency'
 import { useTranslations } from '@/lib/i18n/context'
 import type { TranslationKey } from '@/lib/i18n/types'
 import { getPeriodModeOptions } from '@/membership/charge-mode'
-import { MEMBERSHIP_TYPE_VIP, MembershipTranslationShort } from '@/membership/consts'
-import type { MembershipTypes } from '@/membership/consts'
+import { MEMBERSHIP_TYPE_VIP } from '@/membership/consts'
 import { PaymentsTranslation, type PaymentType } from '@/membership/consts'
 import { getPeriodLabel, type RenewalAmounts, type RenewalFormValues } from '@/membership/renewal'
 import type { MembershipType } from '@/membership/types'
+import { getMembershipLabel } from '@/membership/catalog'
 
 const MONTH_KEYS: TranslationKey[] = [
   'months.january',
@@ -88,7 +88,7 @@ export default function RenewSummaryStep({
       <dl className='overflow-hidden rounded-lg border'>
         <Row label={t('v2.membership.renew.summary.membership')}>
           {values.membership_type
-            ? t(MembershipTranslationShort[values.membership_type as MembershipTypes])
+            ? getMembershipLabel(values.membership_type, t)
             : empty}
         </Row>
 

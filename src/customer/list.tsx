@@ -8,7 +8,7 @@ import { useIntersectionObserver } from 'usehooks-ts'
 import SearchIcon from '@/components/icons/search'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { MEMBERSHIP_TYPE_VIP, MembershipTranslation } from '@/membership/consts'
+import { MEMBERSHIP_TYPE_VIP } from '@/membership/consts'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import EyeIcon from '@/components/icons/eye'
@@ -19,6 +19,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useTranslations } from '@/lib/i18n/context'
 import { fetchCustomersPage } from '@/customer/api/client'
 import { CUSTOMERS_PAGE_SIZE } from '@/customer/consts'
+import { getMembershipLabel } from '@/membership/catalog'
 
 interface Props {
   initialCustomers: CustomerWithMembership[]
@@ -122,7 +123,7 @@ export default function ListCustomers({ initialCustomers }: Props) {
                     </span>
                     <Label className='font-light text-xs leading-6'>
                       {customer.membership_type
-                        ? t(MembershipTranslation[customer.membership_type])
+                        ? getMembershipLabel(customer.membership_type, t, { variant: 'full' })
                         : t('membership.noMembership')}
                       {isVIPMembership && <StarIcon className='font-light size-2 inline-block' />}
                     </Label>

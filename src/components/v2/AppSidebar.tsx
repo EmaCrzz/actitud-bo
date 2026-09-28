@@ -6,7 +6,6 @@ import { useRef, useState } from 'react'
 import {
   ArrowUpRight,
   ChevronDown,
-  CreditCard,
   Home,
   LogOut,
   PanelLeft,
@@ -67,7 +66,6 @@ const menuItems: MenuItem[] = [
   { labelKey: 'v2.sidebar.menu.home', icon: Home, href: ROUTES_V2.V2_HOME },
   { labelKey: 'v2.sidebar.menu.customers', icon: Users, href: ROUTES_V2.V2_CUSTOMERS },
   { labelKey: 'v2.sidebar.menu.attendance', icon: SquareCheck, href: ROUTES_V2.V2_ATTENDANCE },
-  { labelKey: 'v2.sidebar.menu.memberships', icon: CreditCard, href: ROUTES_V2.V2_MEMBERSHIPS },
   { labelKey: 'v2.sidebar.menu.sales', icon: ShoppingBag, href: ROUTES_V2.V2_SALES },
   { labelKey: 'v2.sidebar.menu.expenses', icon: Receipt, href: ROUTES_V2.V2_EXPENSES },
   { labelKey: 'v2.sidebar.menu.balance', icon: Wallet, href: ROUTES_V2.V2_BALANCE },

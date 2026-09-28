@@ -17,7 +17,6 @@ import { getChargeModeOptions, type ChargeMode } from '@/membership/charge-mode'
 import {
   MEMBERSHIP_TYPE_DAILY,
   MEMBERSHIP_TYPE_VIP,
-  MembershipTranslationWeekly,
   PaymentTypeArray,
   PaymentsTranslation,
   type MembershipTypes,
@@ -25,6 +24,7 @@ import {
 import type { MembershipType } from '@/membership/types'
 import FormField from '@/components/v2/FormField'
 import { resolveMembershipPeriod, type CustomerFormMembershipValues } from './customer-form-state'
+import { getMembershipLabel } from '@/membership/catalog'
 
 interface Props {
   values: CustomerFormMembershipValues
@@ -111,7 +111,7 @@ export default function CustomerFormMembershipStep({
           <SelectContent>
             {membershipTypes.map((type) => (
               <SelectItem key={type.type} value={type.type}>
-                {t(MembershipTranslationWeekly[type.type as MembershipTypes])}
+                {getMembershipLabel(type.type, t, { name: type.name, variant: 'weekly' })}
               </SelectItem>
             ))}
           </SelectContent>

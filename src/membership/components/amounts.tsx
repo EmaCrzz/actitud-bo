@@ -1,4 +1,5 @@
-import { MembershipTranslation, MEMBERSHIP_TYPE_VIP, MembershipTypes } from '../consts'
+import { MEMBERSHIP_TYPES_QUERY_KEY } from '@/membership/hooks/use-membership-types-cache'
+import { MEMBERSHIP_TYPE_VIP } from '../consts'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import PencilIcon from '@/components/icons/pencil'
@@ -10,11 +11,12 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useTranslations } from '@/lib/i18n/context'
 import { useQuery } from '@tanstack/react-query'
 import { getMembershipTypes } from '../api/client'
+import { getMembershipLabel } from '@/membership/catalog'
 
 export default function MembershipAmounts() {
   const { t } = useTranslations()
   const { data, isLoading, error } = useQuery({
-    queryKey: ['membership-types'],
+    queryKey: MEMBERSHIP_TYPES_QUERY_KEY,
     queryFn: () => getMembershipTypes(),
   })
 
@@ -32,7 +34,7 @@ export default function MembershipAmounts() {
         {t('membership.list')}
       </h3>
       <div className='grid gap-x-3'>
-        {data.data.map(({ type, amount, id, last_update }, index) => (
+        {data.data.map(({ type, name, amount, id, last_update }, index) => (
           <div key={id}>
             <div
               className={cn(
@@ -42,7 +44,7 @@ export default function MembershipAmounts() {
             >
               <div className='grid gap-x-1 text-start'>
                 <span className='text-sm font-medium'>
-                  {t(MembershipTranslation[type as MembershipTypes])}
+                  {getMembershipLabel(type, t, { name, variant: 'full' })}
                 </span>
                 {type !== MEMBERSHIP_TYPE_VIP && (
                   <span className='text-xs font-medium text-gray-400'>

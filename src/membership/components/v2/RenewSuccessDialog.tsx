@@ -12,8 +12,9 @@ import Button from '@/components/v2/ui/Button'
 import { formatCurrency } from '@/lib/format-currency'
 import { useShareImage } from '@/lib/hooks/use-share-image'
 import { useTranslations } from '@/lib/i18n/context'
-import { MembershipTranslationShort, PaymentsTranslation } from '@/membership/consts'
+import { PaymentsTranslation } from '@/membership/consts'
 import type { PaymentType } from '@/membership/consts'
+import { getMembershipLabel } from '@/membership/catalog'
 import PaymentReceipt, {
   PAYMENT_RECEIPT_ELEMENT_ID,
   type PaymentReceiptData,
@@ -110,8 +111,9 @@ export default function RenewSuccessDialog({ receipt, onClose }: RenewSuccessDia
               <DialogDescription asChild>
                 <div className='text-muted-foreground flex flex-col gap-0.5 text-sm'>
                   <span className='text-foreground'>
-                    {`${receipt.customerName} - ${t(
-                      MembershipTranslationShort[receipt.membershipType]
+                    {`${receipt.customerName} - ${getMembershipLabel(
+                      receipt.membershipType,
+                      t
                     )} ${formatCurrency(receipt.total)}`}
                   </span>
                   {receipt.paymentMethod && (
