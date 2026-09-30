@@ -1028,6 +1028,83 @@
           "description": "Revisá la conexión y volvé a intentar."
         }
       }
+    },
+    "expenses": {
+      "title": "Gastos",
+      "new": "Registrar gasto",
+      "newShort": "Registrar",
+      "summary": "{count} gastos registrados",
+      "summaryOne": "1 gasto registrado",
+      "summaryEmpty": "Sin gastos registrados",
+      "kpi": {
+        "total": "Total de gastos",
+        "cash": "Efectivo",
+        "transfer": "Transferencias",
+        "unspecified": "{amount} sin medio de pago"
+      },
+      "filters": {
+        "search": "Busca por descripción",
+        "from": "Desde",
+        "to": "Hasta",
+        "method": "Método",
+        "methodAll": "Todos los métodos",
+        "methodUnspecified": "Sin especificar"
+      },
+      "export": "Exportar",
+      "exportFilename": "gastos",
+      "columns": {
+        "category": "Categoría",
+        "amount": "Monto",
+        "description": "Descripción",
+        "date": "Fecha",
+        "method": "Método de pago"
+      },
+      "unspecifiedMethod": "Sin especificar",
+      "pagination": "{page} de {total} páginas",
+      "empty": {
+        "title": "Aún no se registraron gastos.",
+        "description": "Registrá el primer gasto para empezar a seguir los egresos del mes."
+      },
+      "emptyFiltered": {
+        "title": "Ningún gasto coincide con los filtros.",
+        "description": "Probá ampliar el rango de fechas o limpiar la búsqueda."
+      },
+      "error": {
+        "title": "No pudimos cargar los gastos",
+        "description": "Revisá la conexión y volvé a intentar."
+      },
+      "form": {
+        "createTitle": "Nuevo gasto",
+        "editTitle": "Editar gasto",
+        "intro": "Registra un nuevo gasto, indica qué y cuánto costó",
+        "introEdit": "Modificá los datos del gasto registrado",
+        "category": "Categoría",
+        "categoryPlaceholder": "Selecciona una categoría",
+        "description": "Descripción breve",
+        "descriptionPlaceholder": "Describe el motivo del gasto...",
+        "amount": "Monto",
+        "date": "Fecha",
+        "method": "Forma de pago",
+        "methodPlaceholder": "Selecciona una opción",
+        "delete": "Eliminar"
+      },
+      "errors": {
+        "categoryRequired": "Elegí una categoría",
+        "descriptionRequired": "Escribí una descripción",
+        "amountRequired": "El monto debe ser mayor a 0",
+        "dateRequired": "Elegí una fecha",
+        "saveFailed": "No pudimos guardar el gasto",
+        "deleteFailed": "No pudimos eliminar el gasto"
+      },
+      "success": {
+        "created": "Nuevo gasto registrado correctamente",
+        "updated": "Gasto editado correctamente",
+        "deleted": "Gasto eliminado correctamente"
+      },
+      "delete": {
+        "title": "¿Seguro que quieres eliminar este registro?",
+        "description": "El gasto se borra de forma permanente y deja de contar en el balance."
+      }
     }
   }
 }

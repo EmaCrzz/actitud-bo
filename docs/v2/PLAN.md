@@ -29,7 +29,8 @@
 | 8 | Registrar pago / renovar membresía + comprobante | ✅ completa | Fundaciones en prod con **v0.13.0/v0.13.1**. Panel de renovación: PR [#62](https://github.com/EmaCrzz/actitud-bo/pull/62), ADR [20260922173000](../architecture/decisions/20260922173000_v2-panel-de-renovacion-de-membresia.md). Comprobante + cobro desde el home: rama `feat/v2-comprobante-y-pago-desde-home`, ADR [20260923140000](../architecture/decisions/20260923140000_v2-comprobante-de-pago-y-cobro-desde-el-home.md). **Ninguno de los dos llevó migraciones.** |
 | 9 | Sección Asistencias | ✅ completa | Rama `feat/v2-asistencias`. ADR [20260926171200](../architecture/decisions/20260926171200_v2-seccion-asistencias.md). **Desktop con tabs, mobile sin ellos** — la divergencia es deliberada y está en el Figma. Sin migraciones. Primera fase que entrega con specs e2e. |
 | 10 | Sección Membresías (planes y precios) | ✅ completa | Rama `feat/v2-membresias`. ADR [20260928112705](../architecture/decisions/20260928112705_v2-seccion-membresias-y-catalogo-de-planes.md). **Catálogo híbrido**: se crean planes y los 5 originales conservan su comportamiento especial. Vive en `/v2/settings/memberships`; se borró el stub de `/v2/memberships`. **Lleva migración aditiva** `20260928110544` (B6 cerrada). |
-| 11 | Sección Gastos (crear/editar/eliminar) | ⬜ pendiente | Requiere migración: `payment_method` en `expenses`. |
+| 10b | Grupos de clientes (familiares) | 🔵 relevada, sin planificar | **No estaba en el plan original**; capturas del 2026-09-29. El panel ya existe en v1 casi 1:1; lo nuevo es la tabla del listado. Relevada contra prod y **pausada a pedido de Ema** para revisarla con calma. Decidido: el descuento sólo se muestra, y eliminar pasa a baja lógica. Abierto: las columnas derivadas → [decisión #17](#decisiones-abiertas--riesgos). |
+| 11 | Sección Gastos (crear/editar/eliminar) | ✅ completa | Rama `feat/v2-gastos`. ADR [20260930121500](../architecture/decisions/20260930121500_v2-seccion-gastos-y-medio-de-pago.md). **Lleva migración aditiva** `20260929104500` (B1 cerrada): `payment_method` **nullable, sin backfill** — decisión #8 resuelta midiendo prod (29 gastos) . De paso se arregló un bug que bloqueaba el **alta de cliente el último día de cada mes**. |
 | 12 | Sección Ventas (productos) | ⚠️ bloqueada | **No existe modelo de datos.** Requiere diseño de schema completo. |
 | 13 | Balance | ⬜ pendiente | Depende de 11 y 12. |
 | 14 | Configuración (Negocio / Membresías / Promociones / Usuarios) | ⬜ pendiente | Requiere tabla de settings del negocio. |
@@ -47,7 +48,13 @@
 
 > ⚠️ **Lleva migración aditiva `20260928110544`, que va a prod ANTES del release.** Agrega `name`, `weekly_quota` y `active`; y de paso cierra dos cosas que estaban mal desde antes: el INSERT en `types_memberships` estaba abierto a cualquier `authenticated`, y la FK de `customer_membership.membership_type` tenía **`ON DELETE CASCADE`** — borrar un plan borraba la membresía de todos sus clientes.
 
-**El movimiento siguiente es la Fase 11** (Gastos), bloqueada sólo por la [decisión #8](#decisiones-abiertas--riesgos), que es una pregunta de negocio de una línea: los gastos históricos sin `payment_method`, ¿se backfillean a efectivo o quedan como "sin especificar"? El CRUD ya existe completo en v1 y la canonicalización de fechas ya está resuelta en `withCanonicalExpenseDate`. Desbloquea además la Fase 13 (Balance).
+**Apareció una fase que no estaba en el plan: la [10b, Grupos de clientes](#fase-10b--grupos-de-clientes-familiares).** Ema aportó 3 capturas el 2026-09-29 y pidió volver a ella antes de la Fase 13. **Está relevada a fondo y pausada a pedido suyo** —*"esto está demasiado amañado, luego lo reviso con más atención"*— así que al retomar **no hay que medir nada de nuevo**: la sección tiene el inventario de v1, los números de prod y los hallazgos. Lo único que falta es responder la [decisión #17](#decisiones-abiertas--riesgos) (qué muestran las columnas `Tipo de plan` / `Vencimiento` / `Estado` cuando los integrantes no coinciden) y confirmar el entrypoint de creación, que no aparece en ninguna captura.
+
+**La Fase 11 (Gastos) se cerró el 2026-09-30** — rama `feat/v2-gastos`, ADR [20260930121500](../architecture/decisions/20260930121500_v2-seccion-gastos-y-medio-de-pago.md). La [decisión #8](#decisiones-abiertas--riesgos) se resolvió midiendo prod: son **29 gastos**, así que quedan como "sin especificar" y la columna es nullable. Ver [Fase 11](#fase-11--sección-gastos).
+
+> ⚠️ **Lleva migración aditiva `20260929104500`, que va a prod ANTES del release.**
+
+**El movimiento siguiente es la Fase 12 (Ventas), y sigue bloqueada** por la [decisión #5](#decisiones-abiertas--riesgos): hay que definir el alcance con el negocio —¿stock? ¿anulación? ¿varios productos por venta?— antes de escribir el schema. Es lo único que mantiene bloqueadas **dos** fases, porque la 13 (Balance) depende de ella. Las alternativas disponibles sin destrabar nada: la [Fase 10b](#fase-10b--grupos-de-clientes-familiares) (relevada, esperando la [decisión #17](#decisiones-abiertas--riesgos)) y la Fase 14 (Configuración, parcial: necesita `business_settings` y bucket de Storage).
 
 ---
 
@@ -63,11 +70,11 @@
 
 **Lo que cambió el diseño el 2026-09-22:** el paso 1 ahora tiene los **dos datepickers** (inicio y vencimiento), que antes no estaban. El panel los muestra con prefill derivado — inicio = día siguiente al vencimiento vigente, o hoy si ya venció — y con eso la renovación anticipada arranca sola en el período correcto.
 
-**Estado de entornos — todo desplegado, `main` y `develop` emparejados.** Producción corre **v0.15.0** (release del 2026-09-28), que llevó la Fase 9, la suite e2e, los unit tests y el emparejamiento de este plan. Prod sigue con **0 usuarios con `v2_access`**, así que toda la UI de v2 viaja apagada.
+**Estado de entornos — todo desplegado, `main` y `develop` emparejados.** Producción corre **v0.16.0** (release del 2026-09-28), que llevó la Fase 10 completa. Antes salió la v0.15.0 el mismo día, con la Fase 9, la suite e2e y los unit tests. Prod sigue con **0 usuarios con `v2_access`**, así que toda la UI de v2 viaja apagada.
 
-**Migraciones: al día, y este release no llevó ninguna.** La última aplicada en prod sigue siendo `20260925103921`, de la v0.14.0, y dev está emparejado. **Nada de lo que entró después toca el schema.**
+**Migraciones: al día.** La última aplicada en prod es `20260928110544` (Fase 10), y dev está emparejado. Se aplicó **antes** del release, con ensayo transaccional previo y auditoría de integridad antes y después: **idéntica**, no se movió ningún dato.
 
-**Lo único que un operador de v1 ve de la v0.15.0** son refactors que preservan comportamiento: la validación del `?date=` de `/assistances` pasó a `assistance/date-range.ts` (compartida con v2) y `getAssistancesByDate` quedó como wrapper de `getAssistancesByDateResult`. El resto es código de v2 apagado, tests y documentación.
+**Lo que un operador de v1 ve de estas dos versiones: nada nuevo.** De la v0.15.0, refactors que preservan comportamiento en `/assistances`. De la v0.16.0, los ~20 call sites de etiquetas de membresía migrados al resolver —misma variante de copy en todos— más tres arreglos que no cambian nada visible hasta que alguien cree un plan: la FK que pasó de `CASCADE` a `RESTRICT`, el INSERT admin-only y el trigger de `last_update`. **Cubierto por el smoke de v1** que la fase agregó.
 
 > **Al abrir `/incomes` desde el release v0.14.0, junio 2026 muestra $0.** Es la reatribución del #59, no una pérdida: los 4 pagos de junio se habían cargado en julio y ahora se cuentan ahí. Sus cuotas siguen existiendo en `period_start`. Está en el ADR, pero conviene tenerlo a mano porque es lo primero que llama la atención en el dashboard.
 
@@ -96,7 +103,7 @@ La evidencia que lo confirmó: de los 15 clientes creados desde el 22-07 con alg
 3. **Antes de cada `db:push-prod`:** `./scripts/rehearse-migrations.sh prod` + `supabase/scripts/audit-integrity.sql`. Procedimiento completo en [workflow.md](../workflow.md).
 4. **Pedir la captura antes de definir la pantalla**, y **mirar cada pantalla nueva con data real** antes de cerrarla. Las dos moralejas salieron de fases donde el árbol de nodos y el wireframe alcanzaban para construir algo que igual estaba mal.
 
-**Pendiente con el diseñador:** el copy *"Aun"* sin tilde y las barras horizontales del home mobile ([decisión #16](#decisiones-abiertas--riesgos)), las **tres divergencias deliberadas** que introdujo la Fase 7 contra el Figma (no existe "Sin membresía" en el select; "Modalidad de cobro" y "Forma de pago" desaparecen con VIP; "Modalidad de cobro" desaparece con Diaria), y los **seis defectos de las capturas de renovación** del 2026-09-21 — incluido que el ícono de Compartir dice PDF y se va a implementar como imagen. Lista completa en [Fase 8](#defectos-del-diseño-detectados-en-las-capturas-del-2026-09-21).
+**Pendiente con el diseñador:** el copy *"Aun"* sin tilde y las barras horizontales del home mobile ([decisión #18](#decisiones-abiertas--riesgos)), las **tres divergencias deliberadas** que introdujo la Fase 7 contra el Figma (no existe "Sin membresía" en el select; "Modalidad de cobro" y "Forma de pago" desaparecen con VIP; "Modalidad de cobro" desaparece con Diaria), y los **seis defectos de las capturas de renovación** del 2026-09-21 — incluido que el ícono de Compartir dice PDF y se va a implementar como imagen. Lista completa en [Fase 8](#defectos-del-diseño-detectados-en-las-capturas-del-2026-09-21).
 
 **Deuda conocida que quedó anotada, no resuelta:**
 
@@ -1226,10 +1233,95 @@ También: el sidebar de las dos capturas desktop marca **`Inicio`** activo, no `
 - [x] Confirmación + refresh
 - [x] **24 unit tests** de los resolvers, validados por mutación, y **5 specs e2e** con verificación contra la DB
 
+## Fase 10b — Grupos de clientes (familiares)
+
+**Estado:** 🔵 relevada, sin planificar · **no estaba en el plan original**
+**Figma:** sin nodos — 3 capturas aportadas por Ema el 2026-09-29 (listado con tab `Grupos`, panel de grupo, diálogo de eliminación). Mobile: *"el mismo patrón que en el resto de la app"*.
+
+> **Por qué existe esta fase.** Grupos familiares figuraba en la [Fase 15](#fase-15--promoción-de-v2-a-default) como deuda de paridad a auditar recién al final. Las capturas la adelantan: el rediseño le da al grupo una **fila de tabla con plan, estado y vencimiento**, que es más de lo que el grupo sabe de sí mismo hoy. Ema pidió volver acá **antes de la Fase 13**, y el motivo es correcto: el grupo es el único habilitador del descuento, y el descuento es la diferencia entre bruto y neto que Balance va a tener que reportar.
+>
+> **Relevada el 2026-09-29 y pausada ahí mismo**, a pedido de Ema: *"esto está demasiado amañado, luego lo reviso con más atención"*. Lo que sigue es el relevamiento completo para que al retomar no haya que volver a medir nada.
+
+### Lo que ya existe en v1 (y es más de lo que parece)
+
+El dominio está completo desde julio de 2026 (migración `20260722120000`): `customer_groups`, `customer_group_members` con baja lógica vía `left_at`, `discount_rules`, y cuatro columnas en `membership_payments` (`gross_amount`, `discount_amount`, `discount_rule_id`, `discount_note`) con un CHECK que obliga `amount = gross - discount`.
+
+**El panel de la captura 2 ya está construido**: [detail.tsx](../../src/group/components/detail.tsx) es campo por campo lo mismo —nombre con guardado on-blur, buscador de clientes, lista de miembros, kebab con `Ir al perfil` / `Eliminar del grupo`, botón de eliminar con confirmación— y las claves de i18n existen con esos textos exactos (`groups.goToProfile`, `groups.removeFromGroup`, `groups.deleteGroup`). **Es un port al `SidePanel` de v2, no una construcción.**
+
+| Elemento del Figma | Estado en v1 |
+|---|---|
+| Tab `Clientes` / `Grupos` | Existe en v1 ([list-with-tabs.tsx](../../src/customer/list-with-tabs.tsx)); **`CustomersSection` de v2 no tiene tabs** |
+| Nombre, integrantes, agregar/quitar miembro, ir al perfil, eliminar grupo | ✅ completo |
+| **Tipo de plan / Vencimiento / Estado** (columnas) | ❌ **no existen a nivel grupo** — ver decisión [#17](#decisiones-abiertas--riesgos) |
+| **Crear grupo** | Existe en v1; **no aparece en ninguna captura** |
+
+### Medición contra producción (2026-09-29)
+
+**13 grupos activos**, todos `type = 'family'`; 12 con 2 integrantes y uno con 3. **39 pagos con descuento, $78.000, el 100% por regla y cero ad-hoc**, entre el 2026-07-06 y el 2026-09-15. La única regla activa es `2do integrante grupo familiar`, fixed $2.000.
+
+**Los nombres reales son `Aldo - Nelva`, `Miño - Flores`, `Ramirez-Arellano`** — los dos nombres de pila, nunca "Familia X". El placeholder `Ej: Familia Martínez` de la maqueta no describe cómo se usa.
+
+**3 de 13 grupos no son homogéneos**, que es lo que vuelve no trivial a la fila de la tabla:
+
+| Grupo | Qué difiere |
+|---|---|
+| Maria Elena - Francisco | **Plan**: Francisco en 2 días, Maria Elena en 3 días |
+| Nenina - Milagros | **Vencimiento**: Mili al 31/08 (vencida hace un mes), Nenina al 30/09 |
+| Sebastian - Conrado | **Vencimiento**: Conrado al 03/10, Sebastián al 30/09 |
+
+> Un cuarto grupo (Ramirez-Arellano) aparece como divergente si se leen las fechas en UTC y deja de serlo al leerlas en hora argentina: el registro de Brian guarda `2026-07-31 00:00 UTC`, que en AR son las 21:00 del **30**. Es la firma del bug del ADR [20260709153000](../architecture/decisions/20260709153000_representacion-canonica-de-fechas-ar.md), no una diferencia real. **Cualquier derivación de "el vencimiento del grupo" tiene que comparar en hora AR o va a inventar divergencias.**
+
+**De paso, el estado del bug de canonicalización en `customer_membership.expiration_date`** (medido porque hizo falta para lo de arriba): 163 filas con la firma del bug, todas tocadas hasta 2026-07; **cero en agosto, y en septiembre 96 correctas contra 1**. Esa 1 es la membresía VIP de Ema, que conserva un vencimiento de julio nunca reescrito (el camino VIP no genera pago) y sólo se le tocó `renewal_date`. **El arreglo aguanta**; el histórico sigue desplazado, que es lo que el ADR ya daba por asumido.
+
+### Hallazgos que no vienen del diseño
+
+**1. La regla se llama "2do integrante" pero el código se la ofrece a todos.** [`resolveApplicableDiscount`](../../src/group/discount.ts) devuelve descuento para *cualquier* miembro de un grupo con ≥2 activos; no distingue primero de segundo. Lo que sostiene la regla es la disciplina del operador: mes a mes se registran **N−1 descuentos por grupo**, y Miño - Flores, con 3 integrantes, recibe 2 los tres meses. La excepción es **Sebastian - Conrado en 2026-09, donde lo recibieron los dos** — decisión o resbalón, el sistema no puede distinguirlos porque nunca supo cuál era el segundo.
+
+**2. Eliminar un grupo destruye la justificación de sus descuentos.** De los 39 pagos con descuento, **6 pertenecen a clientes que hoy no están en ningún grupo y 5 nunca tuvieron fila** en `customer_group_members`. Sólo hay una forma mecánica de llegar a eso: el grupo se borró y el `ON DELETE CASCADE` se llevó las filas de miembros. La ironía es que la migración eligió baja lógica en `removeMember` justamente para preservar auditoría, y `deleteGroup` la borra igual. Lo agrava que **el pago nunca guarda qué grupo lo originó**, sólo `discount_rule_id`: una vez borrado el grupo, el vínculo es irrecuperable. (Mateo Kahl, que salió por la vía blanda, sí conserva su rastro.)
+
+**3. Ruido de maqueta, sin decisión de por medio.** El badge alterna "Activo"/"Activa" entre filas; el footer dice "6 grupos familiar"; el paginador muestra 3 páginas para 6 filas; y el CTA sigue diciendo **"Nuevo cliente"** en el tab Grupos, donde v1 tiene "Nuevo grupo familiar". Mismo caso que el campo Activo de la Fase 10: se corrige al implementar.
+
+**4. El copy de eliminación empeora respecto de v1.** La maqueta dice *"¿Seguro que quieres eliminar este grupo **y sus miembros**?"*, que se lee como que borra a los clientes. El de v1 es explícito y correcto: *"El grupo {name} y sus vínculos serán eliminados. Los pagos con descuento familiar mantendrán su historial."* Conservar el de v1.
+
+**5. Falta el entrypoint de creación.** Ninguna captura lo muestra; el panel que hay es de edición. Asumir que el CTA pasa a "Nuevo grupo" y abre el mismo panel vacío, que es el patrón que ya usa Membresías — **confirmar con Ema al retomar.**
+
+### Decidido el 2026-09-29
+
+- **El descuento no cambia de lógica: sólo se muestra.** El panel del grupo informa qué descuento habilita y a cuántos se les aplicó en el mes; el cobro sigue exactamente como está. Cero riesgo sobre la plata, y el operador sigue siendo el control. La opción de formalizar N−1 (titular + resto) queda registrada, no elegida.
+- **Eliminar un grupo pasa a baja lógica.** El grupo se marca inactivo: desaparece del listado, deja de habilitar descuentos, y los vínculos sobreviven para auditoría. Mismo criterio que quitar un integrante, y el mismo que se le aplicó a los planes en la Fase 10. **Requiere migración aditiva** (`active` en `customer_groups`) y revisar los cuatro call sites de `deleteGroup`.
+
+### Sin decidir
+
+**Las columnas `Tipo de plan`, `Vencimiento` y `Estado` de la fila del grupo** → decisión [#17](#decisiones-abiertas--riesgos). Es lo que queda para la próxima sesión.
+
+### Brechas de DB
+
+- **B13 (nueva)** — `customer_groups` no tiene `active`; hoy la única baja es el `DELETE` con cascada. Bloquea lo decidido arriba.
+- **B14 (nueva)** — `membership_payments` no registra **qué grupo** originó el descuento, sólo la regla. Es la causa de los 5 pagos hoy inauditables. Cerrarlo toca el RPC de cobro; se evaluó y **no se eligió** en esta pasada.
+
+**Riesgo timezone: alto.** La columna `Vencimiento` compara fechas de varios integrantes entre sí, y leerlas en UTC ya produjo una divergencia falsa durante el propio relevamiento. Toda comparación va por `getAppTzDateParts`, como ya hacen [server.ts](../../src/group/api/server.ts) y [client.ts](../../src/group/api/client.ts).
+
+**Definición de hecho:** (a completar al planificar)
+- [ ] Resuelta la decisión #17 y confirmado el entrypoint de creación
+- [ ] Tabs `Clientes` / `Grupos` en `CustomersSection`
+- [ ] Listado con paginación + panel de grupo portado desde v1
+- [ ] Baja lógica de grupo (migración B13) sin romper v1
+- [ ] El descuento que habilita el grupo, visible en el panel
+- [ ] v1 sigue funcionando: `src/group/` es código compartido → **correr el smoke de v1**
+- [ ] Specs e2e + verificación contra la DB de las fechas derivadas
+
+**ADR:** sí — la baja lógica, el criterio de derivación de las columnas, y la decisión explícita de no tocar la regla de descuento.
+
+---
+
 ## Fase 11 — Sección Gastos
 
-**Estado:** ⬜ pendiente
-**Figma:** desktop `2167:22910` ("crear/editar", 6 pantallas) + `2167:22911` ("eliminar", 3 pantallas) · **mobile `2286:119425` (5 pantallas, crear/editar/eliminar juntos)**.
+**Estado:** ✅ completa · rama `feat/v2-gastos` · ADR [20260930121500](../architecture/decisions/20260930121500_v2-seccion-gastos-y-medio-de-pago.md)
+**Figma:** desktop `2167:22910` ("crear/editar", 6 pantallas) + `2167:22911` ("eliminar", 3 pantallas) · **mobile `2286:119425` (5 pantallas, crear/editar/eliminar juntos)** · **7 capturas aportadas por Ema el 2026-09-29**.
+
+> ⚠️ **Lleva migración aditiva `20260929104500`, que va a prod ANTES del release.** Agrega `expenses.payment_method` **nullable, sin backfill**, con CHECK contra el mismo vocabulario de `membership_payments` (`PAYMENT_CASH` / `PAYMENT_TRANSFER`).
+>
+> **La barra de filtros no es la que este plan describía.** El plan decía "search + 3 dropdowns"; las capturas muestran **search + dos datepickers de rango + un dropdown `Método` + un botón `Exportar`**. No hay filtro por categoría —la categoría es columna—, y el export, que el plan atribuía sólo a Ventas, también está acá. Es el quinto caso de una inferencia sin captura que salió mal.
 
 > Mobile nombra sus frames de forma explícita y útil: `Gastos/Vacio` (`2286:119862`), `Gastos/Nuevo Gasto`, `Gastos` (con data), `Gastos/Editar`, `Gastos/Eliminar`. **`Gastos/Vacio` es la única referencia canónica de empty state en todo el rediseño** — usarla como base para el `EmptyState` de la Fase 5.
 >
@@ -1243,7 +1335,9 @@ CRUD completo: `getExpenses`, `getExpenseById`, `createExpense`, `updateExpense`
 
 `withCanonicalExpenseDate` en `src/accounting/api/server.ts` ya canonicaliza `expense_date` — ADR [20260729150049](../architecture/decisions/20260729150049_expenses-timezone-canonicalization.md). **Reusar, no reimplementar.**
 
-### Brechas de DB — bloqueante suave
+### Brechas de DB
+
+**B1 — ✅ cerrada** por la migración `20260929104500`. El texto original queda abajo como contexto de la decisión.
 
 **B1: `expenses` no tiene `payment_method`.** Los KPIs "Efectivo / Transferencias" del Figma no se pueden calcular. Es una migración chica pero hay que decidir qué pasa con los gastos históricos:
 
@@ -1260,14 +1354,17 @@ Dejarla nullable evita backfill inventado; los KPIs muestran los históricos com
 **Riesgo timezone:** medio-alto. Los 3 KPIs son del mes en curso → `getMonthRangeInAppTz`. Los filtros de fecha → `parseAppTzDateString`. Ya hubo un incidente acá (ver el ADR linkeado arriba).
 
 **Definición de hecho:**
-- [ ] Migración `payment_method` aplicada en dev y decidido el tratamiento del histórico
-- [ ] Los 3 KPIs cuadran con la suma de la tabla
-- [ ] Crear, editar y eliminar con confirmación y toast
-- [ ] Filtros (search + 3 dropdowns) funcionando
-- [ ] Auditoría de timezone
-- [ ] `/expenses` v1 sigue funcionando con la columna nueva
+- [x] Migración `payment_method` aplicada en dev y decidido el tratamiento del histórico (nullable, sin backfill)
+- [x] Los 3 KPIs cuadran con la suma de la tabla — salen de las **mismas filas**, no de una query aparte
+- [x] Crear, editar y eliminar con confirmación y feedback
+- [x] Filtros funcionando: búsqueda, rango de fechas y método (más "Sin especificar", que el diseño no tiene)
+- [x] Export a CSV respetando los filtros activos
+- [x] Auditoría de timezone — rango y `expense_date` canonicalizados, verificado contra la DB por e2e
+- [x] `/expenses` v1 sigue funcionando con la columna nueva (cubierto por el smoke de v1)
+- [x] Orden por fecha en el header de la tabla (fuera del diseño, pedido de Ema)
+- [x] **27 unit tests** (5 de `summarizeExpenses`, 14 de los filtros, 8 de `buildRenewalPeriod`) y **7 specs e2e**, todos validados por mutación
 
-**ADR:** sí — migración de `payment_method` + tratamiento del histórico.
+**ADR:** [20260930121500](../architecture/decisions/20260930121500_v2-seccion-gastos-y-medio-de-pago.md).
 
 ---
 
@@ -1384,7 +1481,7 @@ El sidebar tiene 4 sub-items pero sólo hay 3 pantallas diseñadas, en ambos vie
 
 Se planifica cuando 3–14 estén cerradas. A tener en cuenta desde ya:
 
-- **Paridad funcional.** La v1 tiene cosas que el Figma no cubre: grupos familiares (`src/group/`), share de imagen de asistencias, stats de membresías. Auditar qué se porta, qué se descarta y qué se rediseña.
+- **Paridad funcional.** La v1 tiene cosas que el Figma no cubre: ~~grupos familiares (`src/group/`)~~ → **adelantados a la [Fase 10b](#fase-10b--grupos-de-clientes-familiares)** el 2026-09-29, con capturas propias; share de imagen de asistencias; stats de membresías. Auditar qué se porta, qué se descarta y qué se rediseña.
 - **Manifest PWA.** `theme_color` y `background_color` están hardcodeados a la paleta v1.
 - **Wireframes mobile.** El Figma es 100% desktop 1280×832. **No existe ni un solo wireframe mobile**, y la app hoy es mobile-first en producción. Es el riesgo más grande del rediseño → [Decisiones abiertas](#decisiones-abiertas--riesgos) #1.
 - **Retiro del flag.** Qué pasa con `user_feature_flags` y las rutas `/v2/*` — ¿redirect permanente o rename?
@@ -1426,7 +1523,13 @@ Ordenadas por impacto. Las que bloquean una fase están marcadas.
 
    **Lo que queda deliberadamente sin resolver:** un plan nuevo no puede ser "como el VIP" ni "como la Diaria". Si el negocio alguna vez quiere un segundo plan sin cargo o un segundo pase de un día, eso sí requiere mover esas ramificaciones a columnas (`is_chargeable`, `has_charge_modes`) y que el SQL las lea. Es una fase propia, y hoy no hace falta.
 
-8. **Histórico de gastos sin `payment_method` (bloquea Fase 11).** ¿Los gastos existentes se backfillean a "efectivo" o quedan como "sin especificar"? Decisión del negocio.
+8. **~~Histórico de gastos sin `payment_method`~~ → RESUELTO (2026-09-30): nullable, sin backfill.** Los gastos existentes quedan como **"sin especificar"** y se ven como tales.
+
+    **La pregunta se achicó al medirla.** En producción hay **29 gastos**, entre el 2026-07-10 y el 2026-09-25: no es un histórico, es el arranque del módulo. Y adivinar salía caro justo donde más pesa — los tres alquileres suman **$1.200.000** y los tres sueldos **$399.000**, que son los montos que menos se pagan en efectivo. Un backfill habría metido ~$1,6M de datos inventados en el lado de egresos del balance.
+
+    **El argumento que la cerró no estaba en la pregunta:** `expenses` tiene un escritor que no es la UI. El RPC `upsert_customer_membership_with_payment` inserta un gasto de categoría `REFUNDS` cuando un cambio de plan genera un reintegro, y no conoce el medio de pago. Con `NOT NULL DEFAULT 'PAYMENT_CASH'` **cada reintegro futuro quedaría etiquetado como efectivo sin que nadie lo decida**.
+
+    Consecuencia asumida: `Efectivo + Transferencias` no suma `Total de gastos`. La pantalla muestra una línea con cuánta plata quedó sin clasificar, para que el descuadre se explique en vez de quedar mudo. Si Ema quiere clasificar los 29, se editan desde la UI nueva.
 
 9. **Notificaciones del header.** Hay campana con badge en el diseño, no hay modelo de datos. Derivarla de membresías por vencer es barato y útil. Alternativa honesta: ícono sin badge hasta que se defina.
 
@@ -1450,7 +1553,21 @@ Ordenadas por impacto. Las que bloquean una fase están marcadas.
 
     **Lo que deja como método:** el hueco no se vio mirando el Figma —seis frames coherentes— sino **comparando el diseño contra lo que el flow v1 ya escribía en la DB**. Para toda fase que reemplaza un flow existente, listar qué escribe v1 antes de dar el diseño por suficiente. El corolario apareció al cerrarlo: cuando el diseño no cubre un dato, la salida no es inventarlo ni omitirlo en silencio — es decidir qué significa su ausencia y escribirlo.
 
-16. **Copy y gráficos del mobile de Home (Fase 2, cosmético).** Las capturas del 2026-09-17 mostraron dos divergencias que no son de la Fase 7: el empty state del `Resumen del día` dice *"Aun no hay actividad registrada por el momento."* (sin tilde en "Aún"), y las asistencias semanales se dibujan como **barras horizontales** en mobile contra las verticales del desktop. Avisar al diseñador y decidir si el mobile cambia de gráfico a propósito.
+17. **⚠️ Las columnas `Tipo de plan`, `Vencimiento` y `Estado` del listado de grupos (bloquea Fase 10b).** El diseño le da a la fila del grupo tres valores únicos, pero los tres son datos **de cada integrante**, no del grupo. En prod **3 de 13 grupos no son homogéneos** (ver [Fase 10b](#fase-10b--grupos-de-clientes-familiares)), así que no es un borde raro: es el 23%.
+
+    El caso que fija la importancia es **Nenina - Milagros**: Mili venció el 31/08 y Nenina el 30/09. Una fila que muestre un solo `Vencimiento: 30/09` y un solo badge `Activo` **oculta que una integrante lleva un mes vencida** — el mismo tipo de mentira silenciosa que las guardas defensivas que aparecieron en la Fase 10.
+
+    Las tres opciones que se pusieron sobre la mesa el 2026-09-29, ninguna elegida:
+
+    | Opción | Qué implica |
+    |---|---|
+    | **Mostrar la divergencia** | Coinciden → el valor; no coinciden → `Mixto` en plan, el vencimiento más próximo, y `Estado` toma el peor caso. Nenina - Milagros figuraría vencido, que es lo útil. Sin cambios de schema. |
+    | **Peor caso sin etiquetar** | Misma derivación, sin la palabra `Mixto`. Tabla más prolija; el vencimiento y el estado quedan correctos, pero la diferencia de planes no se ve. |
+    | **Fila expandible por integrante** | No se colapsa nada. Se aleja de la maqueta y es más trabajo de tabla. |
+
+    Hay una cuarta, **plan a nivel de grupo en el schema** (el grupo tiene su plan y los integrantes lo heredan), que es lo que la maqueta sugiere leída literal. Es una fase de migración entera —cambia alta, renovación, cobro y vencimientos— y **no parece justificada** por 13 grupos de 2 personas que renuevan por separado. Queda anotada para descartarla explícitamente, no por olvido.
+
+18. **Copy y gráficos del mobile de Home (Fase 2, cosmético).** Las capturas del 2026-09-17 mostraron dos divergencias que no son de la Fase 7: el empty state del `Resumen del día` dice *"Aun no hay actividad registrada por el momento."* (sin tilde en "Aún"), y las asistencias semanales se dibujan como **barras horizontales** en mobile contra las verticales del desktop. Avisar al diseñador y decidir si el mobile cambia de gráfico a propósito.
 
 ---
 
@@ -1693,4 +1810,26 @@ Aplica a **toda** fase antes de pedir review. Está pensado para que el otro dev
   - **Se agregó el primer smoke de v1 de la suite.** La fase tocó ~20 archivos de v1 y hasta acá "v1 sigue funcionando" se verificaba a ojo. Cubre que sus seis pantallas carguen sin errores de consola y que un plan fuera del catálogo no las rompa; validado por mutación, donde falla en el assert del **tab**, o sea que la pantalla entera se cae. Pasa a ser el chequeo mínimo de cualquier PR que toque código compartido.
   - **Verificado contra prod antes del release** (sólo lectura): el ensayo transaccional de la migración aplica limpio con ROLLBACK, y la auditoría de integridad da la línea de base conocida — 8 DNIs duplicados (deuda B5) y 8 clientes sin membresía, todo lo demás en 0. De paso se corrigió una afirmación de este ADR: **prod tampoco tiene policy de INSERT** en `types_memberships`, así que la migración no cierra ningún agujero — **habilita** una función hoy denegada por RLS. La FK sí es `ON DELETE CASCADE` en prod (`confdeltype = 'c'`), así que ese riesgo era real.
   - **Un `test.skip` puede estar roto igual que el código que testea.** El guard del spec de asistencias contaba filas renderizadas para decidir si el día tuvo movimiento — y con un `?q=` que no matchea son cero también en un día con asistencias. Arreglado acá (mira si el buscador se renderizó); venía de la Fase 9.
+  — Ema + Claude.
+- 2026-09-28 — **Release v0.16.0 a producción: la Fase 10 completa.** PR [#71](https://github.com/EmaCrzz/actitud-bo/pull/71). **Con migración**, aplicada antes del release siguiendo el procedimiento completo.
+  - **Orden respetado y verificado paso a paso:** ensayo transaccional contra los datos reales de prod (aplica limpio, ROLLBACK) → `db:push-prod` → verificación del schema resultante → auditoría de integridad → release. La auditoría dio **idéntica antes y después**: 0 pagos sin medio de pago, 0 asistencias duplicadas, 0 deriva del contador, 8 DNIs duplicados (deuda B5) y 8 clientes sin membresía. **No se movió ningún dato.**
+  - **Estado del schema en prod, medido después de aplicar:** las tres columnas con el backfill correcto (5/5/3/2/1), la FK en `RESTRICT`, la policy de INSERT admin-only y el trigger de `last_update` activo.
+  - **La corrección que dejó el pre-flight:** este plan y el ADR afirmaban que en prod podía haber una policy de INSERT abierta a cualquier `authenticated`, a partir del comentario de `20260630180001`. **Medido: no había ninguna.** Esa policy se eliminó después de julio, probablemente en `20260701160000`. O sea que la migración **no cerró ningún agujero** —nunca hubo exposición— sino que **habilitó** una función que RLS denegaba. Sin ella, crear un plan en prod fallaba.
+  - **Lo que sí era un riesgo real y se arregló:** la FK de `customer_membership.membership_type` era `ON DELETE CASCADE` en prod, confirmado con `confdeltype = 'c'`. Borrar un plan borraba la membresía de todos sus clientes, y la policy de DELETE admin-only existe hace meses.
+  - **Método que vale reusar:** las tres afirmaciones de seguridad de este ADR salieron de leer migraciones, y **dos de las tres se cayeron con una query**. Para cualquier claim sobre el estado de un entorno, medirlo antes de escribirlo — leer la migración que lo creó no alcanza, porque otra posterior pudo cambiarlo.
+  — Ema + Claude.
+- 2026-09-29 — **Relevada la [Fase 10b, Grupos de clientes](#fase-10b--grupos-de-clientes-familiares), y pausada.** Ema aportó 3 capturas de un flow que no estaba en el plan —figuraba como deuda de paridad a auditar recién en la Fase 15— y pidió volver a él antes de la Fase 13. Se relevó a fondo y se frenó ahí mismo a pedido suyo: *"esto está demasiado amañado, luego lo reviso con más atención"*. **Sin código; sólo este documento.**
+  - **El panel del diseño ya está construido en v1, campo por campo**, con las claves de i18n existentes. Lo genuinamente nuevo es la tabla del listado, y es donde están todas las preguntas. La fase es bastante más chica de lo que la maqueta aparenta.
+  - **Lo que decidió la forma del problema fue medir prod, no leer el Figma.** El diseño le da al grupo un plan, un estado y un vencimiento únicos; **3 de los 13 grupos reales no son homogéneos**, y en uno de ellos una integrante lleva un mes vencida mientras la otra está al día. Colapsar eso en una fila la vuelve una mentira silenciosa. Quedó como [decisión #17](#decisiones-abiertas--riesgos).
+  - **Un cuarto grupo parecía divergente y no lo era: era el bug de timezone.** Leídas en UTC, las fechas de Ramirez-Arellano difieren; leídas en hora AR, coinciden. Levanté el número a cuatro y lo bajé a tres en el mismo relevamiento. **Corolario para la fase: toda comparación de vencimientos entre integrantes va en hora AR, o inventa divergencias.** De paso quedó medido que el arreglo del ADR de julio aguanta — 163 filas con la firma del bug hasta 2026-07, cero en agosto, y la única de septiembre es un valor de julio nunca reescrito.
+  - **Dos hallazgos que el diseño no podía mostrar.** La regla se llama "2do integrante" pero el código la ofrece a **todos** los miembros del grupo: lo que la sostiene es la disciplina del operador, y ya hay un mes donde se aplicó a los dos. Y **eliminar un grupo borra la justificación de sus descuentos**: 5 pagos con descuento no tienen hoy ningún grupo al que atribuirse, porque el `ON DELETE CASCADE` se llevó las filas que lo probaban. Del segundo salió una decisión (baja lógica); del primero, la decisión explícita de **no** tocar la lógica de cobro y sólo mostrarla.
+  - **Lo que deja como método:** es la segunda fase seguida —después de la 10— en la que una afirmación escrita a partir del código se cae al medirla contra producción. Acá fueron el conteo de grupos divergentes y la supuesta homogeneidad del modelo. **Para toda fase que reemplaza un flow existente, medir los datos reales antes de aceptar la premisa del diseño.**
+  — Ema + Claude.
+- 2026-09-30 — **Fase 11 (Gastos) completa.** Rama `feat/v2-gastos`, ADR [20260930121500](../architecture/decisions/20260930121500_v2-seccion-gastos-y-medio-de-pago.md). **Con migración aditiva** `20260929104500`, aplicada y verificada en dev.
+  - **La decisión #8 se disolvió al medirla.** La pregunta era si backfillear los gastos históricos a efectivo. Son **29 gastos en tres meses** — no un histórico, el arranque del módulo. Y el backfill habría sido caro justo donde más pesa: $1,2M de alquileres y $399k de sueldos, los montos que menos se pagan en efectivo. El argumento que la cerró ni siquiera estaba en la pregunta: **`expenses` tiene un escritor que no es la UI** — el RPC de renovación inserta reintegros y no conoce el medio de pago, así que un `DEFAULT 'PAYMENT_CASH'` etiquetaría cada reintegro futuro sin que nadie lo decida. Nullable, y la pantalla muestra cuánta plata quedó sin clasificar en vez de dejar tres KPIs que no cierran.
+  - **Quinta inferencia sin captura que sale mal.** Este plan describía la barra de filtros como "search + 3 dropdowns". Las capturas mostraron **search + dos datepickers de rango + un dropdown + un botón Exportar**, sin filtro por categoría, y con el export que el plan atribuía sólo a Ventas.
+  - **Se encontró un bug que bloqueaba el alta de cliente un día de cada mes.** La suite falló en 8 specs sin relación con gastos. La causa: el 30/09 es el último día del mes, y el alta prellenaba "hoy → fin de mes" = las dos fechas iguales, que el validador rechaza. El panel de renovación ya lo resolvía con `buildRenewalPeriod`; el alta simplemente no usaba esa función. **La regla estaba documentada en su docblock desde la Fase 8 y no tenía un solo test** — se le escribieron 8.
+  - **Cuatro correcciones salieron de la revisión de Ema, y dos afectaban también a Membresías.** (a) Los KPIs se calculaban sobre las filas visibles, así que filtrar por Efectivo hacía que "Total de gastos" mostrara el total en efectivo y afirmara que en el mes se gastó eso; ahora describen el período y la tabla la selección. (b) El chevron `›` del final de la fila era la **única zona muerta** de la fila, porque iba como `rowActions`, cuya celda frena la propagación para que un menú no dispare el click — **Membresías tenía el mismo defecto desde la Fase 10**. (c) Las últimas filas quedaban debajo del corte sin scroll: faltaba la ventana `flex-1 md:min-h-0 md:overflow-y-auto` que Clientes y Asistencias sí tienen — **también latente en Membresías**. (d) Se agregó orden por fecha, que el diseño no pide. `DataTable` gana `rowChevron` y `sort` por columna, transversales para la próxima tabla.
+  - **Un bug propio que encontró su propio test:** `parseExpenseFilters` validaba las fechas de la URL sólo por forma. `2026-13-45` tiene la forma correcta, así que pasaba, ordenaba después del fin de mes, disparaba el swap de "rango invertido" y terminaba mandándole un mes 13 a Postgres. Ahora se valida que el día exista.
+  - **Tres specs propios se mintieron antes de ser correctos, todos por lo mismo:** Radix marca con `aria-hidden` lo que queda de fondo y `getByRole` respeta el árbol de accesibilidad, así que **`toHaveCount(0)` sobre una fila da 0 al instante con cualquier modal abierto**. El assert pasaba antes de que el request terminara y la lectura contra la DB encontraba la fila viva. El borrado nunca estuvo roto — verificado aparte por curl contra la ruta real. Lección reusable: **en un test, "no lo encuentro" no significa "no está"**; para confirmar que una escritura ocurrió, esperar la respuesta HTTP, no un cambio de pantalla.
   — Ema + Claude.

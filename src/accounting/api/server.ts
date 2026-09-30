@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getMonthRangeFromKey, parseAppTzDateString } from '@/lib/timezone'
+import { getMonthRangeFromKey, parseAppTzDateString, shiftIsoDateInAppTz } from '@/lib/timezone'
 import type {
   MembershipPayment,
   Expense,
@@ -161,9 +161,30 @@ export const getExpenses = async (filters?: AccountingFilters): Promise<Expense[
     query = query.gte('expense_date', start.toISOString()).lt('expense_date', end.toISOString())
   }
 
+  // Rango explícito (Fase 11). Los dos strings vienen crudos del datepicker, y
+  // los dos se canonicalizan antes de tocar la query: mandarlos tal cual haría
+  // que Postgres los lea como midnight UTC, o sea 21:00 del día anterior en AR,
+  // y el rango arrancaría y terminaría tres horas antes de lo que dice la
+  // pantalla. El tope es el **arranque del día siguiente** con `lt`, misma
+  // forma que `getMonthRangeInAppTz`, para que el día `to` entre completo.
+  if (filters?.from) {
+    query = query.gte('expense_date', parseAppTzDateString(filters.from).toISOString())
+  }
+
+  if (filters?.to) {
+    const exclusiveEnd = parseAppTzDateString(shiftIsoDateInAppTz(filters.to, 1))
+
+    query = query.lt('expense_date', exclusiveEnd.toISOString())
+  }
+
   if (filters?.category) {
     query = query.eq('category', filters.category)
   }
+
+  // El medio de pago y la búsqueda **no se filtran acá**, aunque se podría:
+  // la sección los aplica en memoria para que los KPIs puedan describir el
+  // período completo mientras la tabla muestra el subconjunto. Resolverlos
+  // también en el server dejaría dos caminos para la misma pregunta.
 
   const { data } = await query
 

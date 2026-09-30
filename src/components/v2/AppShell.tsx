@@ -68,23 +68,47 @@ function AppShellInner({ user, todayLabel, children }: AppShellProps) {
        *
        * Es el gemelo vertical del `flex-1 w-full min-w-0` que documentó el ADR
        * de la fase 1.5 para el ancho. */}
-      <div className='flex flex-1 flex-col min-h-0 min-w-0 pl-0 md:pl-6 lg:pl-12'>
-        <Header todayLabel={todayLabel} user={user} onOpenMobileNav={() => setMobileOpen(true)} />
-        {/* `main` es EL contenedor de scroll de la v2.
+      {/* **Esta columna es EL contenedor de scroll de la v2**, y el header va
+       * adentro.
+       *
+       * Estaba en el `<main>`, con el header como hermano de afuera. El
+       * problema: nuestro scrollbar mide 8px y no es overlay
+       * (`::-webkit-scrollbar { width: 8px }` en globals.css), así que se comía
+       * 8px del ancho del `main` y **el card de contenido quedaba 8px más
+       * angosto que el header**, desalineado, en toda página que scrollea. Lo
+       * reportó Ema en mobile, pero pasa en las siete pantallas.
+       *
+       * Con el scroll acá, el scrollbar descuenta ancho de los dos por igual y
+       * quedan alineados. Compensarlo con un padding fijo de 8px no servía: con
+       * scrollbars overlay (macOS por default) el ancho reservado es 0 y el
+       * padding habría *creado* la desalineación.
+       *
+       * `min-h-0` no es opcional: un flex item tiene `min-height: auto`, así
+       * que sin esto una página larga empuja la columna más allá del `h-dvh`
+       * del wrapper `[data-v2]` y el sobrante se dibuja sobre el fondo del
+       * tenant v1. Es el gemelo vertical del `flex-1 w-full min-w-0` que
+       * documentó el ADR de la fase 1.5 para el ancho.
+       *
+       * `overscroll-contain` evita que el scroll encadene al body al llegar a
+       * los extremos (pull-to-refresh accidental en mobile). */}
+      <div className='flex flex-1 flex-col min-h-0 min-w-0 overflow-y-auto overscroll-contain pl-0 md:pl-6 lg:pl-12'>
+        {/* El header ahora scrollea con el contenido, así que se ancla: es
+         * donde vive el hamburger que abre el menú en mobile, y perderlo al
+         * bajar dejaría al operador sin navegación hasta volver arriba.
+         * `bg-background` y el padding inferior tapan el contenido que pasa por
+         * debajo, incluido el hueco entre el header y el card. */}
+        <div className='sticky top-0 z-20 shrink-0 bg-background pb-4 lg:pb-6'>
+          <Header todayLabel={todayLabel} user={user} onOpenMobileNav={() => setMobileOpen(true)} />
+        </div>
+        {/* `md:min-h-0` y no `min-h-0`: en mobile el `min-height: auto` por
+         * default es lo que hace que `main` crezca con su contenido, y por lo
+         * tanto que la columna tenga algo que scrollear. En desktop sí se
+         * encoge, porque ahí la altura es fija y el scroll es interno del card
+         * (las páginas usan `md:h-full`). Misma convención que las secciones.
          *
-         * `min-h-0` solo le permite encogerse; no evita que el contenido se
-         * dibuje fuera. Sin `overflow-y-auto` cualquier página más alta que el
-         * `h-dvh` del wrapper `[data-v2]` pinta el sobrante sobre el fondo
-         * negro del tenant v1 (visible sobre todo en mobile, donde el viewport
-         * es corto). Con el scroll acá, ninguna página nueva puede reintroducir
-         * el bug: las páginas sólo tienen que usar `min-h-full` en su contenedor
-         * raíz para que el borde del card crezca con el contenido.
-         *
-         * `overscroll-contain` evita que el scroll encadene al body cuando se
-         * llega a los extremos (pull-to-refresh accidental en mobile). */}
-        <main className='flex-1 min-h-0 overflow-y-auto overscroll-contain pt-4 lg:pt-6'>
-          {children}
-        </main>
+         * Las páginas sólo tienen que usar `min-h-full` en su contenedor raíz
+         * para que el borde del card crezca con el contenido. */}
+        <main className='flex flex-1 flex-col md:min-h-0'>{children}</main>
       </div>
 
       {/* Mobile drawer — siempre montado; Radix Portal no renderiza DOM cuando

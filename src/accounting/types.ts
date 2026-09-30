@@ -51,6 +51,16 @@ export interface Expense {
   amount: number
   category: string
   expense_date: string
+  /**
+   * Cómo se pagó. Desde la migración 20260929104500.
+   *
+   * **NULL es un valor esperado, no un dato faltante por error.** Lo tienen los
+   * 29 gastos previos a la Fase 11 y lo siguen teniendo los reintegros que
+   * inserta `upsert_customer_membership_with_payment`, que no conoce el medio
+   * de pago. Por eso los KPIs Efectivo + Transferencias pueden no sumar el
+   * total: ver `summarizeExpenses` en [src/expenses/summary.ts].
+   */
+  payment_method: string | null
   notes?: string
   created_at: string
 }
@@ -88,6 +98,8 @@ export interface CreateExpenseData {
   amount: number
   category: string
   expense_date?: string
+  /** Omitir o mandar `null` deja el gasto como "sin especificar". */
+  payment_method?: string | null
   notes?: string
 }
 
@@ -113,6 +125,19 @@ export interface AccountingFilters {
   customer_id?: string
   category?: string
   payment_method?: string
+  /**
+   * Rango de fechas, en formato `YYYY-MM-DD` tal como sale del datepicker.
+   *
+   * Lo introduce la Fase 11: el listado de Gastos filtra por **rango** (dos
+   * datepickers, por default el mes en curso) y no por mes, que es lo que
+   * soportaba `month`. Ese sigue existiendo para los callers de v1.
+   *
+   * **Se canonicaliza en el server**, no acá: el string crudo interpretado por
+   * Postgres es midnight UTC y recorta 3 horas del inicio del rango. Ver
+   * `parseAppTzDateString` y el ADR 20260709153000.
+   */
+  from?: string
+  to?: string
 }
 
 // API Response types

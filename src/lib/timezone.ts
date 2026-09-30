@@ -194,6 +194,23 @@ export function parseAppTzDateString(iso: string): Date {
   return utcInstantAtAppTzWallClock(y, m, d, 0, 0, 0)
 }
 
+// Día calendario AR de un timestamptz, como "YYYY-MM-DD".
+//
+// Es la inversa de `parseAppTzDateString`: esa lleva lo que el operador eligió
+// en el datepicker al instante que se guarda, y esta trae ese instante de
+// vuelta al día que hay que mostrar o precargar. Hacerlo con
+// `.toISOString().slice(0, 10)` devuelve el día UTC, que entre las 21:00 y la
+// medianoche AR ya es el día siguiente.
+//
+// Vivía copiada en `RenewMembershipPanel` y en `e2e/support/dates.ts`. La
+// tercera copia iba a ser el formulario de gastos de la Fase 11; se subió acá
+// en vez de escribirla de nuevo.
+export function toAppTzIsoDate(timestamp: string | Date): string {
+  const parts = getAppTzDateParts(typeof timestamp === 'string' ? new Date(timestamp) : timestamp)
+
+  return `${parts.year}-${String(parts.month).padStart(2, '0')}-${String(parts.day).padStart(2, '0')}`
+}
+
 // Suma (o resta) `days` a un "YYYY-MM-DD" preservando el calendario AR.
 // Usar aritmética con getAppTzDateParts para evitar drift si el server corre en UTC.
 export function shiftIsoDateInAppTz(iso: string, days: number): string {

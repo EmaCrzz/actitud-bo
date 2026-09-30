@@ -17,6 +17,14 @@ interface DatePickerProps {
   disabled?: boolean
   invalid?: boolean
   className?: string
+  /**
+   * Nombre accesible del control.
+   *
+   * Hace falta cuando el datepicker no tiene un `<label>` al lado y su
+   * contenido es sólo una fecha: los dos del rango de Gastos se leerían los
+   * dos como "01/08/2026" sin decir cuál es Desde y cuál es Hasta.
+   */
+  ariaLabel?: string
   /** Notifica el "YYYY-MM-DD" elegido. Para reglas cruzadas entre dos fechas. */
   onValueChange?: (value: string) => void
 }
@@ -51,6 +59,7 @@ export default function DatePicker({
   disabled,
   invalid,
   className,
+  ariaLabel,
   onValueChange,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false)
@@ -85,6 +94,7 @@ export default function DatePicker({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
+            aria-label={ariaLabel}
             className={cn(
               // Misma geometría que Input y Select de v2 — ver la convención de
               // altura de fila (36px) del Figma.

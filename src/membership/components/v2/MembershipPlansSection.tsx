@@ -98,9 +98,7 @@ export default function MembershipPlansSection({
     (plan: MembershipPlan) => (
       <StatusBadge tone={plan.active ? 'success' : 'neutral'}>
         {t(
-          plan.active
-            ? 'v2.membership.plans.status.active'
-            : 'v2.membership.plans.status.inactive'
+          plan.active ? 'v2.membership.plans.status.active' : 'v2.membership.plans.status.inactive'
         )}
       </StatusBadge>
     ),
@@ -122,9 +120,7 @@ export default function MembershipPlansSection({
       {
         id: 'frequency',
         header: t('v2.membership.plans.columns.frequency'),
-        cell: (plan) => (
-          <span className='text-muted-foreground'>{frequencyLabel(plan)}</span>
-        ),
+        cell: (plan) => <span className='text-muted-foreground'>{frequencyLabel(plan)}</span>,
       },
       {
         id: 'customers',
@@ -164,48 +160,56 @@ export default function MembershipPlansSection({
         </Button>
       </div>
 
-      <DataTable
-        columns={columns}
-        empty={
-          <EmptyState
-            description={t('v2.membership.plans.empty.description')}
-            title={t('v2.membership.plans.empty.title')}
-          />
-        }
-        error={
-          failed ? (
+      {/* Desktop: ventana de scroll propia, con el header y el paginador fijos.
+          Mobile: sin `min-h-0` ni `overflow`, así la lista empuja el card y
+          scrollea el `<main>` del AppShell de una sola vez. Faltaba: con más
+          de una pantalla de planes las últimas filas quedaban debajo del corte
+          y no había forma de llegar a ellas. Lo encontró Ema en Gastos, que
+          tenía el mismo defecto. */}
+      <div className='flex-1 md:min-h-0 md:overflow-y-auto'>
+        <DataTable
+          rowChevron
+          columns={columns}
+          empty={
             <EmptyState
-              description={t('v2.membership.plans.error.description')}
-              title={t('v2.membership.plans.error.title')}
+              description={t('v2.membership.plans.empty.description')}
+              title={t('v2.membership.plans.empty.title')}
             />
-          ) : undefined
-        }
-        getRowId={(plan) => plan.id}
-        mobileRow={(plan) => (
-          <button
-            className='hover:bg-muted/50 flex w-full items-center gap-3 px-1 py-3 text-left'
-            type='button'
-            onClick={() => openEdit(plan)}
-          >
-            <span className='min-w-0 flex-1'>
-              <span className='block truncate text-sm font-medium'>{planName(plan)}</span>
-              <span className='mt-1 flex items-center gap-2'>
-                {statusBadge(plan)}
-                <span className='text-muted-foreground text-xs'>
-                  {plan.customer_count === 1
-                    ? t('v2.membership.plans.customerCountOne')
-                    : t('v2.membership.plans.customerCount', { count: plan.customer_count })}
+          }
+          error={
+            failed ? (
+              <EmptyState
+                description={t('v2.membership.plans.error.description')}
+                title={t('v2.membership.plans.error.title')}
+              />
+            ) : undefined
+          }
+          getRowId={(plan) => plan.id}
+          mobileRow={(plan) => (
+            <button
+              className='hover:bg-muted/50 flex w-full items-center gap-3 px-1 py-3 text-left'
+              type='button'
+              onClick={() => openEdit(plan)}
+            >
+              <span className='min-w-0 flex-1'>
+                <span className='block truncate text-sm font-medium'>{planName(plan)}</span>
+                <span className='mt-1 flex items-center gap-2'>
+                  {statusBadge(plan)}
+                  <span className='text-muted-foreground text-xs'>
+                    {plan.customer_count === 1
+                      ? t('v2.membership.plans.customerCountOne')
+                      : t('v2.membership.plans.customerCount', { count: plan.customer_count })}
+                  </span>
                 </span>
               </span>
-            </span>
-            <span className='text-sm'>{priceLabel(plan)}</span>
-            <ChevronRight aria-hidden className='text-muted-foreground size-4 shrink-0' />
-          </button>
-        )}
-        rowActions={() => <ChevronRight aria-hidden className='text-muted-foreground size-4' />}
-        rows={pageRows}
-        onRowClick={openEdit}
-      />
+              <span className='text-sm'>{priceLabel(plan)}</span>
+              <ChevronRight aria-hidden className='text-muted-foreground size-4 shrink-0' />
+            </button>
+          )}
+          rows={pageRows}
+          onRowClick={openEdit}
+        />
+      </div>
 
       {plans.length > 0 && (
         <DataTablePagination
