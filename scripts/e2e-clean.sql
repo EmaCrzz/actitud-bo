@@ -36,6 +36,13 @@ SELECT count(*) AS planes FROM types_memberships WHERE name LIKE '[E2E]%';
 
 DELETE FROM types_memberships WHERE name LIKE '[E2E]%';
 
+-- Gastos creados por el spec de la Fase 11. No dependen de nada, así que el
+-- orden acá da igual; van al final por seguir el mismo criterio del prefijo.
+\echo 'Gastos de test encontrados:'
+SELECT count(*) AS gastos FROM expenses WHERE description LIKE '[E2E]%';
+
+DELETE FROM expenses WHERE description LIKE '[E2E]%';
+
 COMMIT;
 
 \echo 'Limpieza completada.'

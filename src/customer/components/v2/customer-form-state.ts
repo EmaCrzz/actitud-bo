@@ -1,6 +1,7 @@
-import { getEndOfMonthIsoDateInAppTz, getTodayIsoDateInAppTz } from '@/lib/timezone'
+import { getTodayIsoDateInAppTz } from '@/lib/timezone'
 import type { ChargeMode } from '@/membership/charge-mode'
 import { MEMBERSHIP_TYPE_DAILY, type MembershipTypes } from '@/membership/consts'
+import { buildRenewalPeriod } from '@/membership/renewal'
 
 export interface CustomerFormPersonalValues {
   first_name: string
@@ -45,13 +46,25 @@ export const EMPTY_PERSONAL_VALUES: CustomerFormPersonalValues = {
  * Se calcula en cada apertura del panel y no como constante de módulo: un
  * módulo evaluado el 31 a las 23:59 dejaría el prefill un día atrasado para
  * toda la sesión.
+ *
+ * **El último día del mes es el caso que rompía.** "Hoy → fin de mes" daba
+ * inicio = vencimiento, y `basicMembershipValidation` rechaza eso ("la fecha de
+ * finalización debe ser posterior a la fecha de inicio"): el alta quedaba
+ * bloqueada **un día de cada mes**, sin forma de guardar salvo corriendo las
+ * fechas a mano. El panel de renovación ya lo resolvía con `buildRenewalPeriod`
+ * —propone el mes siguiente completo— y acá se reusa esa misma función en vez
+ * de repetir la regla: son la misma decisión de negocio y tienen que moverse
+ * juntas. Se le pasa `null` porque un cliente nuevo no tiene vencimiento
+ * previo, así que arranca desde hoy.
  */
 export function buildInitialMembershipValues(): CustomerFormMembershipValues {
+  const { start_date, end_date } = buildRenewalPeriod(null)
+
   return {
     membership_type: '',
     charge_mode: 'full',
-    start_date: getTodayIsoDateInAppTz(),
-    end_date: getEndOfMonthIsoDateInAppTz(),
+    start_date,
+    end_date,
     payment_type: '',
     notes: '',
   }

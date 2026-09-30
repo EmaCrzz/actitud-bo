@@ -1029,6 +1029,83 @@
           "description": "Check your connection and try again."
         }
       }
+    },
+    "expenses": {
+      "title": "Expenses",
+      "new": "Add expense",
+      "newShort": "Add",
+      "summary": "{count} expenses recorded",
+      "summaryOne": "1 expense recorded",
+      "summaryEmpty": "No expenses recorded",
+      "kpi": {
+        "total": "Total expenses",
+        "cash": "Cash",
+        "transfer": "Transfers",
+        "unspecified": "{amount} with no payment method"
+      },
+      "filters": {
+        "search": "Search by description",
+        "from": "From",
+        "to": "To",
+        "method": "Method",
+        "methodAll": "All methods",
+        "methodUnspecified": "Unspecified"
+      },
+      "export": "Export",
+      "exportFilename": "expenses",
+      "columns": {
+        "category": "Category",
+        "amount": "Amount",
+        "description": "Description",
+        "date": "Date",
+        "method": "Payment method"
+      },
+      "unspecifiedMethod": "Unspecified",
+      "pagination": "{page} of {total} pages",
+      "empty": {
+        "title": "No expenses recorded yet.",
+        "description": "Add the first expense to start tracking this month's outgoings."
+      },
+      "emptyFiltered": {
+        "title": "No expense matches the filters.",
+        "description": "Try widening the date range or clearing the search."
+      },
+      "error": {
+        "title": "We couldn't load the expenses",
+        "description": "Check your connection and try again."
+      },
+      "form": {
+        "createTitle": "New expense",
+        "editTitle": "Edit expense",
+        "intro": "Record a new expense — what it was and how much it cost",
+        "introEdit": "Update the details of this recorded expense",
+        "category": "Category",
+        "categoryPlaceholder": "Select a category",
+        "description": "Short description",
+        "descriptionPlaceholder": "Describe what the expense was for...",
+        "amount": "Amount",
+        "date": "Date",
+        "method": "Payment method",
+        "methodPlaceholder": "Select an option",
+        "delete": "Delete"
+      },
+      "errors": {
+        "categoryRequired": "Pick a category",
+        "descriptionRequired": "Write a description",
+        "amountRequired": "The amount must be greater than 0",
+        "dateRequired": "Pick a date",
+        "saveFailed": "We couldn't save the expense",
+        "deleteFailed": "We couldn't delete the expense"
+      },
+      "success": {
+        "created": "Expense recorded successfully",
+        "updated": "Expense updated successfully",
+        "deleted": "Expense deleted successfully"
+      },
+      "delete": {
+        "title": "Delete this record?",
+        "description": "The expense is permanently removed and stops counting towards the balance."
+      }
     }
   }
 }
