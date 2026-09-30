@@ -1,6 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import { ArrowDown, ArrowUp, ChevronRight, ChevronsUpDown } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
@@ -11,6 +12,17 @@ export interface DataTableColumn<T> {
   align?: 'left' | 'right'
   /** Clases extra para la celda y su header (ancho, truncado, etc.). */
   className?: string
+  /**
+   * Convierte el header en un botón de ordenamiento.
+   *
+   * `direction` es `null` cuando la tabla está ordenada por otra columna: el
+   * header sigue siendo clickeable pero no muestra flecha. Sólo desktop — en
+   * mobile no hay headers de columna donde ponerlo.
+   */
+  sort?: {
+    direction: 'asc' | 'desc' | null
+    onToggle: () => void
+  }
 }
 
 interface DataTableProps<T> {
@@ -31,8 +43,24 @@ interface DataTableProps<T> {
    */
   mobileRow: (row: T) => ReactNode
 
-  /** Menú de acciones por fila (desktop). En el Figma es un `Dropdown`. */
+  /**
+   * Menú de acciones por fila (desktop). En el Figma es un `Dropdown`.
+   *
+   * **Su celda no propaga el click**, para que abrir el menú no dispare además
+   * el `onRowClick` de la fila. Por eso no sirve para un chevron decorativo:
+   * ver `rowChevron`.
+   */
   rowActions?: (row: T) => ReactNode
+  /**
+   * Chevron `›` al final de la fila, indicando que la fila se abre.
+   *
+   * Existe aparte de `rowActions` porque **es decorativo y tiene que propagar
+   * el click**. Pasarlo como `rowActions` —que es lo que hacían Gastos y
+   * Membresías— lo convertía en una zona muerta: el chevron es justo donde el
+   * operador apunta para abrir la fila, y era el único lugar de la fila que no
+   * la abría. Lo reportó Ema probando la Fase 11.
+   */
+  rowChevron?: boolean
   onRowClick?: (row: T) => void
 
   isLoading?: boolean
@@ -45,12 +73,29 @@ interface DataTableProps<T> {
   className?: string
 }
 
+function ariaSort(direction: 'asc' | 'desc' | null | undefined) {
+  if (direction === 'asc') return 'ascending' as const
+  if (direction === 'desc') return 'descending' as const
+
+  return undefined
+}
+
+function SortIcon({ direction }: { direction: 'asc' | 'desc' | null }) {
+  if (direction === 'asc') return <ArrowUp aria-hidden className='size-3.5' />
+  if (direction === 'desc') return <ArrowDown aria-hidden className='size-3.5' />
+
+  // Sin dirección la flecha doble dice "esta columna se puede ordenar" sin
+  // afirmar un orden que no está aplicado.
+  return <ChevronsUpDown aria-hidden className='size-3.5 opacity-50' />
+}
+
 export default function DataTable<T>({
   columns,
   rows,
   getRowId,
   mobileRow,
   rowActions,
+  rowChevron = false,
   onRowClick,
   isLoading = false,
   error,
@@ -63,6 +108,9 @@ export default function DataTable<T>({
     return <DataTableSkeleton className={className} columns={columns.length} rows={loadingRows} />
   }
   if (rows.length === 0 && empty) return <div className={className}>{empty}</div>
+
+  // Las dos cosas ocupan la misma columna final, y es la que lleva el radius.
+  const trailingCell = Boolean(rowActions) || rowChevron
 
   return (
     <div className={className}>
@@ -77,19 +125,35 @@ export default function DataTable<T>({
             {columns.map((column, index) => (
               <th
                 key={column.id}
+                aria-sort={ariaSort(column.sort?.direction)}
                 className={cn(
                   'bg-muted px-3 py-2.5 text-xs font-medium text-muted-foreground',
                   column.align === 'right' ? 'text-right' : 'text-left',
                   index === 0 && 'rounded-l-lg',
-                  !rowActions && index === columns.length - 1 && 'rounded-r-lg',
+                  !trailingCell && index === columns.length - 1 && 'rounded-r-lg',
                   column.className
                 )}
                 scope='col'
               >
-                {column.header}
+                {column.sort ? (
+                  <button
+                    className={cn(
+                      'inline-flex items-center gap-1 hover:cursor-pointer hover:text-foreground',
+                      'outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring rounded',
+                      column.align === 'right' && 'flex-row-reverse'
+                    )}
+                    type='button'
+                    onClick={column.sort.onToggle}
+                  >
+                    {column.header}
+                    <SortIcon direction={column.sort.direction} />
+                  </button>
+                ) : (
+                  column.header
+                )}
               </th>
             ))}
-            {rowActions && <th className='w-12 rounded-r-lg bg-muted px-3 py-2.5' />}
+            {trailingCell && <th className='w-12 rounded-r-lg bg-muted px-3 py-2.5' />}
           </tr>
         </thead>
         <tbody>
@@ -121,6 +185,13 @@ export default function DataTable<T>({
                   onClick={(event) => event.stopPropagation()}
                 >
                   {rowActions(row)}
+                </td>
+              )}
+              {/* El chevron sí propaga: es la parte de la fila que más invita
+                  a hacer click, y frenarlo la volvía una zona muerta. */}
+              {!rowActions && rowChevron && (
+                <td className='border-b px-3 py-3 text-right'>
+                  <ChevronRight aria-hidden className='inline size-4 text-muted-foreground' />
                 </td>
               )}
             </tr>

@@ -225,3 +225,46 @@ export async function deleteMembershipPlanInDb(type: string): Promise<void> {
 
   if (error) throw new Error(`No se pudo borrar el plan de prueba: ${error.message}`)
 }
+
+export interface ExpenseRow {
+  id: string
+  description: string
+  amount: number
+  category: string
+  expense_date: string
+  payment_method: string | null
+}
+
+/**
+ * Un gasto por su descripción exacta.
+ *
+ * La descripción es lo único que el spec controla de punta a punta: la escribe
+ * en el formulario y la puede volver a buscar. El `id` lo genera la DB y la
+ * pantalla no lo muestra.
+ *
+ * **Es la única forma de verificar `expense_date`.** La tabla muestra
+ * "15/09/2026" tanto si el timestamp quedó en `03:00Z` —medianoche AR, que es
+ * lo correcto— como si quedó en `00:00Z`, que son las 21:00 del día anterior y
+ * caería en el mes contable equivocado los días 1. En pantalla se ven iguales.
+ */
+export async function findExpenseByDescription(description: string): Promise<ExpenseRow | null> {
+  const client = await getDbClient()
+
+  const { data, error } = await client
+    .from('expenses')
+    .select('id, description, amount, category, expense_date, payment_method')
+    .eq('description', description)
+    .maybeSingle()
+
+  if (error) throw new Error(`Error buscando el gasto: ${error.message}`)
+
+  return data as ExpenseRow | null
+}
+
+/** Borra los gastos de test. Va en un `finally` para no ensuciar la DB de dev. */
+export async function deleteExpenseByDescription(description: string): Promise<void> {
+  const client = await getDbClient()
+  const { error } = await client.from('expenses').delete().eq('description', description)
+
+  if (error) throw new Error(`No se pudo borrar el gasto de prueba: ${error.message}`)
+}

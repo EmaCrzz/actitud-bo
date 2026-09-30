@@ -20,10 +20,10 @@ import { computeDiscountAmount } from '@/group/discount'
 import { getInitials } from '@/lib/format-person'
 import { useTranslations } from '@/lib/i18n/context'
 import {
-  getAppTzDateParts,
   getTodayIsoDateInAppTz,
   isExpiredInAppTz,
   parseAppTzDateString,
+  toAppTzIsoDate,
 } from '@/lib/timezone'
 import {
   fetchRenewalContext,
@@ -621,13 +621,6 @@ function resolveStatus(
   if (!context.expiration_date) return 'active'
 
   return isExpiredInAppTz(context.expiration_date) ? 'expired' : 'active'
-}
-
-/** Día calendario AR de un timestamptz, como "YYYY-MM-DD". */
-function toAppTzIsoDate(timestamp: string): string {
-  const parts = getAppTzDateParts(new Date(timestamp))
-
-  return `${parts.year}-${String(parts.month).padStart(2, '0')}-${String(parts.day).padStart(2, '0')}`
 }
 
 /**
