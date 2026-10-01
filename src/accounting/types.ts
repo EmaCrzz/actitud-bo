@@ -50,6 +50,8 @@ export interface MembershipPayment {
    */
   plan?: {
     name: string | null
+    /** Cupo semanal del plan. Ordena "Ingresos por concepto" en el Balance. */
+    weekly_quota?: number | null
   } | null
 }
 

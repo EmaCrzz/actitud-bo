@@ -68,6 +68,15 @@ export interface MembershipLedgerEntry extends LedgerEntryBase {
   membershipType: string
   /** NULL en los 5 planes del catálogo, que resuelven su etiqueta por i18n. */
   planName: string | null
+  /**
+   * Descuento y recargo de la cuota. `amount` ya los incluye (es el neto); los
+   * lee el Balance para mostrar cuánto se dejó de cobrar y cuánto se cobró de
+   * más contra el precio de lista.
+   */
+  discountAmount: number
+  surchargeAmount: number
+  /** Cupo semanal del plan (5, 3, 2, 1 para el pase diario). NULL si no se sabe. */
+  weeklyQuota: number | null
 }
 
 export interface ProductLedgerEntry extends LedgerEntryBase {
