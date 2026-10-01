@@ -261,6 +261,49 @@ export async function findExpenseByDescription(description: string): Promise<Exp
   return data as ExpenseRow | null
 }
 
+export interface SaleRow {
+  id: string
+  customer_id: string | null
+  buyer_name: string | null
+  description: string
+  amount: number
+  payment_method: string
+  sale_date: string
+}
+
+/**
+ * Una venta de producto por su detalle exacto. Mismo motivo que
+ * `findExpenseByDescription`: es lo único que el spec controla de punta a
+ * punta, y **la única forma de verificar `sale_date`**, que en pantalla se ve
+ * igual canonicalizado o no.
+ */
+export async function findSaleByDescription(description: string): Promise<SaleRow | null> {
+  const client = await getDbClient()
+
+  const { data, error } = await client
+    .from('sales')
+    .select('id, customer_id, buyer_name, description, amount, payment_method, sale_date')
+    .eq('description', description)
+    .maybeSingle()
+
+  if (error) throw new Error(`Error buscando la venta: ${error.message}`)
+
+  return data as SaleRow | null
+}
+
+/**
+ * Borra las ventas de test. Va en un `finally`.
+ *
+ * A diferencia de los clientes, acá supabase-js sí alcanza: `sales` tiene
+ * política de DELETE para admins, que es el usuario de la suite.
+ */
+export async function deleteSaleByDescription(description: string): Promise<void> {
+  const client = await getDbClient()
+  const { error } = await client.from('sales').delete().eq('description', description)
+
+  if (error) throw new Error(`No se pudo borrar la venta de prueba: ${error.message}`)
+}
+
 /** Borra los gastos de test. Va en un `finally` para no ensuciar la DB de dev. */
 export async function deleteExpenseByDescription(description: string): Promise<void> {
   const client = await getDbClient()

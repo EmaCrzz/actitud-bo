@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import { getMonthRangeFromKey, parseAppTzDateString, shiftIsoDateInAppTz } from '@/lib/timezone'
+import { getMonthRangeFromKey, parseAppTzDateString } from '@/lib/timezone'
+import { toAppTzQueryBounds } from '@/lib/date-range-params'
 import type {
   MembershipPayment,
   Expense,
@@ -44,7 +45,8 @@ export const getMembershipPayments = async (
     .select(
       `
       *,
-      customer:customers(first_name, last_name)
+      customer:customers(first_name, last_name),
+      plan:types_memberships(name)
     `
     )
     .order('payment_date', { ascending: false })
@@ -55,6 +57,13 @@ export const getMembershipPayments = async (
     query = query.gte('payment_date', start.toISOString()).lt('payment_date', end.toISOString())
   }
 
+  // Rango de días AR (Fase 12, Ventas). Mismo criterio de caja que `month`:
+  // el día de un pago es el día en que entró la plata.
+  const bounds = toAppTzQueryBounds({ from: filters?.from, to: filters?.to })
+
+  if (bounds.gte) query = query.gte('payment_date', bounds.gte)
+  if (bounds.lt) query = query.lt('payment_date', bounds.lt)
+
   if (filters?.customer_id) {
     query = query.eq('customer_id', filters.customer_id)
   }
@@ -63,7 +72,11 @@ export const getMembershipPayments = async (
     query = query.eq('payment_method', filters.payment_method)
   }
 
-  const { data } = await query
+  // Tira en vez de devolver `[]`: una lectura caída no puede verse igual que
+  // un período sin cobros. Ver el comentario gemelo en `getExpenses`.
+  const { data, error } = await query
+
+  if (error) throw new Error(error.message)
 
   return data || []
 }
@@ -161,21 +174,13 @@ export const getExpenses = async (filters?: AccountingFilters): Promise<Expense[
     query = query.gte('expense_date', start.toISOString()).lt('expense_date', end.toISOString())
   }
 
-  // Rango explícito (Fase 11). Los dos strings vienen crudos del datepicker, y
-  // los dos se canonicalizan antes de tocar la query: mandarlos tal cual haría
-  // que Postgres los lea como midnight UTC, o sea 21:00 del día anterior en AR,
-  // y el rango arrancaría y terminaría tres horas antes de lo que dice la
-  // pantalla. El tope es el **arranque del día siguiente** con `lt`, misma
-  // forma que `getMonthRangeInAppTz`, para que el día `to` entre completo.
-  if (filters?.from) {
-    query = query.gte('expense_date', parseAppTzDateString(filters.from).toISOString())
-  }
+  // Rango explícito (Fase 11), canonicalizado a días AR. Ver
+  // `toAppTzQueryBounds`: los strings del datepicker crudos arrancarían y
+  // terminarían el rango tres horas antes de lo que dice la pantalla.
+  const bounds = toAppTzQueryBounds({ from: filters?.from, to: filters?.to })
 
-  if (filters?.to) {
-    const exclusiveEnd = parseAppTzDateString(shiftIsoDateInAppTz(filters.to, 1))
-
-    query = query.lt('expense_date', exclusiveEnd.toISOString())
-  }
+  if (bounds.gte) query = query.gte('expense_date', bounds.gte)
+  if (bounds.lt) query = query.lt('expense_date', bounds.lt)
 
   if (filters?.category) {
     query = query.eq('category', filters.category)
@@ -186,7 +191,13 @@ export const getExpenses = async (filters?: AccountingFilters): Promise<Expense[
   // período completo mientras la tabla muestra el subconjunto. Resolverlos
   // también en el server dejaría dos caminos para la misma pregunta.
 
-  const { data } = await query
+  // **Tira si la lectura falla** (desde la Fase 12). Antes devolvía `[]`, así
+  // que el cartel de error de la sección Gastos —que asume que esto tira— no
+  // aparecía nunca: una caída se veía como "Aún no se registraron gastos".
+  // Los dos llamadores, la ruta HTTP y la página v2, ya atrapan la excepción.
+  const { data, error } = await query
+
+  if (error) throw new Error(error.message)
 
   return data || []
 }

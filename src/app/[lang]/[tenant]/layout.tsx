@@ -25,9 +25,14 @@ import dynamic from 'next/dynamic'
  * `window.fetch` incluido— porque webpack elimina el JSX de la rama muerta pero
  * no el import de módulo. Inerte, pero código muerto en el bundle de cada
  * usuario. Así el módulo queda en un chunk aparte que producción no pide nunca.
+ *
+ * También se gatea por `DEV_LOG_FILE` (se lee acá porque el layout es server
+ * component): sin la variable, el sumidero responde 404 y el logger llenaba la
+ * consola con un 404 por cada request que parcheaba. `NODE_ENV` va primero
+ * para que en producción la rama siga siendo eliminable en build.
  */
 const DevLogger =
-  process.env.NODE_ENV === 'development'
+  process.env.NODE_ENV === 'development' && process.env.DEV_LOG_FILE
     ? dynamic(() => import('@/components/dev/DevLogger'))
     : () => null
 
@@ -277,8 +282,14 @@ export default async function RootLayout({
           rel='apple-touch-startup-image'
         />
       </head>
+      {/* `grid-cols-[minmax(0,1fr)]`: sin columna explícita, la del grid toma el
+          ancho mínimo del hijo más ancho, y a 360px una fila de filtros que no
+          entraba estiraba la app entera a 441px — sin scroll, porque el AppShell
+          recorta. Con `minmax(0, …)` la columna nunca pasa el viewport y el
+          desborde, si lo hay, queda a la vista en el elemento que lo causa.
+          Medido el 2026-10-01 (Fase 12). */}
       <body
-        className={`${tenantFontVariables} h-dvh grid grid-rows-[auto_1fr_auto] ${isProd ? '' : 'pt-7'}`}
+        className={`${tenantFontVariables} h-dvh grid grid-cols-[minmax(0,1fr)] grid-rows-[auto_1fr_auto] ${isProd ? '' : 'pt-7'}`}
       >
         <EnvBanner />
         <DevLogger />

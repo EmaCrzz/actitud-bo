@@ -41,7 +41,11 @@ function SelectTrigger({
         'outline-none transition-colors hover:border-input-hover-border hover:cursor-pointer',
         'focus-visible:ring-2 focus-visible:ring-sidebar-ring',
         'disabled:cursor-not-allowed disabled:opacity-40',
-        "[&_span]:truncate [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        // `min-w-0` junto al `truncate`: el span es hijo flex, y con el
+        // `min-width: auto` por default no se achica por debajo de su texto —
+        // el truncate nunca corta y el trigger empuja a sus vecinos. A 360px eso
+        // estiraba el AppShell entero (Ventas y Gastos, medido 2026-10-01).
+        "[&_span]:min-w-0 [&_span]:truncate [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       data-slot='select-trigger-v2'

@@ -155,7 +155,13 @@ self.addEventListener("fetch", (event) => {
     return
   }
 
-  event.respondWith(fetch(request))
+  event.respondWith(
+    fetch(request).catch(() => {
+      return caches.match(request).then((response) => {
+        return response || new Response("", { status: 503, statusText: "Offline" })
+      })
+    }),
+  )
 })
 
 self.addEventListener("message", (event) => {
