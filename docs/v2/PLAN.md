@@ -31,8 +31,8 @@
 | 10 | Sección Membresías (planes y precios) | ✅ completa | Rama `feat/v2-membresias`. ADR [20260928112705](../architecture/decisions/20260928112705_v2-seccion-membresias-y-catalogo-de-planes.md). **Catálogo híbrido**: se crean planes y los 5 originales conservan su comportamiento especial. Vive en `/v2/settings/memberships`; se borró el stub de `/v2/memberships`. **Lleva migración aditiva** `20260928110544` (B6 cerrada). |
 | 10b | Grupos de clientes (familiares) | 🔵 relevada, sin planificar | **No estaba en el plan original**; capturas del 2026-09-29. El panel ya existe en v1 casi 1:1; lo nuevo es la tabla del listado. Relevada contra prod y **pausada a pedido de Ema** para revisarla con calma. Decidido: el descuento sólo se muestra, y eliminar pasa a baja lógica. Abierto: las columnas derivadas → [decisión #17](#decisiones-abiertas--riesgos). |
 | 11 | Sección Gastos (crear/editar/eliminar) | ✅ completa · **en prod (v0.17.0)** | Rama `feat/v2-gastos`. ADR [20260930121500](../architecture/decisions/20260930121500_v2-seccion-gastos-y-medio-de-pago.md). **Lleva migración aditiva** `20260929104500` (B1 cerrada): `payment_method` **nullable, sin backfill** — decisión #8 resuelta midiendo prod (29 gastos) . De paso se arregló un bug que bloqueaba el **alta de cliente el último día de cada mes**. |
-| 12 | Sección Ventas (productos) | ⚠️ bloqueada | **No existe modelo de datos.** Requiere diseño de schema completo. |
-| 13 | Balance | ⬜ pendiente | Depende de 11 y 12. |
+| 12 | Sección Ventas (cuotas + productos) | ✅ completa | Rama `feat/v2-ventas`. ADR [20261001100524](../architecture/decisions/20261001100524_v2-seccion-ventas.md). **Ventas es todo lo cobrado**: cuotas de `membership_payments` + productos de la tabla nueva `sales`, unidas al leer. Sin catálogo, sin stock, un producto por venta. **Lleva migración aditiva** `20261001100524` (A1 cerrada). Capturas versionadas en [figma/ventas/](figma/ventas/). |
+| 13 | Balance | ⬜ pendiente | Depende de 11 y 12 — **las dos cerradas**. Ojo: `/incomes`, `getMonthlyStats` y el resumen del día del home todavía no suman `sales`. |
 | 14 | Configuración (Negocio / Membresías / Promociones / Usuarios) | ⬜ pendiente | Requiere tabla de settings del negocio. |
 | 15 | Promoción de v2 a default + retiro de v1 | ⬜ pendiente | Fuera del alcance actual; se planifica cuando 3–14 estén cerradas. |
 
@@ -40,9 +40,17 @@
 
 ## Por dónde seguir
 
-> Última actualización: **2026-09-28**. Esta sección es el arranque de cualquier sesión nueva: decí en qué estado quedó todo y cuál es el siguiente movimiento, sin tener que leer el documento entero.
+> Última actualización: **2026-10-01**. Esta sección es el arranque de cualquier sesión nueva: decí en qué estado quedó todo y cuál es el siguiente movimiento, sin tener que leer el documento entero.
 
-**Las fases 0–9 están cerradas. Quedan seis: 10 Membresías, 11 Gastos, 12 Ventas, 13 Balance, 14 Configuración y 15 promoción de v2.** De las doce pantallas de v2, **ocho siguen siendo `UnderConstruction`** — `memberships`, `expenses`, `sales`, `balance` y las cuatro de `settings`. Vale tenerlo presente al leer el número de tests en verde: el smoke e2e de "7 pantallas cargan" está recorriendo mayormente placeholders (lo señala el ADR [20260926164830](../architecture/decisions/20260926164830_unit-tests-para-la-logica-de-negocio.md)).
+**La Fase 12 (Ventas) se cerró el 2026-10-01** — rama `feat/v2-ventas`, ADR [20261001100524](../architecture/decisions/20261001100524_v2-seccion-ventas.md). La [decisión #5](#decisiones-abiertas--riesgos) la respondió Ema (sin stock, sin catálogo, editar y borrar como Gastos) y **las capturas cambiaron el alcance**: el panel "Nueva venta" ofrece `Membresía` al lado de `Producto`, así que **Ventas es todo lo que se cobra**. Las cuotas siguen en `membership_payments`, los productos van a `sales`, y la sección las une al leer — cada peso vive en una sola tabla. Ver [Fase 12](#fase-12--sección-ventas).
+
+> ⚠️ **Lleva migración aditiva `20261001100524`, que va a prod ANTES del release.** Ensayada contra dev y prod; **ya aplicada en dev** con auditoría de integridad idéntica antes y después.
+
+**El movimiento siguiente es la Fase 13 (Balance), que ya no tiene bloqueos.** Lo primero que tiene que resolver: sumar `sales` al ingreso. Hoy `getMonthlyStats`, el dashboard `/incomes` de v1 y el "Resumen del día" del home sólo leen `membership_payments`, así que se quedan cortos en cuanto alguien con v2 cargue una venta de producto. La alternativa sigue siendo la [Fase 10b](#fase-10b--grupos-de-clientes-familiares), esperando la [decisión #17](#decisiones-abiertas--riesgos).
+
+---
+
+**Las fases 0–12 están cerradas (salvo la 10b, pausada). Quedan tres: 13 Balance, 14 Configuración y 15 promoción de v2.** De las pantallas de v2, **cuatro siguen siendo `UnderConstruction`** — `balance` y tres de `settings` (`business`, `promotions`, `users`); medido el 2026-10-01 con un grep sobre `v2/`.
 
 **La Fase 10 se cerró el 2026-09-28** — rama `feat/v2-membresias`, ADR [20260928112705](../architecture/decisions/20260928112705_v2-seccion-membresias-y-catalogo-de-planes.md). La [decisión #7](#decisiones-abiertas--riesgos) terminó en **catálogo híbrido: se crean planes, y los 5 originales conservan su comportamiento especial**. Ver [Fase 10](#fase-10--sección-membresías-planes-y-precios).
 
@@ -56,7 +64,7 @@
 
 > ⚠️ **Lleva migración aditiva `20260929104500`, que va a prod ANTES del release.**
 
-**El movimiento siguiente es la Fase 12 (Ventas), y sigue bloqueada** por la [decisión #5](#decisiones-abiertas--riesgos): hay que definir el alcance con el negocio —¿stock? ¿anulación? ¿varios productos por venta?— antes de escribir el schema. Es lo único que mantiene bloqueadas **dos** fases, porque la 13 (Balance) depende de ella. Las alternativas disponibles sin destrabar nada: la [Fase 10b](#fase-10b--grupos-de-clientes-familiares) (relevada, esperando la [decisión #17](#decisiones-abiertas--riesgos)) y la Fase 14 (Configuración, parcial: necesita `business_settings` y bucket de Storage).
+~~**El movimiento siguiente es la Fase 12 (Ventas), y sigue bloqueada** por la decisión #5.~~ → ✅ destrabada y cerrada el 2026-10-01, ver arriba.
 
 ---
 
@@ -367,46 +375,9 @@ Comparación entre el schema actual y lo que exigen los 17 flows. **Ninguna de e
 
 ### A. Bloqueantes duros (no se puede construir la UI sin esto)
 
-#### A1. Ventas / productos — no existe modelo (Fase 12)
+#### A1. Ventas / productos — ✅ **cerrada** (Fase 12, 2026-10-01)
 
-Los flows 11–13 muestran una sección Ventas con KPIs de "Total cobrado / Efectivo / Transferencias", tabla de ventas, filtros por 3 dropdowns, venta a cliente y venta a no-cliente, y export. **No hay ninguna tabla que soporte esto.**
-
-Propuesta a discutir antes de implementar:
-
-```sql
-CREATE TABLE public.products (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  name varchar NOT NULL,
-  price real NOT NULL CHECK (price >= 0),
-  active boolean NOT NULL DEFAULT true,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
-);
-
-CREATE TABLE public.sales (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  customer_id uuid REFERENCES public.customers(id),   -- NULL = venta a no cliente
-  buyer_name varchar,                                  -- sólo si customer_id IS NULL
-  total_amount real NOT NULL CHECK (total_amount >= 0),
-  payment_method varchar NOT NULL
-    CHECK (payment_method IN ('PAYMENT_CASH','PAYMENT_TRANSFER')),
-  sale_date timestamptz NOT NULL DEFAULT now(),
-  notes text,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT sales_buyer_check CHECK (customer_id IS NOT NULL OR buyer_name IS NOT NULL)
-);
-
-CREATE TABLE public.sale_items (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  sale_id uuid NOT NULL REFERENCES public.sales(id) ON DELETE CASCADE,
-  product_id uuid NOT NULL REFERENCES public.products(id),
-  quantity integer NOT NULL CHECK (quantity > 0),
-  unit_price real NOT NULL CHECK (unit_price >= 0),  -- snapshot del precio al momento de la venta
-  subtotal real NOT NULL CHECK (subtotal >= 0)
-);
-```
-
-Preguntas abiertas antes de escribir esto: ¿hay control de stock? ¿se puede editar/anular una venta? ¿el precio del producto se versiona o alcanza el snapshot en `sale_items.unit_price`? → [Decisiones abiertas](#decisiones-abiertas--riesgos) #5.
+Se cerró con **una** tabla, no tres: sin stock, sin catálogo y con un producto por venta, `products` y `sale_items` no hacen falta. La tabla `sales` guarda sólo los productos; las cuotas siguen en `membership_payments` y la sección Ventas une las dos al leer. Migración `20261001100524`, ADR [20261001100524](../architecture/decisions/20261001100524_v2-seccion-ventas.md).
 
 #### A2. Configuración del negocio — no existe tabla (Fase 14)
 
@@ -1372,35 +1343,62 @@ Dejarla nullable evita backfill inventado; los KPIs muestran los históricos com
 
 ## Fase 12 — Sección Ventas
 
-**Estado:** ⚠️ **bloqueada — no existe modelo de datos**
-**Figma:** desktop `2167:22906` (a clientes, 5), `2167:22907` (a no clientes, 3), `2167:22908` (exportar, 2) · **mobile `2286:118422` (a clientes, 5), `2286:118789` (a no clientes, 2), `2286:118889` (exportar, 2)**.
+**Estado:** ✅ **completa** (2026-10-01) · rama `feat/v2-ventas` · ADR [20261001100524](../architecture/decisions/20261001100524_v2-seccion-ventas.md)
+**Figma:** desktop `2167:22906` (a clientes, 5), `2167:22907` (a no clientes, 3), `2167:22908` (exportar, 2) · mobile `2286:118422`, `2286:118789`, `2286:118889`. **Verificado con 13 capturas que pasó Ema el 2026-10-01, versionadas en [figma/ventas/](figma/ventas/)** — la cuota del MCP se agotó en dos llamadas, como anticipaba la [decisión #10](#decisiones-abiertas--riesgos).
 
-> Mobile tiene **el estado vacío diseñado** (`2265:70904`, con los tres KPIs en $0) además del estado con data (`2277:96065`). Segunda referencia canónica de empty state junto con `Gastos/Vacio`.
+### El hallazgo que cambió la fase
 
-Layout análogo a Gastos: `PageHeader` + 3 KPIs (Total cobrado / Efectivo / Transferencias) + `FilterBar` (search + 3 dropdowns) + `DataTable` + `FormModal` de venta. La sección 13 agrega export vía `ConfirmDialog`.
+**Ventas no es "productos": es todo lo que se cobra.** El panel "Nueva venta" ofrece `Membresía — Renovaciones o cambio de plan` al lado de `Producto`, y la tabla mezcla filas de cuota con filas de producto. La primera lectura —con una sola captura, la tabla tapada por el modal— tomó las filas de cuota por relleno copiado del listado de clientes; la captura del paso 2 mostró que eran reales.
 
-Dos modos de venta: **a cliente** (se elige de la base) y **a no cliente** (walk-in). El modelo tiene que soportar ambos.
+**Cada peso vive en una sola tabla.** Las cuotas siguen en `membership_payments`; los productos van a `sales`; la sección las une al leer (`buildSalesLedger`). Copiar las cuotas a `sales` habría obligado a toda suma de ingresos —Balance, `/incomes`, el home— a acordarse de excluirlas.
 
-**Esta fase no se puede empezar sin cerrar A1** ([Brechas de base de datos](#a1-ventas--productos--no-existe-modelo-fase-12)): `products`, `sales`, `sale_items`. Antes de escribir una línea de UI:
+### Decisiones de negocio (Ema, 2026-10-01)
 
-1. Definir el alcance con el negocio (¿stock? ¿anulación? ¿múltiples items por venta o uno solo?).
-2. Escribir y revisar la migración.
-3. Aplicar en dev, cargar datos de prueba.
-4. Recién ahí construir el dominio `src/sales/` completo (`api/server.ts`, `api/client.ts`, `types.ts`, `consts.ts`, `components/v2/`).
+- **Sin stock, sin catálogo**: el producto se tipea libre ("Remera Hombre Talle L"). El gimnasio vende suplementos, remeras y artículos sueltos sin inventario.
+- **Un producto por venta** — deducido del diseño (un detalle, un precio, una fila).
+- **Los productos se editan y borran como en Gastos.** Las **cuotas son de sólo lectura** en Ventas: se cobran por la renovación.
+- **"Membresía" abre la renovación de la Fase 8** con el cliente ya resuelto.
+- **"Datos de referencia" es opcional** en la venta sin cliente; sin el dato la fila dice "Sin cliente".
+- **Admin-only**, como Gastos. Los 4 usuarios de prod son admin.
+- **Export a CSV directo**, sin el modal Desde/Hasta/PDF del diseño.
+- **El stepper es el de la renovación**: `Detalle de la venta` → `Confirmar`, con el buscador y la elección de concepto fuera de él.
 
-**Export (sección 13):** decidir formato (CSV vs XLSX) y si se genera en cliente o server. CSV en cliente es lo más barato y no agrega dependencias.
+### Qué se construyó
 
-**Riesgo timezone:** alto — `sale_date` define el día/mes contable, igual que `payment_date`.
+- **Migración `20261001100524`**: tabla `sales` con RLS admin-only, FK `NO ACTION` a `customers`, `payment_method NOT NULL`, `sale_date` sin default, CHECK de comprador único.
+- **Dominio `src/sales/`**: `types`, `ledger` (la unión y el orden por día AR), `summary`, `filters`, `export`, `normalize` (validación + canonicalización de `sale_date`), `api/server` y `api/client`, rutas `/api/sales` y `/api/sales/[id]`.
+- **UI**: `SalesSection` y `SaleFormPanel` con `SaleConceptStep` / `SaleDetailStep` / `SaleReviewStep`.
+- **Extraído para no duplicar con Gastos**: `src/lib/date-range-params.ts`, `src/lib/csv.ts`, `components/v2/SectionKpi.tsx`, `DataTable.isRowClickable`, `RenewCustomerSearchStep.prompt`.
+- **De paso**: `getExpenses` y `getMembershipPayments` tiran si la query falla. Antes devolvían `[]` y el cartel de error de Gastos no aparecía nunca.
+- **Filtro de concepto (Membresías / Productos)**, pedido por Ema probando la fase. No mueve los KPIs, igual que el de método.
+- **Desborde a 360px arreglado de raíz** (ver ADR, decisión 14): el `<body>` en grid sin columna explícita estiraba la app entera en **todas** las pantallas de v2, y los `truncate` de `Select`/`DatePicker` no truncaban. Ventas medida sin desbordes de 320 a 1440; v1 también, por el cambio del body.
+- **Tests**: 29 unit tests (8 de 8 mutaciones detectadas) y `e2e/specs/sales.spec.ts`, verde contra el server local junto con la suite completa.
+
+### Defectos del diseño — avisar al diseñador
+
+1. Los encabezados de la tabla están **corridos una columna** ("Membresía" tiene el concepto, "Concepto" tiene el monto).
+2. El resumen tiene **los valores cruzados**: "Método de pago" muestra la fecha y "Fecha" muestra `$10/08/2026`.
+3. "Detalle de la venta" en el form vs "Motivo de la venta" en el resumen.
+4. **En mobile el `+` va directo al buscador** y no hay forma de vender sin cliente → abre el mismo menú que desktop.
+5. Paddings de la pantalla mobile de concepto/producto y la mezcla de ✕ con ← → resueltos por el `SidePanel`.
+6. "Metodo" sin tilde en la captura del export.
+7. El paso de detalle con cliente dice `Cancelar`; se usa `Atrás`, como la renovación.
+
+### Deuda que ya estaba y quedó medida
+
+**A 768px (tablet con sidebar abierto) se desbordan Gastos, Clientes y Membresías**: la tabla de desktop no entra en ~420px. No lo introdujo esta fase. La salida probable es que `DataTable` muestre la lista mobile hasta `lg` — decisión del primitivo, para todas las secciones a la vez.
+
+### Lo que esta fase deja para la 13
+
+`getMonthlyStats`, el dashboard `/incomes` de v1 y el "Resumen del día" del home **sólo suman `membership_payments`**. No rompen nada, pero se quedan cortos en cuanto alguien con v2 cargue una venta. Para sumarlas, reusar `getSalesLedger` + `summarizeSalesLedger`, que ya cuadran por construcción con lo que muestra Ventas.
 
 **Definición de hecho:**
-- [ ] Migración de `products` / `sales` / `sale_items` aplicada en dev
-- [ ] Dominio `src/sales/` completo
-- [ ] Venta a cliente y a no cliente
-- [ ] 3 KPIs cuadran con la tabla
-- [ ] Export funcionando
-- [ ] Auditoría de timezone
-
-**ADR:** sí, obligatorio y **antes de implementar** — es un modelo de datos nuevo.
+- [x] Migración aplicada en dev (auditoría idéntica antes y después)
+- [x] Dominio `src/sales/` completo
+- [x] Venta a cliente y a no cliente
+- [x] 3 KPIs cuadran con la tabla (salen de las mismas filas)
+- [x] Export funcionando
+- [x] Auditoría de timezone: `sale_date` se canonicaliza en `normalizeSaleInput` (unit test + verificación contra la DB en el e2e); el rango usa `toAppTzQueryBounds`; las fechas se muestran con `toAppTzIsoDate`
 
 ---
 
@@ -1504,7 +1502,7 @@ Ordenadas por impacto. Las que bloquean una fase están marcadas.
 
 4. **~~Paginación de tablas sin definir~~ → RESUELTO (2026-09-16, Fase 6b).** El claim de que "ningún wireframe muestra paginador" era **falso**: la captura del listado de clientes tiene `230 Total de clientes` + paginador numerado. **Las tablas del rediseño paginan.** El componente es [DataTablePagination](../../src/components/v2/DataTablePagination.tsx), ya transversal en `components/v2/`; las fases 10–14 lo instancian en vez de decidir de nuevo. El scroll infinito sigue disponible sobre el mismo query — lo usa el listado v1 — para las secciones donde convenga.
 
-5. **⚠️ Alcance de Ventas (bloquea Fase 12).** ¿Control de stock? ¿Se puede anular una venta? ¿Múltiples productos por venta o uno solo? ¿Quién carga el catálogo de productos? Sin esto no se puede diseñar el schema.
+5. **~~Alcance de Ventas~~ → RESUELTO (2026-10-01).** Sin stock, sin catálogo (el producto se tipea libre), un producto por venta (deducido del diseño) y los productos se editan y borran como en Gastos. **Las capturas agregaron lo que la pregunta no contemplaba**: Ventas incluye las cuotas de membresía, que se leen de `membership_payments` sin duplicarse. Ver [Fase 12](#fase-12--sección-ventas).
 
 6. **`business_settings`: fila única o `tenant_id` desde ya (bloquea Fase 14).** Agregar `tenant_id` ahora cuesta poco; migrarlo después con datos cuesta bastante más.
 
@@ -1841,4 +1839,14 @@ Aplica a **toda** fase antes de pedir review. Está pensado para que el otro dev
   - **Radio de impacto medido antes de desplegar, no asumido:** lo único que alcanza a un usuario de producción es la migración, porque los dos escritores de `expenses` —el form de v1 y el RPC de reintegros— no mandan la columna. El cambio a `getExpenses` es puramente aditivo: la ruta HTTP de v1 sólo manda `month` y `category`. Todo lo demás es v2, y prod tiene **0 usuarios con el flag**.
   - **Lo que quedó sin red automática:** el cambio del AppShell (el contenedor de scroll pasó al nivel que contiene al header, para que el scrollbar de 8px no dejara el card corrido). Afecta a las siete pantallas y **no tiene test**: el que se escribió comparaba las cajas del header y del card y **pasaba igual con el bug presente**, porque el Chromium de Playwright usa scrollbars overlay y ahí la desalineación no existe. Se descartó en vez de dejarlo en verde sin significado, y se verificó a ojo en el preview. **Un test que no puede fallar es peor que ninguno.**
   - **El release volvió a esquivar la protección de rama de `main`** (`Bypassed rule violations: Changes must be made through a pull request`). Es la tercera vez que queda registrado; sigue sin resolverse si el script abre un PR de release o si la excepción se documenta como deliberada.
+  — Ema + Claude.
+
+- **2026-10-01 — Fase 12 cerrada: Ventas = cuotas + productos.** Rama `feat/v2-ventas`, ADR [20261001100524](../architecture/decisions/20261001100524_v2-seccion-ventas.md).
+  - **Decisión #5 resuelta por Ema** (sin stock, sin catálogo, editar/borrar como Gastos) y **alcance ampliado por las capturas**: el panel "Nueva venta" ofrece Membresía, así que la sección lista todo lo cobrado. Las cuotas no se copian a `sales`: cada peso vive en una sola tabla.
+  - **Migración aditiva `20261001100524`** (tabla `sales`, RLS admin-only). Ensayada en dev y prod, aplicada en dev con auditoría idéntica. **Va a prod antes del release.**
+  - **Medido en prod antes de decidir**: 108 cuotas en septiembre (la unión en memoria alcanza), 0 cuotas sin medio de pago, 4 de 4 usuarios admin, FK de `membership_payments.customer_id` en NO ACTION.
+  - **Extraído de Gastos para no duplicarlo**: rango de fechas, CSV y KPI. Los 19 tests de Gastos pasaron sin cambios.
+  - **Bug latente arreglado**: `getExpenses` devolvía `[]` ante un error y el cartel de error de Gastos no aparecía nunca.
+  - **Cuota de Figma agotada en 2 llamadas**; las 13 capturas quedaron en `docs/v2/figma/ventas/`, que es la salida que proponía la decisión #10.
+  - **Después de la prueba de Ema**: filtro de concepto, placeholder de "Datos de referencia", y el desborde a 360px, que resultó global — `grid-cols-[minmax(0,1fr)]` en el body y `min-w-0` en los `truncate` de `Select`/`DatePicker`. Queda medida la deuda de tablet (768px) en Gastos, Clientes y Membresías.
   — Ema + Claude.

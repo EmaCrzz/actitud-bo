@@ -282,8 +282,14 @@ export default async function RootLayout({
           rel='apple-touch-startup-image'
         />
       </head>
+      {/* `grid-cols-[minmax(0,1fr)]`: sin columna explícita, la del grid toma el
+          ancho mínimo del hijo más ancho, y a 360px una fila de filtros que no
+          entraba estiraba la app entera a 441px — sin scroll, porque el AppShell
+          recorta. Con `minmax(0, …)` la columna nunca pasa el viewport y el
+          desborde, si lo hay, queda a la vista en el elemento que lo causa.
+          Medido el 2026-10-01 (Fase 12). */}
       <body
-        className={`${tenantFontVariables} h-dvh grid grid-rows-[auto_1fr_auto] ${isProd ? '' : 'pt-7'}`}
+        className={`${tenantFontVariables} h-dvh grid grid-cols-[minmax(0,1fr)] grid-rows-[auto_1fr_auto] ${isProd ? '' : 'pt-7'}`}
       >
         <EnvBanner />
         <DevLogger />

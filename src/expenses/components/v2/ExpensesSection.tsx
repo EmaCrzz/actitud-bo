@@ -8,6 +8,7 @@ import DataTable, { type DataTableColumn } from '@/components/v2/DataTable'
 import DataTablePagination from '@/components/v2/DataTablePagination'
 import DatePicker from '@/components/v2/ui/DatePicker'
 import EmptyState from '@/components/v2/EmptyState'
+import SectionKpi from '@/components/v2/SectionKpi'
 import FilterBar from '@/components/v2/FilterBar'
 import FilterDropdown from '@/components/v2/FilterDropdown'
 import { useTranslations } from '@/lib/i18n/context'
@@ -318,15 +319,15 @@ export default function ExpensesSection({
         <div className='order-2 border-y py-4 md:order-1'>
           <div className='flex items-start justify-between gap-4'>
             <dl className='grid flex-1 grid-cols-3 gap-2 md:gap-4'>
-              <Kpi
+              <SectionKpi
                 label={t('v2.expenses.kpi.total')}
                 value={formatCurrency(rangeSummary.total, { lang })}
               />
-              <Kpi
+              <SectionKpi
                 label={t('v2.expenses.kpi.cash')}
                 value={formatCurrency(rangeSummary.cash, { lang })}
               />
-              <Kpi
+              <SectionKpi
                 label={t('v2.expenses.kpi.transfer')}
                 value={formatCurrency(rangeSummary.transfer, { lang })}
               />
@@ -477,29 +478,6 @@ export default function ExpensesSection({
         onOpenChange={setPanelOpen}
         onSaved={handleSaved}
       />
-    </div>
-  )
-}
-
-/**
- * Un KPI del encabezado.
- *
- * **La tipografía de mobile es la mitad que la de desktop, y los labels
- * envuelven en vez de truncarse.** Los montos reales del gimnasio son de 6 y 7
- * cifras —"$ 3.253.827"— y a `text-2xl` en tres columnas no entraban: el
- * número salía cortado como "$ 3.253…" y los labels como "Total de ga…". Un
- * KPI ilegible no informa nada. La maqueta se ve bien porque usa importes de
- * 7 caracteres a 389px de ancho; con los datos de verdad no alcanza.
- *
- * `tabular-nums` alinea los dígitos entre las tres columnas, que si no bailan.
- */
-function Kpi({ label, value }: { label: string; value: string }) {
-  return (
-    <div className='min-w-0'>
-      <dt className='text-muted-foreground text-[11px] leading-tight md:text-sm'>{label}</dt>
-      <dd className='mt-1 text-base font-semibold tabular-nums tracking-tight md:text-3xl'>
-        {value}
-      </dd>
     </div>
   )
 }
