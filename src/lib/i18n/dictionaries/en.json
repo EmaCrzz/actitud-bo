@@ -1213,6 +1213,57 @@
         "title": "Are you sure you want to delete this sale?",
         "description": "The sale is permanently deleted and no longer counts toward the total collected."
       }
+    },
+    "balance": {
+      "title": "Balance",
+      "subtitle": "Report of recorded income and expenses",
+      "month": {
+        "previous": "Previous month",
+        "next": "Next month",
+        "current": "Current month"
+      },
+      "result": {
+        "title": "Result for the month",
+        "income": "Income",
+        "expenses": "Expenses",
+        "vsPrevious": "{amount} vs {month}",
+        "noPrevious": "No data from the previous month to compare"
+      },
+      "evolution": {
+        "title": "Trend",
+        "subtitle": "Last 6 months",
+        "income": "Income",
+        "expenses": "Expenses",
+        "result": "Result",
+        "tableCaption": "Income, expenses and result for the last 6 months",
+        "month": "Month",
+        "showTable": "Show as table",
+        "showChart": "Show as chart"
+      },
+      "concept": {
+        "title": "Income by concept",
+        "products": "Products"
+      },
+      "category": {
+        "title": "Expenses by category"
+      },
+      "method": {
+        "title": "Income by payment method"
+      },
+      "adjustments": {
+        "title": "Discounts and surcharges",
+        "discounts": "Discounts",
+        "surcharges": "Surcharges",
+        "count": "{count} fees",
+        "countOne": "1 fee",
+        "hint": "How much this month's fees departed from list price. Already included in income."
+      },
+      "empty": "No activity this month",
+      "share": "{pct}% of total",
+      "error": {
+        "title": "We couldn't load the balance",
+        "description": "Check your connection and try again."
+      }
     }
   }
 }

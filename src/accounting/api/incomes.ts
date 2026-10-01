@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { shiftMonthKey } from '@/lib/month-key'
 import { requireAdmin } from '@/auth/api/server'
 import {
   getAppTzDateParts,
@@ -59,13 +60,10 @@ const CYCLE_EXCLUDED_MEMBERSHIP_TYPES = [MEMBERSHIP_TYPE_VIP, MEMBERSHIP_TYPE_DA
  * antes/después están en el ADR 20260925103921.
  * ========================================================================== */
 
-// Devuelve el "YYYY-MM" del mes anterior a `monthKey`.
+// Devuelve el "YYYY-MM" del mes anterior a `monthKey`. El cálculo vive en
+// `@/lib/month-key`, compartido con el Balance de v2.
 function getPreviousMonthKey(monthKey: string): string {
-  const [year, month] = monthKey.split('-').map(Number)
-  const prevYear = month === 1 ? year - 1 : year
-  const prevMonth = month === 1 ? 12 : month - 1
-
-  return `${prevYear}-${String(prevMonth).padStart(2, '0')}`
+  return shiftMonthKey(monthKey, -1)
 }
 
 // Trae la suma y cantidad de pagos en el rango del mes.

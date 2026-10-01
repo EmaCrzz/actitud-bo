@@ -65,6 +65,8 @@
 
   --color-feedback-success: var(--color-feedback-success);
   --color-feedback-error: var(--color-feedback-error);
+  --color-chart-income: var(--color-chart-income);
+  --color-chart-expense: var(--color-chart-expense);
   --color-feedback-info: var(--color-feedback-info);
 
   --color-accent-foreground: var(--accent-foreground);
@@ -139,6 +141,15 @@
   --color-feedback-warning: #9e6c00; /* yellow/11 Figma */
   --color-feedback-error: #dc2626;
   --color-feedback-info: #2563eb;
+
+  /* Gráficos — Balance (Fase 13). Ingresos y egresos son IDENTIDAD, no estado:
+   * por eso no son el verde/rojo de feedback (que dicen "bien/mal") sino los
+   * slots 1 y 2 de la paleta categórica validada. Contra este fondo blanco
+   * pasan los cinco checks del validador de la skill de dataviz: CVD ΔE 24.7
+   * (protan), visión normal ΔE 33.6, contraste >= 3:1. Medido 2026-10-01.
+   * Cuando llegue la paleta de marca, re-validar antes de cambiarlos. */
+  --color-chart-income: #2a78d6;
+  --color-chart-expense: #eb6834;
 
   /* Input */
   --color-input-background: #ffffff;
