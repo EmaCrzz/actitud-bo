@@ -41,10 +41,40 @@ interface FilterBarProps {
   action?: ReactNode
   /** Los dropdowns de filtro. */
   children?: ReactNode
+  /**
+   * Desde qué ancho los filtros comparten la fila del search. Default `sm`.
+   *
+   * `never` es para barras con muchos filtros: Ventas tiene cuatro (dos fechas
+   * y dos selects). Con el sidebar abierto no entraban junto al search a 1024
+   * —la fila medía más que el card— y a 1280 entraban dejando el search en
+   * 94px, que no sirve para escribir un nombre (medido el 2026-10-01). Los
+   * filtros van siempre en su propia fila, debajo del search.
+   */
+  inlineFrom?: 'sm' | 'never'
   className?: string
 }
 
-export default function FilterBar({ search, action, children, className }: FilterBarProps) {
+// Clases completas y no interpoladas: Tailwind sólo genera las que lee literales.
+const LAYOUT = {
+  sm: {
+    filters: 'order-3 w-full flex-wrap sm:order-2 sm:w-auto sm:flex-nowrap',
+    action: 'order-2 sm:order-3',
+  },
+  never: {
+    filters: 'order-3 w-full flex-wrap',
+    action: 'order-2',
+  },
+} as const
+
+export default function FilterBar({
+  search,
+  action,
+  children,
+  inlineFrom = 'sm',
+  className,
+}: FilterBarProps) {
+  const layout = LAYOUT[inlineFrom]
+
   return (
     // Search, dropdowns y acción miden los tres 36px por construcción (`h-9` en
     // el Input, en el SelectTrigger y en el size `md` del Button), así que
@@ -56,11 +86,14 @@ export default function FilterBar({ search, action, children, className }: Filte
         // propia fila) y `sm:w-auto` los mete en la fila del search en desktop.
         // Los dropdowns traen su propio ancho de desktop: si dependieran del
         // contenedor se desbordarían, porque el SelectTrigger es `w-full`.
-        <div className='order-3 flex w-full min-w-0 items-center gap-2 sm:order-2 sm:w-auto'>
-          {children}
-        </div>
+        //
+        // `flex-wrap` mientras los filtros tienen fila propia: deja que una
+        // sección los agrupe en más de una fila (Ventas pone fechas en una y
+        // selects en otra). Los filtros sueltos son `flex-1 min-w-0`, así que no
+        // wrapean nunca.
+        <div className={cn('flex min-w-0 items-center gap-2', layout.filters)}>{children}</div>
       )}
-      {action && <div className='order-2 shrink-0 sm:order-3'>{action}</div>}
+      {action && <div className={cn('shrink-0', layout.action)}>{action}</div>}
     </div>
   )
 }

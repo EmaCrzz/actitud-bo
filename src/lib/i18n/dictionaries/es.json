@@ -1105,6 +1105,113 @@
         "title": "¿Seguro que quieres eliminar este registro?",
         "description": "El gasto se borra de forma permanente y deja de contar en el balance."
       }
+    },
+    "sales": {
+      "title": "Ventas",
+      "new": "Nueva venta",
+      "menu": {
+        "withCustomer": "Buscar cliente",
+        "withoutCustomer": "Continuar sin cliente"
+      },
+      "summary": "{count} ventas registradas",
+      "summaryOne": "1 venta registrada",
+      "summaryEmpty": "Sin ventas registradas",
+      "kpi": {
+        "total": "Total cobrado",
+        "cash": "Efectivo",
+        "transfer": "Transferencias"
+      },
+      "filters": {
+        "search": "Busca por nombre o apellido",
+        "from": "Desde",
+        "to": "Hasta",
+        "method": "Método",
+        "methodAll": "Todos los métodos",
+        "kind": "Concepto",
+        "kindAll": "Todos los conceptos",
+        "kindMembership": "Membresías",
+        "kindProduct": "Productos"
+      },
+      "export": "Exportar",
+      "exportFilename": "ventas",
+      "columns": {
+        "buyer": "Nombre y Apellido",
+        "concept": "Concepto",
+        "amount": "Monto",
+        "date": "Fecha",
+        "method": "Método de pago"
+      },
+      "concept": {
+        "membership": "Membresía {plan}",
+        "product": "Producto: {description}"
+      },
+      "noBuyer": "Sin cliente",
+      "readOnlyRow": "Las cuotas se registran desde la renovación de membresía",
+      "pagination": "{page} de {total} páginas",
+      "empty": {
+        "title": "Aún no se registraron ventas.",
+        "description": "Registrá la primera venta para empezar a seguir lo cobrado en el período."
+      },
+      "emptyFiltered": {
+        "title": "Ninguna venta coincide con los filtros.",
+        "description": "Probá ampliar el rango de fechas o limpiar la búsqueda."
+      },
+      "error": {
+        "title": "No pudimos cargar las ventas",
+        "description": "Revisá la conexión y volvé a intentar."
+      },
+      "form": {
+        "createTitle": "Nueva venta",
+        "editTitle": "Editar venta",
+        "searchPrompt": "Buscá al cliente que hace la compra.",
+        "chooseConcept": "¿Qué se vende?",
+        "conceptMembership": "Membresía",
+        "conceptMembershipDescription": "Renovaciones o cambio de plan.",
+        "conceptProduct": "Producto",
+        "conceptProductDescription": "Indumentaria, suplementos u otros.",
+        "section": "Producto",
+        "buyerName": "Datos de referencia",
+        "buyerNamePlaceholder": "Ej: Nombre Cliente",
+        "buyerNameHint": "Opcional. Sin este dato la venta figura como «Sin cliente».",
+        "description": "Detalle de la venta",
+        "descriptionPlaceholder": "Ej: Remera Hombre Talle L",
+        "amount": "Precio de la venta",
+        "date": "Fecha",
+        "method": "Forma de pago",
+        "methodPlaceholder": "Selecciona",
+        "stepDetail": "Detalle de la venta",
+        "stepConfirm": "Confirmar",
+        "submit": "Confirmar venta",
+        "submitEdit": "Guardar cambios",
+        "submitting": "Guardando...",
+        "delete": "Eliminar"
+      },
+      "review": {
+        "title": "Resumen",
+        "customer": "Cliente",
+        "buyerName": "Datos de referencia",
+        "description": "Detalle de la venta",
+        "amount": "Precio de la venta",
+        "method": "Método de pago",
+        "date": "Fecha",
+        "total": "Total"
+      },
+      "errors": {
+        "descriptionRequired": "Escribí el detalle de la venta",
+        "amountRequired": "El precio debe ser mayor a 0",
+        "methodRequired": "Elegí una forma de pago",
+        "dateRequired": "Elegí una fecha",
+        "saveFailed": "No pudimos guardar la venta",
+        "deleteFailed": "No pudimos eliminar la venta"
+      },
+      "success": {
+        "created": "Venta registrada correctamente",
+        "updated": "Venta editada correctamente"
+      },
+      "delete": {
+        "title": "¿Seguro que quieres eliminar esta venta?",
+        "description": "La venta se borra de forma permanente y deja de contar en el total cobrado."
+      }
     }
   }
 }

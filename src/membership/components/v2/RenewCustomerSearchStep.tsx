@@ -21,6 +21,11 @@ const MAX_RESULTS = 8
 
 interface Props {
   onSelect: (customer: CustomerWithMembership) => void
+  /**
+   * Texto antes de escribir. Por default el de la renovación; lo cambia Ventas
+   * (Fase 12), que usa este mismo buscador para elegir a quién se le vende.
+   */
+  prompt?: string
 }
 
 /**
@@ -37,7 +42,7 @@ interface Props {
  * este lado además hace que el estado que se ve acá sea **el mismo** que el del
  * listado y el del perfil, que salen del mismo cálculo.
  */
-export default function RenewCustomerSearchStep({ onSelect }: Props) {
+export default function RenewCustomerSearchStep({ onSelect, prompt }: Props) {
   const { t } = useTranslations()
   const [query, setQuery] = useState('')
   const [debouncedQuery] = useDebounce(query, SEARCH_DEBOUNCE_MS)
@@ -78,7 +83,7 @@ export default function RenewCustomerSearchStep({ onSelect }: Props) {
 
       {!trimmed ? (
         <p className='text-muted-foreground py-2 text-sm'>
-          {t('v2.membership.renew.search.prompt')}
+          {prompt ?? t('v2.membership.renew.search.prompt')}
         </p>
       ) : isFetching && results.length === 0 ? (
         <div aria-busy className='flex flex-col gap-2'>

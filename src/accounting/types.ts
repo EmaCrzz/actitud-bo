@@ -43,6 +43,14 @@ export interface MembershipPayment {
     first_name: string
     last_name: string
   }
+  /**
+   * El plan cobrado. Sólo trae `name`, que es NULL en los 5 del catálogo —esos
+   * resuelven su etiqueta por clave i18n— y el nombre libre en los planes
+   * creados desde la UI (Fase 10). Lo pide `getMembershipLabel`.
+   */
+  plan?: {
+    name: string | null
+  } | null
 }
 
 export interface Expense {

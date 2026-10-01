@@ -1106,6 +1106,113 @@
         "title": "Delete this record?",
         "description": "The expense is permanently removed and stops counting towards the balance."
       }
+    },
+    "sales": {
+      "title": "Sales",
+      "new": "New sale",
+      "menu": {
+        "withCustomer": "Find customer",
+        "withoutCustomer": "Continue without customer"
+      },
+      "summary": "{count} sales recorded",
+      "summaryOne": "1 sale recorded",
+      "summaryEmpty": "No sales recorded",
+      "kpi": {
+        "total": "Total collected",
+        "cash": "Cash",
+        "transfer": "Transfers"
+      },
+      "filters": {
+        "search": "Search by first or last name",
+        "from": "From",
+        "to": "To",
+        "method": "Method",
+        "methodAll": "All methods",
+        "kind": "Concept",
+        "kindAll": "All concepts",
+        "kindMembership": "Memberships",
+        "kindProduct": "Products"
+      },
+      "export": "Export",
+      "exportFilename": "sales",
+      "columns": {
+        "buyer": "Full name",
+        "concept": "Concept",
+        "amount": "Amount",
+        "date": "Date",
+        "method": "Payment method"
+      },
+      "concept": {
+        "membership": "Membership {plan}",
+        "product": "Product: {description}"
+      },
+      "noBuyer": "No customer",
+      "readOnlyRow": "Membership fees are recorded from the membership renewal",
+      "pagination": "{page} of {total} pages",
+      "empty": {
+        "title": "No sales recorded yet.",
+        "description": "Record the first sale to start tracking what was collected in the period."
+      },
+      "emptyFiltered": {
+        "title": "No sales match the filters.",
+        "description": "Try widening the date range or clearing the search."
+      },
+      "error": {
+        "title": "We couldn't load the sales",
+        "description": "Check your connection and try again."
+      },
+      "form": {
+        "createTitle": "New sale",
+        "editTitle": "Edit sale",
+        "searchPrompt": "Find the customer making the purchase.",
+        "chooseConcept": "What is being sold?",
+        "conceptMembership": "Membership",
+        "conceptMembershipDescription": "Renewals or plan changes.",
+        "conceptProduct": "Product",
+        "conceptProductDescription": "Apparel, supplements or other items.",
+        "section": "Product",
+        "buyerName": "Reference",
+        "buyerNamePlaceholder": "E.g. Customer name",
+        "buyerNameHint": "Optional. Without it the sale shows as “No customer”.",
+        "description": "Sale detail",
+        "descriptionPlaceholder": "E.g. Men's T-shirt size L",
+        "amount": "Sale price",
+        "date": "Date",
+        "method": "Payment method",
+        "methodPlaceholder": "Select",
+        "stepDetail": "Sale detail",
+        "stepConfirm": "Confirm",
+        "submit": "Confirm sale",
+        "submitEdit": "Save changes",
+        "submitting": "Saving...",
+        "delete": "Delete"
+      },
+      "review": {
+        "title": "Summary",
+        "customer": "Customer",
+        "buyerName": "Reference",
+        "description": "Sale detail",
+        "amount": "Sale price",
+        "method": "Payment method",
+        "date": "Date",
+        "total": "Total"
+      },
+      "errors": {
+        "descriptionRequired": "Enter the sale detail",
+        "amountRequired": "Price must be greater than 0",
+        "methodRequired": "Choose a payment method",
+        "dateRequired": "Choose a date",
+        "saveFailed": "We couldn't save the sale",
+        "deleteFailed": "We couldn't delete the sale"
+      },
+      "success": {
+        "created": "Sale recorded successfully",
+        "updated": "Sale updated successfully"
+      },
+      "delete": {
+        "title": "Are you sure you want to delete this sale?",
+        "description": "The sale is permanently deleted and no longer counts toward the total collected."
+      }
     }
   }
 }

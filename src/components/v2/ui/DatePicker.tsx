@@ -111,7 +111,12 @@ export default function DatePicker({
             id={id ?? name}
             type='button'
           >
-            <span className='truncate'>{value ? formatCalendarDate(value) : placeholder}</span>
+            {/* `min-w-0`: sin él el span —hijo flex— no se achica por debajo de
+                su texto y el truncate no corta. Ver el comentario gemelo en el
+                trigger del `Select`. */}
+            <span className='min-w-0 truncate'>
+              {value ? formatCalendarDate(value) : placeholder}
+            </span>
             <CalendarIcon aria-hidden className='size-4 shrink-0 text-muted-foreground' />
           </button>
         </PopoverTrigger>

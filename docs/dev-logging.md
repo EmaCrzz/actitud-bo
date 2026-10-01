@@ -12,7 +12,9 @@ DEV_LOG_FILE=/tmp/devlog.jsonl npm run dev
 ```
 
 Sin esa variable **toda la instrumentación es no-op**, así que las llamadas
-pueden quedar en el código. Nunca se activa con `NODE_ENV=production`.
+pueden quedar en el código. Nunca se activa con `NODE_ENV=production`. El
+`DevLogger` del cliente ni se monta (lo gatea el layout), así que un `npm run dev`
+normal no dispara ningún request a `/api/devlog`.
 
 Después, sobre el archivo:
 

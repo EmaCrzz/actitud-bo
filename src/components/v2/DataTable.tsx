@@ -62,6 +62,15 @@ interface DataTableProps<T> {
    */
   rowChevron?: boolean
   onRowClick?: (row: T) => void
+  /**
+   * Qué filas responden a `onRowClick`. Sin esto, todas.
+   *
+   * Lo introduce Ventas (Fase 12), que mezcla en una misma tabla filas que se
+   * editan —las ventas de producto— con filas de sólo lectura —las cuotas de
+   * membresía—. Una fila que no se abre no lleva hover, cursor ni chevron:
+   * mostrarlos sería prometer una acción que no existe.
+   */
+  isRowClickable?: (row: T) => boolean
 
   isLoading?: boolean
   /** Si viene, reemplaza la tabla. Para fallos de carga. */
@@ -97,6 +106,7 @@ export default function DataTable<T>({
   rowActions,
   rowChevron = false,
   onRowClick,
+  isRowClickable,
   isLoading = false,
   error,
   empty,
@@ -157,14 +167,14 @@ export default function DataTable<T>({
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
+          {rows.map((row) => {
+            const clickable = Boolean(onRowClick) && (isRowClickable?.(row) ?? true)
+
+            return (
             <tr
               key={getRowId(row)}
-              className={cn(
-                'transition-colors',
-                onRowClick && 'hover:bg-muted/50 hover:cursor-pointer'
-              )}
-              onClick={onRowClick ? () => onRowClick(row) : undefined}
+              className={cn('transition-colors', clickable && 'hover:bg-muted/50 hover:cursor-pointer')}
+              onClick={clickable ? () => onRowClick?.(row) : undefined}
             >
               {columns.map((column) => (
                 <td
@@ -191,11 +201,14 @@ export default function DataTable<T>({
                   a hacer click, y frenarlo la volvía una zona muerta. */}
               {!rowActions && rowChevron && (
                 <td className='border-b px-3 py-3 text-right'>
-                  <ChevronRight aria-hidden className='inline size-4 text-muted-foreground' />
+                  {clickable && (
+                    <ChevronRight aria-hidden className='inline size-4 text-muted-foreground' />
+                  )}
                 </td>
               )}
             </tr>
-          ))}
+            )
+          })}
         </tbody>
       </table>
 

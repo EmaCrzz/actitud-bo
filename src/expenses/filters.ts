@@ -1,7 +1,11 @@
 import { PaymentTypeArray, type PaymentType } from '@/membership/consts'
 import { removeAccents } from '@/lib/utils/text'
 import type { Expense } from '@/accounting/types'
-import { getMonthRangeInAppTz, parseAppTzDateString, toAppTzIsoDate } from '@/lib/timezone'
+import {
+  getDefaultMonthRangeInAppTz,
+  parseDateRangeParams,
+  rangeListFiltersToQueryString,
+} from '@/lib/date-range-params'
 import { parsePageParam, readParam, type RawSearchParams } from '@/lib/search-params'
 
 /** Valor del dropdown que representa "sin filtrar". Es el default de `FilterDropdown`. */
@@ -44,79 +48,32 @@ export interface ExpenseListFilters {
  * Rango por default: **el mes en curso**.
  *
  * Sale de las capturas, que muestran `01/08/2026` y `31/08/2026` en una
- * pantalla fechada "Lunes, 01 de Agosto". Se calcula con
- * `getMonthRangeInAppTz`, no con `new Date()`: el server corre en UTC y el
- * primer día del mes calculado ahí se adelanta tres horas, así que el 1 a la
- * medianoche AR caería en el mes anterior.
- *
- * `end` es el arranque exclusivo del mes siguiente, así que el último día del
- * mes se obtiene restándole un día.
+ * pantalla fechada "Lunes, 01 de Agosto". El cálculo vive en
+ * `getDefaultMonthRangeInAppTz`, compartido con Ventas.
  */
-export function getDefaultExpenseRange(now: Date = new Date()): { from: string; to: string } {
-  const { start, end } = getMonthRangeInAppTz(now)
-  const lastDay = new Date(end.getTime() - 1)
-
-  return { from: toAppTzIsoDate(start), to: toAppTzIsoDate(lastDay) }
-}
-
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
-
-/**
- * ¿Es un día de calendario que existe?
- *
- * El regex solo **no alcanza**, y lo descubrió su propio test: `2026-13-45`
- * tiene la forma correcta, así que pasaba el filtro, y como ordena después de
- * `2026-09-30` disparaba el swap del rango invertido y terminaba mandando a
- * Postgres un mes 13. El round trip por la TZ del negocio descarta también los
- * días que no existen en su mes (`2026-02-30` vuelve como `2026-03-02`).
- */
-function isRealAppTzDate(iso: string): boolean {
-  if (!ISO_DATE.test(iso)) return false
-
-  return toAppTzIsoDate(parseAppTzDateString(iso)) === iso
-}
+export const getDefaultExpenseRange = getDefaultMonthRangeInAppTz
 
 /**
  * Lee los filtros de los searchParams. Un valor inválido no filtra en vez de
- * romper la página — mismo criterio que `parseCustomerFilters`.
- *
- * Las fechas caen al mes en curso si faltan o no son días reales — ver
- * `isRealAppTzDate`. Un rango inválido que pasara silencioso listaría cero
- * gastos con cara de "no hay nada cargado", o directamente rompería la query.
+ * romper la página — mismo criterio que `parseCustomerFilters`. El rango lo
+ * resuelve `parseDateRangeParams`: ver ahí el fallback y el swap.
  */
 export function parseExpenseFilters(
   params: RawSearchParams,
   now: Date = new Date()
 ): ExpenseListFilters {
-  const fallback = getDefaultExpenseRange(now)
-  const from = readParam(params, EXPENSE_FILTER_PARAM.from)
-  const to = readParam(params, EXPENSE_FILTER_PARAM.to)
   const method = readParam(params, EXPENSE_FILTER_PARAM.method)
 
-  const parsed = {
+  return {
     query: readParam(params, EXPENSE_FILTER_PARAM.query) ?? '',
-    from: from && isRealAppTzDate(from) ? from : fallback.from,
-    to: to && isRealAppTzDate(to) ? to : fallback.to,
+    ...parseDateRangeParams(params, EXPENSE_FILTER_PARAM, now),
     method: PaymentFilterArray.includes(method ?? '') ? (method as ExpensePaymentFilter) : null,
   }
-
-  // Un rango dado vuelta (`from` posterior a `to`) devolvería cero filas sin
-  // decir por qué. Se ordena en vez de vaciarse: es lo que el operador quiso.
-  return parsed.from > parsed.to ? { ...parsed, from: parsed.to, to: parsed.from } : parsed
 }
 
 /** Serializa los filtros a query string (sin `?`). */
 export function expenseFiltersToQueryString(filters: ExpenseListFilters, page = 0): string {
-  const params = new URLSearchParams()
-
-  if (filters.query.trim()) params.set(EXPENSE_FILTER_PARAM.query, filters.query.trim())
-  params.set(EXPENSE_FILTER_PARAM.from, filters.from)
-  params.set(EXPENSE_FILTER_PARAM.to, filters.to)
-  if (filters.method) params.set(EXPENSE_FILTER_PARAM.method, filters.method)
-  // En la URL la página es 1-indexed, que es la que ve el operador.
-  if (page > 0) params.set(EXPENSE_FILTER_PARAM.page, String(page + 1))
-
-  return params.toString()
+  return rangeListFiltersToQueryString(filters, page, EXPENSE_FILTER_PARAM)
 }
 
 export function parseExpensePage(params: RawSearchParams): number {

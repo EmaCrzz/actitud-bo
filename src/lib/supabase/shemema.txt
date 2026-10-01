@@ -130,6 +130,24 @@ CREATE TABLE public.profile (
   CONSTRAINT profile_pkey PRIMARY KEY (id),
   CONSTRAINT profile_auth_id_fkey FOREIGN KEY (auth_id) REFERENCES auth.users(id)
 );
+-- Ventas de producto (Fase 12, migración 20261001100524). Las cuotas de
+-- membresía NO van acá: viven en membership_payments y la sección Ventas une
+-- las dos al leer. RLS admin-only en las cuatro operaciones.
+CREATE TABLE public.sales (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  customer_id uuid,
+  buyer_name character varying,
+  description character varying NOT NULL CHECK (btrim(description::text) <> ''::text),
+  amount real NOT NULL CHECK (amount > 0::double precision),
+  payment_method character varying NOT NULL CHECK (payment_method::text = ANY (ARRAY['PAYMENT_CASH'::character varying, 'PAYMENT_TRANSFER'::character varying]::text[])),
+  -- Medianoche AR, canonicalizada por el server. Sin DEFAULT a propósito.
+  sale_date timestamp with time zone NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT sales_pkey PRIMARY KEY (id),
+  CONSTRAINT sales_customer_id_fkey FOREIGN KEY (customer_id) REFERENCES public.customers(id),
+  CONSTRAINT sales_single_buyer_check CHECK (customer_id IS NULL OR buyer_name IS NULL)
+);
 CREATE TABLE public.types_memberships (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   type character varying NOT NULL DEFAULT ''::character varying UNIQUE,

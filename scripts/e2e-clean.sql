@@ -22,6 +22,12 @@ SELECT id FROM customers WHERE first_name LIKE '[E2E]%';
 \echo 'Clientes de test encontrados:'
 SELECT count(*) AS clientes FROM e2e_victims;
 
+-- Ventas de producto (Fase 12). Van antes que los clientes: la FK de
+-- `sales.customer_id` es NO ACTION —borrar un cliente no puede borrar el
+-- registro de que esa plata entró—, así que un cliente de test con una venta
+-- no se podría borrar. Las ventas sin cliente se limpian por su detalle.
+DELETE FROM sales WHERE customer_id IN (SELECT id FROM e2e_victims);
+DELETE FROM sales WHERE description LIKE '[E2E]%';
 DELETE FROM membership_payments WHERE customer_id IN (SELECT id FROM e2e_victims);
 DELETE FROM assistance          WHERE customer_id IN (SELECT id FROM e2e_victims);
 DELETE FROM customer_membership WHERE customer_id IN (SELECT id FROM e2e_victims);
