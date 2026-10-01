@@ -25,9 +25,14 @@ import dynamic from 'next/dynamic'
  * `window.fetch` incluido— porque webpack elimina el JSX de la rama muerta pero
  * no el import de módulo. Inerte, pero código muerto en el bundle de cada
  * usuario. Así el módulo queda en un chunk aparte que producción no pide nunca.
+ *
+ * También se gatea por `DEV_LOG_FILE` (se lee acá porque el layout es server
+ * component): sin la variable, el sumidero responde 404 y el logger llenaba la
+ * consola con un 404 por cada request que parcheaba. `NODE_ENV` va primero
+ * para que en producción la rama siga siendo eliminable en build.
  */
 const DevLogger =
-  process.env.NODE_ENV === 'development'
+  process.env.NODE_ENV === 'development' && process.env.DEV_LOG_FILE
     ? dynamic(() => import('@/components/dev/DevLogger'))
     : () => null
 

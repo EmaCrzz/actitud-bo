@@ -84,9 +84,16 @@ export default function PWAInstallManager() {
     setUserEngagement(engagement)
     setMenuDismissedAt(lastDismissed ? Number.parseInt(lastDismissed) : null)
 
-    // Registrar Service Worker
+    // Registrar Service Worker. En dev se desregistra: cachea chunks de `/_next/`
+    // con hashes de compilaciones viejas y rompe Fast Refresh con 404s.
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js')
+      if (process.env.NODE_ENV === 'production') {
+        navigator.serviceWorker.register('/sw.js')
+      } else {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          registrations.forEach((registration) => registration.unregister())
+        })
+      }
     }
 
     // Manejar evento de instalación nativo
