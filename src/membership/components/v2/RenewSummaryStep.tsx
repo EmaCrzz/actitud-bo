@@ -9,6 +9,7 @@ import type { TranslationKey } from '@/lib/i18n/types'
 import { getPeriodModeOptions } from '@/membership/charge-mode'
 import { MEMBERSHIP_TYPE_VIP } from '@/membership/consts'
 import { PaymentsTranslation, type PaymentType } from '@/membership/consts'
+import type { DiscountRule } from '@/group/types'
 import { getPeriodLabel, type RenewalAmounts, type RenewalFormValues } from '@/membership/renewal'
 import type { MembershipType } from '@/membership/types'
 import { getMembershipLabel } from '@/membership/catalog'
@@ -32,6 +33,8 @@ interface Props {
   values: RenewalFormValues
   selectedType: MembershipType | null
   amounts: RenewalAmounts
+  /** La promoción elegida. Su monto viaja en `amounts.discount`. */
+  promotion: DiscountRule | null
   /** Período efectivo — el de `resolveRenewalPeriod`, no el estado crudo. */
   period: { start_date: string; end_date: string }
   /** Ver `RenewMembershipPanel`: este cobro pisa un pago ya comprobado. */
@@ -69,6 +72,7 @@ export default function RenewSummaryStep({
   values,
   selectedType,
   amounts,
+  promotion,
   period,
   warnsTypeChange,
 }: Props) {
@@ -100,11 +104,20 @@ export default function RenewSummaryStep({
 
         {!isVip && (
           <>
-            <Row label={t('v2.membership.renew.summary.promotion')}>
-              {t('v2.membership.renew.noPromotion')}
+            {/* El monto descontado va en la fila de la promo o en la de
+                Descuento, nunca en las dos: son excluyentes, y repetirlo haría
+                que la tabla parezca restar dos veces. */}
+            <Row wrap label={t('v2.membership.renew.summary.promotion')}>
+              {promotion ? (
+                <PromotionValue amount={amounts.discount} name={promotion.name} />
+              ) : (
+                t('v2.membership.renew.noPromotion')
+              )}
             </Row>
             <Row label={t('v2.membership.renew.summary.discount')}>
-              {amounts.discount > 0 ? `- ${formatCurrency(amounts.discount)}` : empty}
+              {!promotion && amounts.discount > 0
+                ? `- ${formatCurrency(amounts.discount)}`
+                : empty}
             </Row>
             <Row label={t('v2.membership.renew.summary.surcharge')}>
               {amounts.surcharge > 0 ? `+ ${formatCurrency(amounts.surcharge)}` : empty}
@@ -148,12 +161,43 @@ export default function RenewSummaryStep({
 
 // Sub-componentes
 
-function Row({ label, children }: { label: string; children: ReactNode }) {
+/**
+ * `wrap` es para los valores que no controlamos: el nombre de una promoción lo
+ * carga el operador y puede ser largo. Truncado, el monto —que es lo que hay
+ * que verificar antes de confirmar— quedaba fuera de la vista.
+ */
+function Row({
+  label,
+  children,
+  wrap = false,
+}: {
+  label: string
+  children: ReactNode
+  wrap?: boolean
+}) {
   return (
     <div className='flex items-baseline justify-between gap-3 border-b px-4 py-3 text-sm last:border-b-0'>
-      <dt className='text-muted-foreground'>{label}</dt>
-      <dd className='truncate text-right font-medium'>{children}</dd>
+      <dt className={wrap ? 'text-muted-foreground shrink-0' : 'text-muted-foreground'}>
+        {label}
+      </dt>
+      <dd
+        className={
+          wrap ? 'min-w-0 text-right font-medium break-words' : 'truncate text-right font-medium'
+        }
+      >
+        {children}
+      </dd>
     </div>
+  )
+}
+
+/** Nombre arriba y monto abajo: el monto lleva el "-" de lo que resta, como Descuento. */
+function PromotionValue({ name, amount }: { name: string; amount: number }) {
+  return (
+    <span className='flex flex-col items-end'>
+      <span>{name}</span>
+      <span>{`- ${formatCurrency(amount)}`}</span>
+    </span>
   )
 }
 

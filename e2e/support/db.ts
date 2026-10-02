@@ -53,6 +53,9 @@ export interface MembershipPaymentRow {
   period_start: string
   membership_type: string
   payment_method: string
+  discount_amount: number
+  discount_rule_id: string | null
+  discount_note: string | null
 }
 
 /**
@@ -77,7 +80,9 @@ export async function findLatestPaymentByPersonId(
 
   const { data, error } = await client
     .from('membership_payments')
-    .select('id, customer_id, amount, payment_date, period_start, membership_type, payment_method')
+    .select(
+      'id, customer_id, amount, payment_date, period_start, membership_type, payment_method, discount_amount, discount_rule_id, discount_note'
+    )
     .eq('customer_id', customer.id)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -224,6 +229,30 @@ export async function deleteMembershipPlanInDb(type: string): Promise<void> {
   const { error } = await client.from('types_memberships').delete().eq('type', type)
 
   if (error) throw new Error(`No se pudo borrar el plan de prueba: ${error.message}`)
+}
+
+/**
+ * Crea una promoción directo en la DB y devuelve su id.
+ *
+ * Va por DB porque la pantalla que las crea (Configuración → Promociones) es de
+ * la Fase 14 y todavía no existe. La borra el teardown por el prefijo `[E2E]`,
+ * después de los pagos que la referencian — ver `scripts/e2e-clean.sql`.
+ */
+export async function createDiscountRuleInDb(rule: {
+  name: string
+  value: number
+}): Promise<string> {
+  const client = await getDbClient()
+
+  const { data, error } = await client
+    .from('discount_rules')
+    .insert({ name: rule.name, type: 'fixed', value: rule.value, applies_to: 'promo' })
+    .select('id')
+    .single()
+
+  if (error) throw new Error(`No se pudo crear la promoción de prueba: ${error.message}`)
+
+  return data.id as string
 }
 
 export interface ExpenseRow {

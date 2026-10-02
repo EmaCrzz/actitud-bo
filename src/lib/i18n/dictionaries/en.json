@@ -908,7 +908,9 @@
         "noteLabel": "Reason",
         "noteLabelOptional": "Reason (optional)",
         "notePlaceholder": "Why it applies",
-        "discountReason": "{group} · {members} active members",
+        "promotionNotePlaceholder": "E.g. comes together with her sister",
+        "discountLockedByPromotion": "A promotion is already applied. Remove it first to enter a manual amount.",
+        "promotionLockedByDiscount": "A manual discount is already applied. Remove it first to pick a promotion.",
         "reason": {
           "late_payment": "Already attended this month and is paying past the due date.",
           "mid_month_entry": "Joining in the second half of the month: half membership, not a late payment."
