@@ -24,7 +24,15 @@ function entry(
   }
 
   return kind === SALE_KIND_MEMBERSHIP
-    ? { ...base, kind, membershipType: 'MEMBERSHIP_TYPE_5_DAYS', planName: null }
+    ? {
+        ...base,
+        kind,
+        membershipType: 'MEMBERSHIP_TYPE_5_DAYS',
+        planName: null,
+        discountAmount: 0,
+        surchargeAmount: 0,
+        weeklyQuota: null,
+      }
     : {
         ...base,
         kind,

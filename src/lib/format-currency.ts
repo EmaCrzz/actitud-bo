@@ -52,3 +52,19 @@ export function parseCurrency(value: string | number): number {
 
   return isNaN(parsed) ? 0 : parsed
 }
+
+/**
+ * Monto abreviado para ejes y etiquetas de gráficos: `$ 1,5 M`, `$ 500 mil`.
+ *
+ * Sólo para donde el monto exacto vive en otro lado (tooltip, tabla): un eje
+ * con `$ 1.934.400` no entra, y redondeado a la unidad no le sirve a nadie.
+ */
+export function formatCompactCurrency(amount: number, { lang = 'es' }: { lang?: Language } = {}) {
+  const locale = lang === 'es' ? 'es-ES' : 'en-US'
+  const formatted = new Intl.NumberFormat(locale, {
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).format(amount)
+
+  return `$ ${formatted}`
+}

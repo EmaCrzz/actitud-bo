@@ -31,8 +31,8 @@
 | 10 | Sección Membresías (planes y precios) | ✅ completa | Rama `feat/v2-membresias`. ADR [20260928112705](../architecture/decisions/20260928112705_v2-seccion-membresias-y-catalogo-de-planes.md). **Catálogo híbrido**: se crean planes y los 5 originales conservan su comportamiento especial. Vive en `/v2/settings/memberships`; se borró el stub de `/v2/memberships`. **Lleva migración aditiva** `20260928110544` (B6 cerrada). |
 | 10b | Grupos de clientes (familiares) | 🔵 relevada, sin planificar | **No estaba en el plan original**; capturas del 2026-09-29. El panel ya existe en v1 casi 1:1; lo nuevo es la tabla del listado. Relevada contra prod y **pausada a pedido de Ema** para revisarla con calma. Decidido: el descuento sólo se muestra, y eliminar pasa a baja lógica. Abierto: las columnas derivadas → [decisión #17](#decisiones-abiertas--riesgos). |
 | 11 | Sección Gastos (crear/editar/eliminar) | ✅ completa · **en prod (v0.17.0)** | Rama `feat/v2-gastos`. ADR [20260930121500](../architecture/decisions/20260930121500_v2-seccion-gastos-y-medio-de-pago.md). **Lleva migración aditiva** `20260929104500` (B1 cerrada): `payment_method` **nullable, sin backfill** — decisión #8 resuelta midiendo prod (29 gastos) . De paso se arregló un bug que bloqueaba el **alta de cliente el último día de cada mes**. |
-| 12 | Sección Ventas (cuotas + productos) | ✅ completa | Rama `feat/v2-ventas`. ADR [20261001100524](../architecture/decisions/20261001100524_v2-seccion-ventas.md). **Ventas es todo lo cobrado**: cuotas de `membership_payments` + productos de la tabla nueva `sales`, unidas al leer. Sin catálogo, sin stock, un producto por venta. **Lleva migración aditiva** `20261001100524` (A1 cerrada). Capturas versionadas en [figma/ventas/](figma/ventas/). |
-| 13 | Balance | ⬜ pendiente | Depende de 11 y 12 — **las dos cerradas**. Ojo: `/incomes`, `getMonthlyStats` y el resumen del día del home todavía no suman `sales`. |
+| 12 | Sección Ventas (cuotas + productos) | ✅ completa · **en prod (v0.18.0)** | Rama `feat/v2-ventas`. ADR [20261001100524](../architecture/decisions/20261001100524_v2-seccion-ventas.md). **Ventas es todo lo cobrado**: cuotas de `membership_payments` + productos de la tabla nueva `sales`, unidas al leer. Sin catálogo, sin stock, un producto por venta. **Lleva migración aditiva** `20261001100524` (A1 cerrada). Capturas versionadas en [figma/ventas/](figma/ventas/). |
+| 13 | Balance | ✅ completa | Rama `feat/v2-balance`. ADR [20261001154047](../architecture/decisions/20261001154047_v2-balance.md). **Navegador de mes** en vez de rango; ingresos contra egresos en la evolución; desgloses de los dos lados que suman exactamente su total. **Cuadra con Ventas y Gastos por construcción** (spec e2e). Sin migraciones. Capturas en [figma/balance/](figma/balance/). |
 | 14 | Configuración (Negocio / Membresías / Promociones / Usuarios) | ⬜ pendiente | Requiere tabla de settings del negocio. |
 | 15 | Promoción de v2 a default + retiro de v1 | ⬜ pendiente | Fuera del alcance actual; se planifica cuando 3–14 estén cerradas. |
 
@@ -44,13 +44,15 @@
 
 **La Fase 12 (Ventas) se cerró el 2026-10-01** — rama `feat/v2-ventas`, ADR [20261001100524](../architecture/decisions/20261001100524_v2-seccion-ventas.md). La [decisión #5](#decisiones-abiertas--riesgos) la respondió Ema (sin stock, sin catálogo, editar y borrar como Gastos) y **las capturas cambiaron el alcance**: el panel "Nueva venta" ofrece `Membresía` al lado de `Producto`, así que **Ventas es todo lo que se cobra**. Las cuotas siguen en `membership_payments`, los productos van a `sales`, y la sección las une al leer — cada peso vive en una sola tabla. Ver [Fase 12](#fase-12--sección-ventas).
 
-> ⚠️ **Lleva migración aditiva `20261001100524`, que va a prod ANTES del release.** Ensayada contra dev y prod; **ya aplicada en dev** con auditoría de integridad idéntica antes y después.
+**La Fase 12 viajó a producción como v0.18.0 el 2026-10-01** (PR [#73](https://github.com/EmaCrzz/actitud-bo/pull/73)). La migración `20261001100524` se aplicó antes del release con el procedimiento completo, y la auditoría de integridad dio **idéntica antes y después**. Prod sigue con **0 usuarios con `v2_access`** —la tabla `user_feature_flags` está vacía—, así que la sección nueva viaja apagada.
 
-**El movimiento siguiente es la Fase 13 (Balance), que ya no tiene bloqueos.** Lo primero que tiene que resolver: sumar `sales` al ingreso. Hoy `getMonthlyStats`, el dashboard `/incomes` de v1 y el "Resumen del día" del home sólo leen `membership_payments`, así que se quedan cortos en cuanto alguien con v2 cargue una venta de producto. La alternativa sigue siendo la [Fase 10b](#fase-10b--grupos-de-clientes-familiares), esperando la [decisión #17](#decisiones-abiertas--riesgos).
+**La Fase 13 (Balance) se cerró el 2026-10-01** — rama `feat/v2-balance`, ADR [20261001154047](../architecture/decisions/20261001154047_v2-balance.md). Ema la sentía vacía; medido prod, no le faltaban bloques sino que **le sobraban los que repetían Ventas**. Quedó como ingresos **contra** egresos: resultado del mes, evolución de los dos lados, ingresos por concepto (planes + productos), egresos por categoría, método de pago y descuentos/recargos. Navegador de mes en vez de los dos datepickers del diseño. **Sin migraciones.** Ver [Fase 13](#fase-13--balance).
+
+**El movimiento siguiente:** la [Fase 14](#fase-14--configuración) (necesita `business_settings` y bucket de Storage) o la [Fase 10b](#fase-10b--grupos-de-clientes-familiares) (relevada, esperando la [decisión #17](#decisiones-abiertas--riesgos)). Quedó **en espera hasta la Fase 15**, por decisión de Ema: el ciclo de cobro y la lista de pendientes de `/incomes` de v1, que no tienen lugar en v2 todavía.
 
 ---
 
-**Las fases 0–12 están cerradas (salvo la 10b, pausada). Quedan tres: 13 Balance, 14 Configuración y 15 promoción de v2.** De las pantallas de v2, **cuatro siguen siendo `UnderConstruction`** — `balance` y tres de `settings` (`business`, `promotions`, `users`); medido el 2026-10-01 con un grep sobre `v2/`.
+**Las fases 0–13 están cerradas (salvo la 10b, pausada). Quedan dos: 14 Configuración y 15 promoción de v2.** De las pantallas de v2, **tres siguen siendo `UnderConstruction`** — las de `settings` (`business`, `promotions`, `users`); medido el 2026-10-01 con un grep sobre `v2/`.
 
 **La Fase 10 se cerró el 2026-09-28** — rama `feat/v2-membresias`, ADR [20260928112705](../architecture/decisions/20260928112705_v2-seccion-membresias-y-catalogo-de-planes.md). La [decisión #7](#decisiones-abiertas--riesgos) terminó en **catálogo híbrido: se crean planes, y los 5 originales conservan su comportamiento especial**. Ver [Fase 10](#fase-10--sección-membresías-planes-y-precios).
 
@@ -1390,7 +1392,7 @@ Dejarla nullable evita backfill inventado; los KPIs muestran los históricos com
 
 ### Lo que esta fase deja para la 13
 
-`getMonthlyStats`, el dashboard `/incomes` de v1 y el "Resumen del día" del home **sólo suman `membership_payments`**. No rompen nada, pero se quedan cortos en cuanto alguien con v2 cargue una venta. Para sumarlas, reusar `getSalesLedger` + `summarizeSalesLedger`, que ya cuadran por construcción con lo que muestra Ventas.
+~~`getMonthlyStats`, el dashboard `/incomes` de v1 y el "Resumen del día" del home **sólo suman `membership_payments`**.~~ → **Resuelto en la Fase 13**, y corregido: `getMonthlyStats` (el balance de v1) suma `sales` desde ahí. El "Resumen del día" del home **no** suma montos —cuenta pagos registrados—, así que no le faltaba nada; la nota original estaba mal. Y `/incomes` de v1 se dejó como está a propósito: es un tablero de cobranza de cuotas.
 
 **Definición de hecho:**
 - [x] Migración aplicada en dev (auditoría idéntica antes y después)
@@ -1404,29 +1406,40 @@ Dejarla nullable evita backfill inventado; los KPIs muestran los históricos com
 
 ## Fase 13 — Balance
 
-**Estado:** ⬜ pendiente · depende de 11 y 12
-**Figma:** desktop `2167:22912` (1 pantalla, `2141:50936`) · **mobile `2345:37294` (1 pantalla, `2329:30598` — 390×1071 con scroll)**.
+**Estado:** ✅ **completa** (2026-10-01) · rama `feat/v2-balance` · ADR [20261001154047](../architecture/decisions/20261001154047_v2-balance.md) · sin migraciones
+**Figma:** desktop `2167:22912` (`2141:50936`) · mobile `2345:37294` (`2329:30598`). **Verificado con las capturas que pasó Ema el 2026-10-01**, versionadas en [figma/balance/](figma/balance/).
 
-> Mobile confirma la estructura: fecha + 2 `Dropdown` de filtro + **3 `Metric Card` apiladas** (106/106/92 — la tercera es más baja, probablemente el resultado neto) + 2 `Card` de detalle de alturas distintas (152 y 279).
+### El hallazgo
 
-`PageHeader` + 2 `Dropdown` de filtro (probablemente período y algo más) + **3 `Metric Card`** + 2 `Card` de detalle. Es el dashboard de ingresos vs egresos.
+Ema la sentía vacía y no sabía qué sumarle que no estuviera ya en otras rutas. Medido prod, la pantalla **no tenía pocos bloques: tenía dos desgloses de ingresos que repiten Ventas y ninguno de egresos**. Lo que sólo puede mostrar Balance es el cruce. Septiembre 2026 dio $1,7M de resultado contra $390k de agosto, y lo explican los egresos (en septiembre el alquiler es el 69%).
 
-### Qué existe hoy
+### Decidido con Ema (2026-10-01)
 
-Bastante: `getMonthlyStats` ([src/accounting/api/server.ts](../../src/accounting/api/server.ts)) ya devuelve `total_income`, `total_expenses`, `net_result`, `payments_count`, `expenses_count`. `src/accounting/api/incomes.ts` tiene desglose por método de pago y por tipo. Hooks: `useIncomesSummary`, `useMonthlyStats`, `useIncomesByType`, `useIncomesPending`. Dashboard v1 en `/incomes` (ADR [20260728141829](../architecture/decisions/20260728141829_incomes-dashboard-redesign.md)).
+- **Navegador de mes** (‹ Septiembre 2026 ›, `?month=YYYY-MM`) en vez de los dos datepickers: con rango libre, "resultado del mes" y "vs mes anterior" no están definidos.
+- **Bloques:** resultado del mes · evolución de ingresos **contra** egresos (6 meses) · ingresos por concepto (planes + **Productos**, sin "Plan familiar") · **egresos por categoría** · ingresos por método de pago · **descuentos y recargos**.
+- **Ciclo de cobro y pendientes** de `/incomes` v1: **en espera hasta la Fase 15**.
+- El pago de prueba de 2025 en prod se deja como está.
 
-**Lo que falta:** `getMonthlyStats` no incluye ventas (no existen todavía). Una vez que exista `sales`, hay que sumarla al ingreso total.
+### Qué se construyó
 
-**Riesgo timezone:** alto. Todo el módulo es agregación por mes contable → `getMonthRangeInAppTz` en cada consulta. Existe el ADR [20260729101233](../architecture/decisions/20260729101233_unificar-rango-mensual-en-timezone-ar.md) que unificó esto: **reusar ese helper, no escribir rangos a mano.**
+- `src/balance/`: `summary` (todo el cálculo, puro), `chart-scale`, `month-param`, `api/server` y los componentes (`BalanceSection`, `MonthNavigation`, `ResultCard`, `EvolutionChart`, `BreakdownCard`).
+- **Una lectura de seis meses con las mismas funciones que Ventas y Gastos**, y todo calculado de esas filas: los números cuadran por construcción.
+- `src/lib/month-key.ts` compartido (el de `/incomes` v1 pasó a usarlo); `formatCompactCurrency` y `formatMonthKey`.
+- **Tokens de gráfico** `--color-chart-income` / `--color-chart-expense` en el scope v2, validados con el script de la skill de dataviz. Re-validar cuando llegue la paleta de marca.
+- `getMonthlyStats` (balance de v1) suma `sales`.
+- 28 unit tests (10 de 10 mutaciones detectadas) y `e2e/specs/balance.spec.ts`.
+- **Ajustes después de la prueba de Ema**: "Por concepto" ordenado por plan (de más días a menos, productos al final); tabla de Evolución que se adapta al ancho de la card (container query); skeleton inmediato al cambiar de mes; el card de la página envuelve todo el contenido (`shrink-0`); tooltip y ajustes sin líneas partidas. Detalle en el ADR, decisiones 11–15.
+
+### Defectos del diseño — avisar al diseñador
+
+Porcentajes de método de pago invertidos · barras de "Por membresías" no proporcionales · "Por membresías" no suma los ingresos (faltan productos) · "Plan familiar" no es un plan · "Últimos 6 meses" con siete barras y sin eje · "Balance mensual" con rango libre · nombres distintos desktop/mobile · mobile sin Evolución y con filas que se salen del card. Detalle en el ADR.
 
 **Definición de hecho:**
-- [ ] Las 3 métricas + 2 cards con data real
-- [ ] Ventas incluidas en el ingreso
-- [ ] Filtros de período funcionando
-- [ ] Los números cuadran con Gastos y Ventas por separado
-- [ ] Auditoría de timezone
-
-**ADR:** probablemente sí — cambia el cálculo de ingreso total al incorporar ventas.
+- [x] Las métricas y los desgloses con data real
+- [x] Ventas incluidas en el ingreso (y en `getMonthlyStats` de v1)
+- [x] Filtro de período funcionando (navegador de mes)
+- [x] Los números cuadran con Gastos y Ventas por separado — **verificado por el e2e**
+- [x] Auditoría de timezone: cada fila a su mes AR (`getMonthKeyOfInstant`), con test para la cuota de las 22:00 AR y el gasto viejo sin canonicalizar
 
 ---
 
@@ -1482,6 +1495,7 @@ El sidebar tiene 4 sub-items pero sólo hay 3 pantallas diseñadas, en ambos vie
 Se planifica cuando 3–14 estén cerradas. A tener en cuenta desde ya:
 
 - **Paridad funcional.** La v1 tiene cosas que el Figma no cubre: ~~grupos familiares (`src/group/`)~~ → **adelantados a la [Fase 10b](#fase-10b--grupos-de-clientes-familiares)** el 2026-09-29, con capturas propias; share de imagen de asistencias; stats de membresías. Auditar qué se porta, qué se descarta y qué se rediseña.
+- **Cobranza de `/incomes` (en espera desde la Fase 13, decisión de Ema 2026-10-01).** El dashboard de v1 tiene el **progreso del ciclo de cobro** (pagaron, con y sin recargo, pendientes) y la **lista de pendientes**. No entraron al Balance porque son de cobranza, no de balance, y v2 todavía no tiene dónde ponerlos. Si no se ubican antes de retirar v1, se pierden. Candidatos: el Home o una vista de Membresías. La lógica ya existe y funciona (`getBillingCycleProgress`, `getPendingCustomers` en `src/accounting/api/incomes.ts`).
 - **Manifest PWA.** `theme_color` y `background_color` están hardcodeados a la paleta v1.
 - **Wireframes mobile.** El Figma es 100% desktop 1280×832. **No existe ni un solo wireframe mobile**, y la app hoy es mobile-first en producción. Es el riesgo más grande del rediseño → [Decisiones abiertas](#decisiones-abiertas--riesgos) #1.
 - **Retiro del flag.** Qué pasa con `user_feature_flags` y las rutas `/v2/*` — ¿redirect permanente o rename?
@@ -1849,4 +1863,20 @@ Aplica a **toda** fase antes de pedir review. Está pensado para que el otro dev
   - **Bug latente arreglado**: `getExpenses` devolvía `[]` ante un error y el cartel de error de Gastos no aparecía nunca.
   - **Cuota de Figma agotada en 2 llamadas**; las 13 capturas quedaron en `docs/v2/figma/ventas/`, que es la salida que proponía la decisión #10.
   - **Después de la prueba de Ema**: filtro de concepto, placeholder de "Datos de referencia", y el desborde a 360px, que resultó global — `grid-cols-[minmax(0,1fr)]` en el body y `min-w-0` en los `truncate` de `Select`/`DatePicker`. Queda medida la deuda de tablet (768px) en Gastos, Clientes y Membresías.
+  — Ema + Claude.
+
+- 2026-10-01 — **Release v0.18.0 a producción: la Fase 12 completa.** PR [#73](https://github.com/EmaCrzz/actitud-bo/pull/73). **Con migración**, aplicada antes del release.
+  - **Orden respetado:** ensayo transaccional contra prod (una sola migración pendiente, aplica limpio, ROLLBACK) → línea de base de integridad → `db:push-prod` → verificación del schema → release → auditoría. La auditoría dio **idéntica antes y después**.
+  - **Estado del schema en prod, medido después de aplicar:** `sales` con RLS activa y las 4 políticas admin-only, FK a `customers` en NO ACTION, los cuatro CHECK, 0 filas, y la migración registrada en `schema_migrations`. **El CHECK de comprador único se probó con un INSERT real** (cliente + `buyer_name`) que lo rechazó, dentro de una transacción con ROLLBACK.
+  - **Deploy verificado:** estado de Vercel `success` sobre `da24be2`; prod responde 200 y `POST /api/sales` sin sesión devuelve 403.
+  - **Lo que alcanza a un usuario de producción, que hoy es sólo v1:** el `grid-cols-[minmax(0,1fr)]` del `<body>` (v1 medida sin desbordes de 320 a 1440) y que `getExpenses` / `getMembershipPayments` ahora tiran ante un error de la DB en vez de devolver `[]`. Nada de Ventas: 0 usuarios con `v2_access`.
+  - **Viajó también `66891ae`** (silenciar los 404 de devlog y del service worker en desarrollo), que estaba en la rama de Ventas. Es sólo de dev.
+  - **El release volvió a esquivar la protección de rama de `main`** (`Bypassed rule violations`). Cuarta vez registrada; sigue sin resolverse.
+  — Ema + Claude.
+
+- **2026-10-01 — Fase 13 cerrada: Balance.** Rama `feat/v2-balance`, ADR [20261001154047](../architecture/decisions/20261001154047_v2-balance.md). Sin migraciones.
+  - **Medido antes de diseñar**: tres meses de datos reales (julio–septiembre 2026), ningún gasto con medio de pago, y un resultado que varía 4× de un mes a otro por los egresos. Eso definió los bloques nuevos.
+  - **Decidido con Ema**: navegador de mes, los bloques propuestos, y el ciclo de cobro / pendientes de v1 en espera hasta la Fase 15.
+  - **Cuadre verificado de punta a punta**: el spec e2e compara Ingresos con el Total cobrado de Ventas y Egresos con el Total de gastos de Gastos para el mismo mes.
+  - **Corregido en el plan**: el "Resumen del día" del home nunca sumó montos; la deuda que se le había anotado no existía.
   — Ema + Claude.

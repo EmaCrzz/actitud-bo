@@ -34,6 +34,9 @@ export function buildSalesLedger(payments: MembershipPayment[], sales: Sale[]): 
         buyerName: fullName(payment.customer),
         membershipType: payment.membership_type,
         planName: payment.plan?.name ?? null,
+        discountAmount: payment.discount_amount ?? 0,
+        surchargeAmount: payment.surcharge_amount ?? 0,
+        weeklyQuota: payment.plan?.weekly_quota ?? null,
       })
     ),
     ...sales.map(

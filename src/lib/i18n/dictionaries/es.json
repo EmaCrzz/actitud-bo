@@ -1212,6 +1212,57 @@
         "title": "¿Seguro que quieres eliminar esta venta?",
         "description": "La venta se borra de forma permanente y deja de contar en el total cobrado."
       }
+    },
+    "balance": {
+      "title": "Balance",
+      "subtitle": "Reporte de los ingresos y egresos registrados",
+      "month": {
+        "previous": "Mes anterior",
+        "next": "Mes siguiente",
+        "current": "Mes en curso"
+      },
+      "result": {
+        "title": "Resultado del mes",
+        "income": "Ingresos",
+        "expenses": "Egresos",
+        "vsPrevious": "{amount} vs {month}",
+        "noPrevious": "Sin datos del mes anterior para comparar"
+      },
+      "evolution": {
+        "title": "Evolución",
+        "subtitle": "Últimos 6 meses",
+        "income": "Ingresos",
+        "expenses": "Egresos",
+        "result": "Resultado",
+        "tableCaption": "Ingresos, egresos y resultado de los últimos 6 meses",
+        "month": "Mes",
+        "showTable": "Ver como tabla",
+        "showChart": "Ver como gráfico"
+      },
+      "concept": {
+        "title": "Ingresos por concepto",
+        "products": "Productos"
+      },
+      "category": {
+        "title": "Egresos por categoría"
+      },
+      "method": {
+        "title": "Ingresos por método de pago"
+      },
+      "adjustments": {
+        "title": "Descuentos y recargos",
+        "discounts": "Descuentos",
+        "surcharges": "Recargos",
+        "count": "{count} cuotas",
+        "countOne": "1 cuota",
+        "hint": "Lo que las cuotas del mes se apartaron del precio de lista. Ya están incluidos en los ingresos."
+      },
+      "empty": "Sin movimientos en el mes",
+      "share": "{pct}% del total",
+      "error": {
+        "title": "No pudimos cargar el balance",
+        "description": "Revisá la conexión y volvé a intentar."
+      }
     }
   }
 }

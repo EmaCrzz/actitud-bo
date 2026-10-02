@@ -123,3 +123,25 @@ export function formatTimeInAppTz(utcIso: string): string {
     hour12: false,
   }).format(new Date(utcIso))
 }
+
+/**
+ * Nombre de un mes `"YYYY-MM"`: `long` → "Septiembre 2026", `short` → "Sep".
+ *
+ * Se arma con un instante a mitad de mes y `timeZone: 'UTC'`: así el formateo
+ * no depende de la TZ del server ni del browser — con el día 1 a medianoche
+ * local, un formateo en otra zona podía caer en el mes anterior.
+ */
+export function formatMonthKey(
+  monthKey: string,
+  locale = 'es-AR',
+  style: 'long' | 'short' = 'long'
+): string {
+  const [year, month] = monthKey.split('-').map(Number)
+  const date = new Date(Date.UTC(year, month - 1, 15))
+  const name = new Intl.DateTimeFormat(locale, { month: style, timeZone: 'UTC' })
+    .format(date)
+    .replace('.', '')
+  const label = style === 'long' ? `${name} ${year}` : name
+
+  return label.charAt(0).toUpperCase() + label.slice(1)
+}

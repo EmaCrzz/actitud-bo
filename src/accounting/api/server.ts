@@ -46,7 +46,7 @@ export const getMembershipPayments = async (
       `
       *,
       customer:customers(first_name, last_name),
-      plan:types_memberships(name)
+      plan:types_memberships(name, weekly_quota)
     `
     )
     .order('payment_date', { ascending: false })
@@ -296,12 +296,18 @@ export const getMonthlyStats = async (month: string): Promise<MonthlyStats[]> =>
   const endIso = end.toISOString()
 
   // Ejecutar ambas consultas en paralelo para evitar waterfalls
-  const [{ data: payments }, { data: expenses }] = await Promise.all([
+  //
+  // Desde la Fase 13 el ingreso suma también las **ventas de producto**
+  // (`sales`): es el mismo "Ingresos" del Balance de v2, y sin ellas este
+  // balance de v1 se quedaría corto en cuanto alguien venda una remera.
+  // `payments_count` sigue contando sólo cuotas, que es lo que dice.
+  const [{ data: payments }, { data: sales }, { data: expenses }] = await Promise.all([
     supabase
       .from('membership_payments')
       .select('amount, payment_date')
       .gte('payment_date', startIso)
       .lt('payment_date', endIso),
+    supabase.from('sales').select('amount').gte('sale_date', startIso).lt('sale_date', endIso),
     supabase
       .from('expenses')
       .select('amount, expense_date')
@@ -312,8 +318,10 @@ export const getMonthlyStats = async (month: string): Promise<MonthlyStats[]> =>
   // Consultamos un solo mes: agregamos todo bajo `month` (la key AR)
   // en vez de derivar la key del ISO UTC de cada fila, que puede caer
   // en el mes siguiente para pagos hechos después de las 21:00 AR.
-  const total_income = (payments ?? []).reduce((sum, p) => sum + (p.amount ?? 0), 0)
-  const total_expenses = (expenses ?? []).reduce((sum, e) => sum + (e.amount ?? 0), 0)
+  const sumAmounts = (rows: { amount: number | null }[] | null) =>
+    (rows ?? []).reduce((sum, row) => sum + (row.amount ?? 0), 0)
+  const total_income = sumAmounts(payments) + sumAmounts(sales)
+  const total_expenses = sumAmounts(expenses)
 
   return [
     {
