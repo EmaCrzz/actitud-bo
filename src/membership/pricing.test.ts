@@ -1,10 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { getSuggestedCharge, computeChargeTotal } from './pricing'
-import {
-  MEMBERSHIP_TYPE_5_DAYS,
-  MEMBERSHIP_TYPE_DAILY,
-  MEMBERSHIP_TYPE_VIP,
-} from './consts'
+import { getSuggestedCharge, computeChargeTotal, isHalfMonthOutsidePolicy } from './pricing'
+import { ACTITUD_BILLING_POLICY } from '@/accounting/billing-policy'
+import { MEMBERSHIP_TYPE_5_DAYS, MEMBERSHIP_TYPE_DAILY, MEMBERSHIP_TYPE_VIP } from './consts'
 import type { MembershipType } from './types'
 import { utcInstantAtAppTzWallClock } from '@/lib/timezone'
 
@@ -225,5 +222,41 @@ describe('computeChargeTotal', () => {
     const discount = 2000
 
     expect(computeChargeTotal({ base, surcharge, discount })).toBe(base + surcharge - discount)
+  })
+})
+
+/**
+ * Aviso de medio mes fuera de la política (2026-10-02).
+ *
+ * La app no impide elegir medio mes con un período que arranca el 2: sólo
+ * avisa. Lo que se fija acá es **cuándo** avisa, porque un aviso que aparece
+ * siempre se ignora y uno que no aparece deja pasar un mes a mitad de precio.
+ */
+describe('isHalfMonthOutsidePolicy', () => {
+  it('avisa con medio mes y un inicio en la primera mitad', () => {
+    expect(isHalfMonthOutsidePolicy('half', '2026-10-02')).toBe(true)
+  })
+
+  it('el último día antes del umbral todavía avisa', () => {
+    expect(isHalfMonthOutsidePolicy('half', '2026-10-15')).toBe(true)
+  })
+
+  it('desde el día del umbral es el caso para el que existe: no avisa', () => {
+    expect(isHalfMonthOutsidePolicy('half', '2026-10-16')).toBe(false)
+  })
+
+  it('mes completo nunca avisa, arranque cuando arranque', () => {
+    expect(isHalfMonthOutsidePolicy('full', '2026-10-02')).toBe(false)
+  })
+
+  it('sin fecha de inicio no hay nada que evaluar', () => {
+    expect(isHalfMonthOutsidePolicy('half', '')).toBe(false)
+  })
+
+  it('el umbral sale de la política, no de un 16 fijo', () => {
+    const policy = { ...ACTITUD_BILLING_POLICY, halfMonthStart: 10 }
+
+    expect(isHalfMonthOutsidePolicy('half', '2026-10-12', policy)).toBe(false)
+    expect(isHalfMonthOutsidePolicy('half', '2026-10-09', policy)).toBe(true)
   })
 })

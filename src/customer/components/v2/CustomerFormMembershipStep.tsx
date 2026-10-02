@@ -14,6 +14,7 @@ import { formatCalendarDate } from '@/lib/format-date'
 import { formatCurrency } from '@/lib/format-currency'
 import { useTranslations } from '@/lib/i18n/context'
 import { getChargeModeOptions, type ChargeMode } from '@/membership/charge-mode'
+import HalfMonthWarning from '@/membership/components/v2/HalfMonthWarning'
 import {
   MEMBERSHIP_TYPE_DAILY,
   MEMBERSHIP_TYPE_VIP,
@@ -149,35 +150,45 @@ export default function CustomerFormMembershipStep({
           })}
         </p>
       ) : (
-        <div className='grid gap-4 sm:grid-cols-2'>
-          <FormField
-            error={errors.start_date}
-            htmlFor='start_date'
-            label={t('v2.customers.form.startDate')}
-          >
-            <DatePicker
-              defaultValue={values.start_date}
-              invalid={!!errors.start_date}
-              name='start_date'
-              placeholder={t('v2.customers.form.datePlaceholder')}
-              onValueChange={(value) => onChange({ start_date: value })}
-            />
-          </FormField>
+        <>
+          <div className='grid gap-4 sm:grid-cols-2'>
+            <FormField
+              error={errors.start_date}
+              htmlFor='start_date'
+              label={t('v2.customers.form.startDate')}
+            >
+              <DatePicker
+                defaultValue={values.start_date}
+                invalid={!!errors.start_date}
+                name='start_date'
+                placeholder={t('v2.customers.form.datePlaceholder')}
+                onValueChange={(value) => onChange({ start_date: value })}
+              />
+            </FormField>
 
-          <FormField
-            error={errors.end_date}
-            htmlFor='end_date'
-            label={t('v2.customers.form.endDate')}
-          >
-            <DatePicker
-              defaultValue={values.end_date}
-              invalid={!!errors.end_date}
-              name='end_date'
-              placeholder={t('v2.customers.form.datePlaceholder')}
-              onValueChange={(value) => onChange({ end_date: value })}
-            />
-          </FormField>
-        </div>
+            <FormField
+              error={errors.end_date}
+              htmlFor='end_date'
+              label={t('v2.customers.form.endDate')}
+            >
+              <DatePicker
+                defaultValue={values.end_date}
+                invalid={!!errors.end_date}
+                name='end_date'
+                placeholder={t('v2.customers.form.datePlaceholder')}
+                onValueChange={(value) => onChange({ end_date: value })}
+              />
+            </FormField>
+          </div>
+
+          {/* Mismo aviso que la renovación: el alta también deja elegir medio
+            mes con un período que arranca hoy, sea el día que sea. */}
+          <HalfMonthWarning
+            endDate={values.end_date}
+            mode={values.charge_mode}
+            startDate={values.start_date}
+          />
+        </>
       )}
 
       {!isVip && (
