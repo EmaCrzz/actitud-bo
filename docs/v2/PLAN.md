@@ -32,7 +32,7 @@
 | 10b | Grupos de clientes (familiares) | 🔵 relevada, sin planificar | **No estaba en el plan original**; capturas del 2026-09-29. El panel ya existe en v1 casi 1:1; lo nuevo es la tabla del listado. Relevada contra prod y **pausada a pedido de Ema** para revisarla con calma. Decidido: el descuento sólo se muestra, y eliminar pasa a baja lógica. Abierto: las columnas derivadas → [decisión #17](#decisiones-abiertas--riesgos). |
 | 11 | Sección Gastos (crear/editar/eliminar) | ✅ completa · **en prod (v0.17.0)** | Rama `feat/v2-gastos`. ADR [20260930121500](../architecture/decisions/20260930121500_v2-seccion-gastos-y-medio-de-pago.md). **Lleva migración aditiva** `20260929104500` (B1 cerrada): `payment_method` **nullable, sin backfill** — decisión #8 resuelta midiendo prod (29 gastos) . De paso se arregló un bug que bloqueaba el **alta de cliente el último día de cada mes**. |
 | 12 | Sección Ventas (cuotas + productos) | ✅ completa · **en prod (v0.18.0)** | Rama `feat/v2-ventas`. ADR [20261001100524](../architecture/decisions/20261001100524_v2-seccion-ventas.md). **Ventas es todo lo cobrado**: cuotas de `membership_payments` + productos de la tabla nueva `sales`, unidas al leer. Sin catálogo, sin stock, un producto por venta. **Lleva migración aditiva** `20261001100524` (A1 cerrada). Capturas versionadas en [figma/ventas/](figma/ventas/). |
-| 13 | Balance | ✅ completa | Rama `feat/v2-balance`. ADR [20261001154047](../architecture/decisions/20261001154047_v2-balance.md). **Navegador de mes** en vez de rango; ingresos contra egresos en la evolución; desgloses de los dos lados que suman exactamente su total. **Cuadra con Ventas y Gastos por construcción** (spec e2e). Sin migraciones. Capturas en [figma/balance/](figma/balance/). |
+| 13 | Balance | ✅ completa · **en prod (v0.19.0)** | Rama `feat/v2-balance`. ADR [20261001154047](../architecture/decisions/20261001154047_v2-balance.md). **Navegador de mes** en vez de rango; ingresos contra egresos en la evolución; desgloses de los dos lados que suman exactamente su total. **Cuadra con Ventas y Gastos por construcción** (spec e2e). Sin migraciones. Capturas en [figma/balance/](figma/balance/). |
 | 14 | Configuración (Negocio / Membresías / Promociones / Usuarios) | ⬜ pendiente | Requiere tabla de settings del negocio. |
 | 15 | Promoción de v2 a default + retiro de v1 | ⬜ pendiente | Fuera del alcance actual; se planifica cuando 3–14 estén cerradas. |
 
@@ -40,13 +40,15 @@
 
 ## Por dónde seguir
 
-> Última actualización: **2026-10-01**. Esta sección es el arranque de cualquier sesión nueva: decí en qué estado quedó todo y cuál es el siguiente movimiento, sin tener que leer el documento entero.
+> Última actualización: **2026-10-02**. Esta sección es el arranque de cualquier sesión nueva: decí en qué estado quedó todo y cuál es el siguiente movimiento, sin tener que leer el documento entero.
 
 **La Fase 12 (Ventas) se cerró el 2026-10-01** — rama `feat/v2-ventas`, ADR [20261001100524](../architecture/decisions/20261001100524_v2-seccion-ventas.md). La [decisión #5](#decisiones-abiertas--riesgos) la respondió Ema (sin stock, sin catálogo, editar y borrar como Gastos) y **las capturas cambiaron el alcance**: el panel "Nueva venta" ofrece `Membresía` al lado de `Producto`, así que **Ventas es todo lo que se cobra**. Las cuotas siguen en `membership_payments`, los productos van a `sales`, y la sección las une al leer — cada peso vive en una sola tabla. Ver [Fase 12](#fase-12--sección-ventas).
 
 **La Fase 12 viajó a producción como v0.18.0 el 2026-10-01** (PR [#73](https://github.com/EmaCrzz/actitud-bo/pull/73)). La migración `20261001100524` se aplicó antes del release con el procedimiento completo, y la auditoría de integridad dio **idéntica antes y después**. Prod sigue con **0 usuarios con `v2_access`** —la tabla `user_feature_flags` está vacía—, así que la sección nueva viaja apagada.
 
 **La Fase 13 (Balance) se cerró el 2026-10-01** — rama `feat/v2-balance`, ADR [20261001154047](../architecture/decisions/20261001154047_v2-balance.md). Ema la sentía vacía; medido prod, no le faltaban bloques sino que **le sobraban los que repetían Ventas**. Quedó como ingresos **contra** egresos: resultado del mes, evolución de los dos lados, ingresos por concepto (planes + productos), egresos por categoría, método de pago y descuentos/recargos. Navegador de mes en vez de los dos datepickers del diseño. **Sin migraciones.** Ver [Fase 13](#fase-13--balance).
+
+**La Fase 13 viajó a producción como v0.19.0 el 2026-10-02** (PRs [#74](https://github.com/EmaCrzz/actitud-bo/pull/74) y [#75](https://github.com/EmaCrzz/actitud-bo/pull/75)). **Sin migraciones**: la última en prod sigue siendo `20261001100524`. Lo único que ve un operador de v1 es que **el balance de v1 (`getMonthlyStats`) ahora suma `sales`**; no debería cambiar ningún número, porque `sales` sólo se escribe desde v2 y nadie lo tiene habilitado (0 filas al migrar, no re-medido).
 
 **El movimiento siguiente:** la [Fase 14](#fase-14--configuración) (necesita `business_settings` y bucket de Storage) o la [Fase 10b](#fase-10b--grupos-de-clientes-familiares) (relevada, esperando la [decisión #17](#decisiones-abiertas--riesgos)). Quedó **en espera hasta la Fase 15**, por decisión de Ema: el ciclo de cobro y la lista de pendientes de `/incomes` de v1, que no tienen lugar en v2 todavía.
 
@@ -82,9 +84,9 @@
 
 **Lo que cambió el diseño el 2026-09-22:** el paso 1 ahora tiene los **dos datepickers** (inicio y vencimiento), que antes no estaban. El panel los muestra con prefill derivado — inicio = día siguiente al vencimiento vigente, o hoy si ya venció — y con eso la renovación anticipada arranca sola en el período correcto.
 
-**Estado de entornos — todo desplegado, `main` y `develop` emparejados.** Producción corre **v0.16.0** (release del 2026-09-28), que llevó la Fase 10 completa. Antes salió la v0.15.0 el mismo día, con la Fase 9, la suite e2e y los unit tests. Prod sigue con **0 usuarios con `v2_access`**, así que toda la UI de v2 viaja apagada.
+**Estado de entornos — todo desplegado, `main` y `develop` emparejados.** Producción corre **v0.19.0** (release del 2026-10-02), que llevó la Fase 13. El historial de releases está en [Cambios registrados](#cambios-registrados). Prod sigue con **0 usuarios con `v2_access`**, así que toda la UI de v2 viaja apagada.
 
-**Migraciones: al día.** La última aplicada en prod es `20260928110544` (Fase 10), y dev está emparejado. Se aplicó **antes** del release, con ensayo transaccional previo y auditoría de integridad antes y después: **idéntica**, no se movió ningún dato.
+**Migraciones: al día.** La última aplicada en prod es `20261001100524` (Fase 12), y dev está emparejado. Se aplicó **antes** del release, con ensayo transaccional previo y auditoría de integridad antes y después: **idéntica**, no se movió ningún dato.
 
 **Lo que un operador de v1 ve de estas dos versiones: nada nuevo.** De la v0.15.0, refactors que preservan comportamiento en `/assistances`. De la v0.16.0, los ~20 call sites de etiquetas de membresía migrados al resolver —misma variante de copy en todos— más tres arreglos que no cambian nada visible hasta que alguien cree un plan: la FK que pasó de `CASCADE` a `RESTRICT`, el INSERT admin-only y el trigger de `last_update`. **Cubierto por el smoke de v1** que la fase agregó.
 
@@ -140,7 +142,7 @@ Actitud BO es hoy una PWA mobile-first sin diseño desktop. El rediseño complet
 
 **Multitenant:** la app es tenant-configurable en build (env `TENANT`, temas y fuentes por tenant en [src/lib/themes/](../../src/lib/themes/)). La v2 hereda esto tal cual. Migrar la DB a multi-tenant en runtime (RLS por `tenant_id`) es una tarea aparte que no bloquea este plan.
 
-**No hacemos ahora:** RLS por tenant en DB, i18n adicional (queda `es` como único idioma), tests automatizados (status quo del proyecto).
+**No hacemos ahora:** RLS por tenant en DB, i18n adicional (queda `es` como único idioma). ~~Tests automatizados~~ → hay Playwright y Vitest desde el 2026-09-26.
 
 ---
 
@@ -1271,7 +1273,7 @@ El dominio está completo desde julio de 2026 (migración `20260722120000`): `cu
 
 ### Brechas de DB
 
-- **B13 (nueva)** — `customer_groups` no tiene `active`; hoy la única baja es el `DELETE` con cascada. Bloquea lo decidido arriba.
+- **B15 (nueva)** — `customer_groups` no tiene `active`; hoy la única baja es el `DELETE` con cascada. Bloquea lo decidido arriba.
 - **B14 (nueva)** — `membership_payments` no registra **qué grupo** originó el descuento, sólo la regla. Es la causa de los 5 pagos hoy inauditables. Cerrarlo toca el RPC de cobro; se evaluó y **no se eligió** en esta pasada.
 
 **Riesgo timezone: alto.** La columna `Vencimiento` compara fechas de varios integrantes entre sí, y leerlas en UTC ya produjo una divergencia falsa durante el propio relevamiento. Toda comparación va por `getAppTzDateParts`, como ya hacen [server.ts](../../src/group/api/server.ts) y [client.ts](../../src/group/api/client.ts).
@@ -1280,7 +1282,7 @@ El dominio está completo desde julio de 2026 (migración `20260722120000`): `cu
 - [ ] Resuelta la decisión #17 y confirmado el entrypoint de creación
 - [ ] Tabs `Clientes` / `Grupos` en `CustomersSection`
 - [ ] Listado con paginación + panel de grupo portado desde v1
-- [ ] Baja lógica de grupo (migración B13) sin romper v1
+- [ ] Baja lógica de grupo (migración B15) sin romper v1
 - [ ] El descuento que habilita el grupo, visible en el panel
 - [ ] v1 sigue funcionando: `src/group/` es código compartido → **correr el smoke de v1**
 - [ ] Specs e2e + verificación contra la DB de las fechas derivadas
@@ -1879,4 +1881,12 @@ Aplica a **toda** fase antes de pedir review. Está pensado para que el otro dev
   - **Decidido con Ema**: navegador de mes, los bloques propuestos, y el ciclo de cobro / pendientes de v1 en espera hasta la Fase 15.
   - **Cuadre verificado de punta a punta**: el spec e2e compara Ingresos con el Total cobrado de Ventas y Egresos con el Total de gastos de Gastos para el mismo mes.
   - **Corregido en el plan**: el "Resumen del día" del home nunca sumó montos; la deuda que se le había anotado no existía.
+  — Ema + Claude.
+
+- 2026-10-02 — **Release v0.19.0 a producción: la Fase 13 completa.** PRs [#74](https://github.com/EmaCrzz/actitud-bo/pull/74) y [#75](https://github.com/EmaCrzz/actitud-bo/pull/75). **Sin migraciones.**
+  - **`develop` no pasaba `type-check`** después del #74: un cast directo en `getEarliestBalanceMonth` (TS2352). No rompía el build porque `next.config` tiene `ignoreBuildErrors: true`, y justamente por eso pasó desapercibido. Se arregló en el #75 antes del release. Unit tests: 172 en verde.
+  - **Deploy verificado:** estado de Vercel `success` sobre `f023e5c`; prod responde 200.
+  - **Lo que alcanza a un usuario de producción, que hoy es sólo v1:** `getMonthlyStats` suma `sales`. Sin efecto visible mientras `sales` siga sin filas. 0 usuarios con `v2_access`.
+  - **El release volvió a esquivar la protección de rama de `main`** (`Bypassed rule violations`). Quinta vez registrada.
+  - **Higiene del plan:** el grupo de la Fase 10b pasó de B13 a **B15**, porque B13 ya era "Sin membresía" (cerrada en la Fase 7); se actualizaron "Estado de entornos", "Migraciones" y la nota de "No hacemos ahora" sobre tests.
   — Ema + Claude.
