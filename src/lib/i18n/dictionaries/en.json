@@ -878,6 +878,7 @@
       }
     },
     "membership": {
+      "halfMonthWarning": "Half month starting {start}: covers until {end} at half price. The half membership is meant for people joining from day {day} on. If this is an exception, you can continue.",
       "renew": {
         "title": "Renew membership",
         "stepNew": "New membership",

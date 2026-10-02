@@ -10,6 +10,7 @@ import {
   getPeriodModeOptions,
   type PeriodMode,
 } from '@/membership/charge-mode'
+import { parseAppTzDateString } from '@/lib/timezone'
 import { MEMBERSHIP_TYPE_DAILY, MEMBERSHIP_TYPE_VIP } from '@/membership/consts'
 import type { MembershipType } from '@/membership/types'
 
@@ -162,4 +163,35 @@ export interface ChargeBreakdown {
  */
 export function computeChargeTotal({ base, surcharge, discount }: ChargeBreakdown): number {
   return Math.max(0, base + surcharge - discount)
+}
+
+/**
+ * ¿La modalidad elegida es medio mes y el período arranca antes de que la
+ * política lo justifique?
+ *
+ * La media membresía existe para quien entra en la segunda mitad del mes
+ * (`halfMonthStart`): paga menos porque usa menos mes. Elegirla con un período
+ * que arranca el 2 cubre el mes casi entero a mitad de precio. La app no lo
+ * impide —puede ser una excepción pactada, y la regla de producto es sugerir
+ * sin imponer (Ema, 2026-09-21)— pero tiene que decirlo: en prod pasó una vez
+ * desde julio (inicio 10/09) y no se puede saber si fue a propósito.
+ *
+ * No recorta fechas ni cambia la modalidad: con el aviso, quien cobra decide si
+ * quiso decir "del 2 al 15" o un precio especial. Adivinarlo sería peor.
+ *
+ * Usa sólo el inicio. El fin lo eligen los datepickers y el aviso lo muestra,
+ * pero el criterio de la política es el día en que se entra.
+ */
+export function isHalfMonthOutsidePolicy(
+  mode: string,
+  /** "YYYY-MM-DD" del datepicker de inicio. Vacío → no hay nada que avisar. */
+  startIsoDate: string,
+  policy: BillingPolicy = ACTITUD_BILLING_POLICY
+): boolean {
+  if (mode !== 'half' || !startIsoDate) return false
+
+  // `parseAppTzDateString` y no `new Date(iso)`: el segundo parsea como
+  // medianoche UTC, que en AR es el día anterior — y el día es justo lo que
+  // decide.
+  return !qualifiesForHalfMonth(parseAppTzDateString(startIsoDate), policy)
 }

@@ -877,6 +877,7 @@
       }
     },
     "membership": {
+      "halfMonthWarning": "Medio mes con inicio el {start}: cubre hasta el {end} a mitad de precio. La media membresía es para quien entra desde el día {day}. Si es una excepción, podés seguir.",
       "renew": {
         "title": "Renovar membresía",
         "stepNew": "Nueva membresía",

@@ -40,6 +40,7 @@ import {
 } from '@/membership/renewal'
 import type { MembershipType } from '@/membership/types'
 import AmountChoiceField, { type AmountChoiceOption } from './AmountChoiceField'
+import HalfMonthWarning from './HalfMonthWarning'
 import { getMembershipLabel } from '@/membership/catalog'
 
 interface Props {
@@ -272,6 +273,14 @@ export default function RenewMembershipStep({
               />
             </FormField>
           </div>
+
+          {/* Debajo de las fechas y no de la modalidad: el aviso habla de la
+              combinación de las dos, y el fin que menciona es el de acá. */}
+          <HalfMonthWarning
+            endDate={values.end_date}
+            mode={values.period_mode}
+            startDate={values.start_date}
+          />
         </>
       )}
 
