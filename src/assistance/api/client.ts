@@ -29,11 +29,19 @@ export interface CustomerModalData {
 // Fetch ligero para el modal de asistencia: membresía del cliente + asistencias
 // de la semana actual. Se llama una sola vez al abrir el modal (no necesita
 // rate limiting — no es un input de alta frecuencia).
+//
+// **Tira si cualquiera de las dos consultas falla.** Antes devolvía lo que
+// hubiera: una consulta de membresía caída llegaba como `membership: null`, y
+// el modal le decía "Sin membresía" a alguien que la tiene — un dato falso con
+// cara de correcto, justo frente al cliente.
 export async function fetchCustomerModalData(customerId: string): Promise<CustomerModalData> {
   const supabase = createClient()
   const { start, end } = getWeekRangeInAppTz()
 
-  const [{ data: membershipData }, { data: assistancesData }] = await Promise.all([
+  const [
+    { data: membershipData, error: membershipError },
+    { data: assistancesData, error: assistancesError },
+  ] = await Promise.all([
     supabase
       .from('customer_membership')
       .select('membership_type, expiration_date')
@@ -47,6 +55,9 @@ export async function fetchCustomerModalData(customerId: string): Promise<Custom
       .lt('assistance_date', end.toISOString())
       .order('assistance_date', { ascending: true }),
   ])
+
+  if (membershipError) throw new Error(membershipError.message)
+  if (assistancesError) throw new Error(assistancesError.message)
 
   return {
     membership: membershipData

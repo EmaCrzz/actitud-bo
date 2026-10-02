@@ -675,6 +675,7 @@
         },
         "confirmCta": "Confirm attendance",
         "viewProfile": "View profile",
+        "loadError": "We couldn't load the membership or this week's attendance. You can still register the attendance.",
         "badge": {
           "active": "Active",
           "expired": "Expired",

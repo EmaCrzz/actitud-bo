@@ -8,7 +8,7 @@ import SidePanel from '@/components/v2/SidePanel'
 import Button from '@/components/v2/ui/Button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/v2/ui/Tabs'
 import { fetchCustomerProfile } from '@/customer/api/client'
-import type { CustomerWithMembership } from '@/customer/types'
+import type { Customer } from '@/customer/types'
 import { getInitials } from '@/lib/format-person'
 import { useTranslations } from '@/lib/i18n/context'
 import CustomerProfileAssistances from './CustomerProfileAssistances'
@@ -18,12 +18,16 @@ import CustomerProfilePayments from './CustomerProfilePayments'
 
 interface CustomerProfilePanelProps {
   /**
-   * Fila que abrió el panel. Llega entera y no sólo el id para poder pintar la
-   * identidad (avatar y nombre) en el primer frame: el listado ya tiene esos
-   * datos, así que esperar al fetch para mostrarlos sería un parpadeo gratis.
-   * `null` cuando el panel nunca se abrió.
+   * Cliente que abrió el panel. Llega con el nombre y no sólo el id para poder
+   * pintar la identidad (avatar y nombre) en el primer frame: quien lo abre ya
+   * tiene esos datos, así que esperar al fetch para mostrarlos sería un
+   * parpadeo gratis. `null` cuando el panel nunca se abrió.
+   *
+   * Pide sólo lo que usa: lo abren el listado de Clientes (con una fila
+   * `CustomerWithMembership`) y el modal de asistencia del home (con un
+   * `Customer` del buscador). El resto lo trae `fetchCustomerProfile`.
    */
-  customer: CustomerWithMembership | null
+  customer: Pick<Customer, 'id' | 'first_name' | 'last_name'> | null
   open: boolean
   onOpenChange: (open: boolean) => void
   /** Ver `CustomerProfilePayments`: finanzas es admin-only a nivel RLS. */
@@ -119,10 +123,7 @@ export default function CustomerProfilePanel({
               propio estado de permisos, así que el tab se monta igual. */}
           <TabsContent value='payments'>
             {customer && (
-              <CustomerProfilePayments
-                canReadPayments={canReadPayments}
-                customerId={customer.id}
-              />
+              <CustomerProfilePayments canReadPayments={canReadPayments} customerId={customer.id} />
             )}
           </TabsContent>
 

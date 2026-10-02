@@ -674,6 +674,7 @@
         },
         "confirmCta": "Confirmar asistencia",
         "viewProfile": "Ver perfil",
+        "loadError": "No pudimos cargar la membresía ni las asistencias de la semana. Podés registrar la asistencia igual.",
         "badge": {
           "active": "Activa",
           "expired": "Vencida",
