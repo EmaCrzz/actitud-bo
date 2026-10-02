@@ -255,6 +255,39 @@ export async function createDiscountRuleInDb(rule: {
   return data.id as string
 }
 
+/**
+ * Vence la membresía de un cliente de test, moviendo `expiration_date`.
+ *
+ * Un alta por la UI siempre deja la membresía vigente, y el caso "vencida" —el
+ * que muestra el aviso de renovación en el modal de asistencia— no se puede
+ * producir desde la pantalla sin esperar a fin de mes. Recibe un instante ya
+ * canonicalizado (`parseAppTzDateString(...).toISOString()`), por la misma
+ * regla de timezone que la app.
+ */
+export async function setMembershipExpirationByPersonId(
+  personId: string,
+  expirationInstant: string
+): Promise<void> {
+  const client = await getDbClient()
+
+  const { data: customer, error: customerError } = await client
+    .from('customers')
+    .select('id')
+    .eq('person_id', personId)
+    .maybeSingle()
+
+  if (customerError || !customer) {
+    throw new Error(`No se encontró el cliente de prueba: ${customerError?.message ?? personId}`)
+  }
+
+  const { error } = await client
+    .from('customer_membership')
+    .update({ expiration_date: expirationInstant })
+    .eq('customer_id', customer.id)
+
+  if (error) throw new Error(`No se pudo vencer la membresía de prueba: ${error.message}`)
+}
+
 export interface ExpenseRow {
   id: string
   description: string

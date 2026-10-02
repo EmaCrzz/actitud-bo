@@ -1,11 +1,13 @@
 import { test, expect, gotoV2 } from '../support/fixtures'
 import { t } from '../support/i18n'
 import { fullName } from '../support/data'
-import { createCustomerViaUI, registerAssistanceViaUI } from '../support/flows'
-import { findLatestAssistanceByPersonId } from '../support/db'
+import type { Page } from '@playwright/test'
+import type { TestCustomer } from '../support/data'
+import { createCustomerViaUI, registerAssistanceViaUI, selectFirstOption } from '../support/flows'
+import { findLatestAssistanceByPersonId, setMembershipExpirationByPersonId } from '../support/db'
 import { toAppTzIsoDate, dateMismatchHint } from '../support/dates'
 import { ROUTES_V2 } from '@/consts/routes'
-import { getTodayIsoDateInAppTz, shiftIsoDateInAppTz } from '@/lib/timezone'
+import { getTodayIsoDateInAppTz, parseAppTzDateString, shiftIsoDateInAppTz } from '@/lib/timezone'
 import { ATTENDANCE_PAGE_SIZE } from '@/assistance/utils'
 
 /**
@@ -35,11 +37,150 @@ test.describe('v2 · registro de asistencia', () => {
 
     await page.getByPlaceholder(t('v2.home.attendanceSearch.placeholder')).fill(query)
 
-    await expect(
-      page.getByText(t('v2.home.attendanceSearch.noResults', { query }))
-    ).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByText(t('v2.home.attendanceSearch.noResults', { query }))).toBeVisible({
+      timeout: 15_000,
+    })
   })
 })
+
+/**
+ * El perfil del cliente desde el modal de asistencia del home (2026-10-02).
+ *
+ * "Ver perfil" llevaba a `/customer/{id}`, que es v1. El perfil de v2 no tiene
+ * URL —es un panel—, así que lo que se fija es que el botón **no navegue** y
+ * que desde ahí se llegue a renovar sin salir del home: es el camino que el
+ * aviso de membresía vencida le pide al operador.
+ */
+test.describe('v2 · perfil desde el modal de asistencia', () => {
+  test('"Ver perfil" abre el perfil de v2 sin salir del home, con sus pagos', async ({
+    page,
+    consoleErrors,
+  }) => {
+    const customer = await createCustomerViaUI(page, 'perfil')
+    const homeUrl = await openAssistanceModal(page, customer)
+
+    await page.getByRole('button', { name: t('v2.home.attendanceModal.viewProfile') }).click()
+
+    await expect(page.getByRole('heading', { name: t('v2.customers.profile.title') })).toBeVisible()
+    expect(page.url()).toBe(homeUrl)
+
+    // La suite corre como admin: el tab Pagos tiene que listar el pago del
+    // alta, no el aviso de permisos. `canReadPayments` sale de otro lado que
+    // en Clientes (el hook del browser, no el server), y es lo que se verifica.
+    await page.getByRole('tab', { name: t('v2.customers.profile.tabs.payments') }).click()
+    await expect(page.getByText(t('v2.customers.profile.payments.paid')).first()).toBeVisible()
+
+    await page.getByRole('button', { name: t('v2.customers.profile.renew') }).click()
+
+    await expect(page.getByRole('heading', { name: t('v2.membership.renew.title') })).toBeVisible()
+    await expect(page.locator('#renew_membership_type')).toBeVisible({ timeout: 15_000 })
+    expect(page.url()).toBe(homeUrl)
+
+    expect(consoleErrors).toEqual([])
+  })
+
+  test('con la membresía vencida, se renueva desde el perfil y queda activa', async ({ page }) => {
+    const customer = await createCustomerViaUI(page, 'vencida')
+    const yesterday = shiftIsoDateInAppTz(getTodayIsoDateInAppTz(), -1)
+
+    await setMembershipExpirationByPersonId(
+      customer.personId,
+      parseAppTzDateString(yesterday).toISOString()
+    )
+
+    await openAssistanceModal(page, customer)
+    await expect(page.getByText(t('v2.home.attendanceModal.expiredNotice.title'))).toBeVisible()
+
+    await page.getByRole('button', { name: t('v2.home.attendanceModal.viewProfile') }).click()
+    await page.getByRole('button', { name: t('v2.customers.profile.renew') }).click()
+    await expect(page.locator('#renew_membership_type')).toBeVisible({ timeout: 15_000 })
+    await selectFirstOption(page, 'renew_payment_type')
+
+    await page.getByRole('button', { name: t('common.next') }).click()
+    await page.getByRole('button', { name: t('v2.membership.renew.submit') }).click()
+    await expect(page.getByText(t('v2.membership.renew.success.title'))).toBeVisible({
+      timeout: 20_000,
+    })
+    await page.keyboard.press('Escape')
+
+    // Lo que importa es el resultado para el operador: al volver a buscarlo,
+    // el modal ya no lo muestra vencido.
+    await openAssistanceModal(page, customer)
+    await expect(
+      page.getByText(t('v2.home.attendanceModal.badge.active'), { exact: true })
+    ).toBeVisible()
+    await expect(page.getByText(t('v2.home.attendanceModal.expiredNotice.title'))).toHaveCount(0)
+  })
+
+  test('cerrar el perfil vuelve al home con el buscador vacío', async ({ page }) => {
+    const customer = await createCustomerViaUI(page, 'cerrar')
+
+    await openAssistanceModal(page, customer)
+    await page.getByRole('button', { name: t('v2.home.attendanceModal.viewProfile') }).click()
+    await expect(page.getByRole('heading', { name: t('v2.customers.profile.title') })).toBeVisible()
+
+    await page.getByRole('button', { name: t('common.cancel') }).click()
+
+    await expect(page.getByRole('heading', { name: t('v2.customers.profile.title') })).toHaveCount(
+      0
+    )
+    await expect(page.getByPlaceholder(t('v2.home.attendanceSearch.placeholder'))).toHaveValue('')
+  })
+
+  test('si falla la lectura de la membresía, el modal lo dice en vez de inventar', async ({
+    page,
+  }) => {
+    // Sin `consoleErrors`: el request abortado se loguea en la consola, y es
+    // justamente el fallo que se está provocando.
+    const customer = await createCustomerViaUI(page, 'falla')
+
+    await openAssistanceModal(page, customer, async () => {
+      await page.route('**/rest/v1/customer_membership**', (route) => route.abort())
+    })
+
+    await expect(page.getByText(t('v2.home.attendanceModal.loadError'))).toBeVisible()
+    // Antes de este arreglo, una consulta caída llegaba como "sin membresía".
+    await expect(
+      page.getByText(t('v2.home.attendanceModal.badge.none'), { exact: true })
+    ).toHaveCount(0)
+    // La asistencia no depende de esos datos: se puede registrar igual.
+    await expect(
+      page.getByRole('button', { name: t('v2.home.attendanceModal.confirmCta') })
+    ).toBeEnabled()
+
+    await page.unroute('**/rest/v1/customer_membership**')
+  })
+})
+
+/**
+ * Busca al cliente en el home y abre su modal de asistencia. Devuelve la URL
+ * del home para comparar después que nada navegó.
+ *
+ * `beforeOpen` corre con el cliente ya elegido y justo antes de abrir el modal:
+ * es el momento de interceptar requests sin romper la búsqueda.
+ */
+async function openAssistanceModal(
+  page: Page,
+  customer: TestCustomer,
+  beforeOpen?: () => Promise<void>
+): Promise<string> {
+  await gotoV2(page, ROUTES_V2.V2_HOME)
+  const homeUrl = page.url()
+
+  await page.getByPlaceholder(t('v2.home.attendanceSearch.placeholder')).fill(customer.lastName)
+  const result = page.getByText(fullName(customer)).first()
+
+  await expect(result).toBeVisible({ timeout: 15_000 })
+  await result.click()
+
+  await beforeOpen?.()
+  await page.getByRole('button', { name: t('v2.home.attendanceSearch.cta') }).click()
+  await expect(page.getByRole('heading', { name: fullName(customer) })).toBeVisible({
+    timeout: 15_000,
+  })
+
+  return homeUrl
+}
 
 /**
  * Sección Asistencias (fase 9).

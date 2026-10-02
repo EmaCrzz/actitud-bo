@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import Link from 'next/link'
 import SidePanel from '@/components/v2/SidePanel'
 import Button from '@/components/v2/ui/Button'
 import { fetchCustomerModalData, createAssistance } from '@/assistance/api/client'
@@ -12,7 +11,6 @@ import { useTranslations } from '@/lib/i18n/context'
 import type { Customer } from '@/customer/types'
 import { isSameDayInAppTz, isExpiredInAppTz, APP_TIMEZONE } from '@/lib/timezone'
 import { DEFAULT_WEEKLY_SLOTS, getWeeklySlots } from '@/membership/catalog'
-import { CUSTOMER } from '@/consts/routes'
 import { cn } from '@/lib/utils'
 import { getInitials } from '@/lib/format-person'
 import { formatDayLabelInAppTz, formatTimeInAppTz } from '@/lib/format-date'
@@ -39,13 +37,26 @@ interface AssistanceModalProps {
   customer: Customer | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  /**
+   * "Ver perfil". Lo resuelve quien monta el modal porque el perfil de v2 no
+   * tiene URL propia —es un panel— y abrirlo reemplaza a este, igual que el
+   * perfil reemplaza al panel de renovación en Clientes. Hasta el 2026-10-02
+   * era un link a `/customer/{id}`, que es v1.
+   */
+  onViewProfile: () => void
 }
 
-export default function AssistanceModal({ customer, open, onOpenChange }: AssistanceModalProps) {
+export default function AssistanceModal({
+  customer,
+  open,
+  onOpenChange,
+  onViewProfile,
+}: AssistanceModalProps) {
   const { t } = useTranslations()
   const router = useRouter()
   const [modalData, setModalData] = useState<CustomerModalData | null>(null)
   const [loadingData, setLoadingData] = useState(false)
+  const [loadError, setLoadError] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   // ISO UTC del registro optimista: se setea al confirmar para actualizar los
   // slots antes de que el modal se cierre.
@@ -55,18 +66,27 @@ export default function AssistanceModal({ customer, open, onOpenChange }: Assist
     if (!open || !customer) {
       setModalData(null)
       setConfirmedAt(null)
+      setLoadError(false)
 
       return
     }
     let cancelled = false
 
     setLoadingData(true)
-    fetchCustomerModalData(customer.id).then((data) => {
-      if (!cancelled) {
-        setModalData(data)
-        setLoadingData(false)
-      }
-    })
+    setLoadError(false)
+    fetchCustomerModalData(customer.id)
+      .then((data) => {
+        if (!cancelled) setModalData(data)
+      })
+      // Sin el `catch` un fallo dejaba el skeleton girando para siempre. La
+      // asistencia se puede registrar igual: no depende de estos datos, y el
+      // UNIQUE por día de la DB ataja el duplicado que el modal no pudo ver.
+      .catch(() => {
+        if (!cancelled) setLoadError(true)
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingData(false)
+      })
 
     return () => {
       cancelled = true
@@ -164,10 +184,8 @@ export default function AssistanceModal({ customer, open, onOpenChange }: Assist
       }
       footer={
         <div className='flex gap-3'>
-          <Button asChild className='flex-1' variant='outlined'>
-            <Link href={`${CUSTOMER}/${customer?.id}`} onClick={() => onOpenChange(false)}>
-              {t('v2.home.attendanceModal.viewProfile')}
-            </Link>
+          <Button className='flex-1' type='button' variant='outlined' onClick={onViewProfile}>
+            {t('v2.home.attendanceModal.viewProfile')}
           </Button>
           <Button
             className='flex-1'
@@ -186,6 +204,10 @@ export default function AssistanceModal({ customer, open, onOpenChange }: Assist
       <div className='flex flex-col gap-4'>
         {loadingData ? (
           <ModalSkeleton />
+        ) : loadError ? (
+          <p className='text-muted-foreground py-2 text-sm' role='alert'>
+            {t('v2.home.attendanceModal.loadError')}
+          </p>
         ) : (
           <>
             <MembershipSection isActive={membershipIsActive} label={membershipLabel} t={t} />

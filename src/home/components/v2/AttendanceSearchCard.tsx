@@ -3,11 +3,14 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, LoaderCircle, UserPlus, X } from 'lucide-react'
+import { usePermissions } from '@/auth/hooks/use-permissions'
 import { useCustomerSearch } from '@/customer/hooks/use-customer-search'
 import { useTranslations } from '@/lib/i18n/context'
 import Button from '@/components/v2/ui/Button'
 import CustomerFormPanel from '@/customer/components/v2/CustomerFormPanel'
+import CustomerProfilePanel from '@/customer/components/v2/CustomerProfilePanel'
 import type { Customer } from '@/customer/types'
+import RenewMembershipPanel from '@/membership/components/v2/RenewMembershipPanel'
 import AssistanceModal from './AssistanceModal'
 
 const MAX_RESULTS_TO_DISPLAY = 5
@@ -19,6 +22,15 @@ export default function AttendanceSearchCard() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [newCustomerOpen, setNewCustomerOpen] = useState(false)
+  // El perfil y la renovación trabajan sobre su propia copia del cliente: cerrar
+  // el modal limpia `selectedCustomer`, y los paneles que lo reemplazan lo
+  // siguen necesitando. Se conserva al cerrar para que la animación de salida
+  // no se quede sin contenido, como en `CustomersSection`.
+  const [profileCustomer, setProfileCustomer] = useState<Customer | null>(null)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [renewOpen, setRenewOpen] = useState(false)
+  // Ver `CustomerProfilePayments`: finanzas es admin-only a nivel RLS.
+  const { isAdmin } = usePermissions()
 
   const hasQuery = query.trim().length > 0
   const showDropdown = hasQuery && debouncedQuery.trim().length > 0
@@ -44,6 +56,18 @@ export default function AttendanceSearchCard() {
   //
   // El refresh es por lo mismo que en `QuickActionsSection`: el alta mueve las
   // métricas del home, que se resuelven en server components.
+  // "Ver perfil" reemplaza el modal por el perfil de v2 en vez de navegar: el
+  // perfil no tiene URL propia, y quien atiende el mostrador no pierde el home.
+  // Desde ahí "Renovar" reemplaza al perfil, que es lo que pide el aviso de
+  // membresía vencida del modal ("entrá al perfil del cliente").
+  const handleViewProfile = () => {
+    if (!selectedCustomer) return
+    setProfileCustomer(selectedCustomer)
+    setModalOpen(false)
+    setSelectedCustomer(null)
+    setProfileOpen(true)
+  }
+
   const handleCustomerCreated = (customer?: Customer) => {
     if (customer) {
       setSelectedCustomer(customer)
@@ -57,10 +81,7 @@ export default function AttendanceSearchCard() {
       <div className='flex flex-col md:flex-row md:items-center gap-3'>
         <div className='relative flex-1'>
           {selectedCustomer ? (
-            <SelectedCustomerChip
-              customer={selectedCustomer}
-              onClear={handleClearSelection}
-            />
+            <SelectedCustomerChip customer={selectedCustomer} onClear={handleClearSelection} />
           ) : (
             <SearchInput
               loading={loading}
@@ -99,6 +120,27 @@ export default function AttendanceSearchCard() {
           setModalOpen(open)
           if (!open) setSelectedCustomer(null)
         }}
+        onViewProfile={handleViewProfile}
+      />
+
+      <CustomerProfilePanel
+        canReadPayments={isAdmin}
+        customer={profileCustomer}
+        open={profileOpen}
+        onOpenChange={setProfileOpen}
+        onRenew={() => {
+          setProfileOpen(false)
+          setRenewOpen(true)
+        }}
+      />
+
+      <RenewMembershipPanel
+        customer={profileCustomer}
+        open={renewOpen}
+        onOpenChange={setRenewOpen}
+        // La renovación mueve las métricas del home, que salen de server
+        // components — mismo motivo que el refresh del alta de acá abajo.
+        onRenewed={() => router.refresh()}
       />
 
       <CustomerFormPanel
