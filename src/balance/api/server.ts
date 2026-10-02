@@ -49,7 +49,7 @@ export async function getEarliestBalanceMonth(): Promise<string | null> {
     .map((result) => {
       if (result.error) throw new Error(result.error.message)
 
-      return result.data ? Object.values(result.data as Record<string, string>)[0] : null
+      return result.data ? Object.values(result.data as unknown as Record<string, string>)[0] : null
     })
     .filter((value): value is string => Boolean(value))
 
