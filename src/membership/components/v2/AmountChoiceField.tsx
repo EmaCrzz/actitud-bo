@@ -30,6 +30,13 @@ interface AmountChoiceFieldProps {
   note: string
   /** El RPC exige nota para un descuento ad-hoc; el recargo no. */
   requireNote?: boolean
+  /**
+   * Bloqueado por otro campo —el descuento, cuando hay una promoción—, con el
+   * motivo en lugar del hint. Deshabilitar sin decir por qué deja al operador
+   * buscando qué le falta.
+   */
+  disabled?: boolean
+  disabledHint?: string
   amountError?: string
   noteError?: string
   onChange: (patch: { choice?: AmountChoice; customAmount?: number; note?: string }) => void
@@ -62,6 +69,8 @@ export default function AmountChoiceField({
   customAmount,
   note,
   requireNote = false,
+  disabled = false,
+  disabledHint,
   amountError,
   noteError,
   onChange,
@@ -75,11 +84,15 @@ export default function AmountChoiceField({
     <div className='flex flex-col gap-2'>
       <FormField
         error={amountError}
-        hint={isCustom ? undefined : selected?.hint}
+        hint={disabled ? disabledHint : isCustom ? undefined : selected?.hint}
         htmlFor={id}
         label={label}
       >
-        <Select value={value} onValueChange={(next) => onChange({ choice: next as AmountChoice })}>
+        <Select
+          disabled={disabled}
+          value={value}
+          onValueChange={(next) => onChange({ choice: next as AmountChoice })}
+        >
           <SelectTrigger id={id}>
             <SelectValue placeholder={t('v2.membership.renew.selectPlaceholderShort')} />
           </SelectTrigger>
