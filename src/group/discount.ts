@@ -46,6 +46,11 @@ export function computeDiscountAmount(
  * Así que la lógica quedó acá, parametrizada por el cliente, y los dos módulos
  * de API la envuelven. `api/server.ts` sigue siendo el punto de entrada del
  * server y `api/client.ts` el del browser; lo que comparten es esto.
+ *
+ * **Desde el 2026-10-02 sólo la usa v1** (vía `api/server.ts`). El panel de
+ * renovación de v2 dejó de sugerir el descuento por grupo y ofrece las reglas
+ * activas como promociones — ver `fetchActiveDiscountRules` y el ADR
+ * 20261002120000. Se retira junto con v1.
  */
 export async function resolveApplicableDiscount(
   supabase: SupabaseClient,

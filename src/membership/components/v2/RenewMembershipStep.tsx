@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import FormField from '@/components/v2/FormField'
 import DatePicker from '@/components/v2/ui/DatePicker'
+import Input from '@/components/v2/ui/Input'
 import {
   Select,
   SelectContent,
@@ -11,11 +12,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/v2/ui/Select'
-import type { ApplicableDiscount } from '@/group/types'
+import { computeDiscountAmount } from '@/group/discount'
+import type { DiscountRule } from '@/group/types'
 import { formatCalendarDate } from '@/lib/format-date'
 import { formatCurrency } from '@/lib/format-currency'
 import { useTranslations } from '@/lib/i18n/context'
-import { getPeriodModeOptions, type PeriodMode } from '@/membership/charge-mode'
+import {
+  getPeriodBaseAmount,
+  getPeriodModeOptions,
+  type PeriodMode,
+} from '@/membership/charge-mode'
 import {
   MEMBERSHIP_TYPE_DAILY,
   MEMBERSHIP_TYPE_VIP,
@@ -42,7 +48,8 @@ interface Props {
   membershipTypes: MembershipType[]
   selectedType: MembershipType | null
   suggestion: SuggestedCharge
-  applicableDiscount: ApplicableDiscount | null
+  /** Reglas activas de `discount_rules`, en el orden en que se crearon. */
+  promotions: DiscountRule[]
   /**
    * El cliente ya tiene un pago con comprobante emitido para el período
    * vigente y el operador cambió el tipo de plan.
@@ -70,12 +77,13 @@ interface Props {
  *    tipo del catálogo sino el estado de un cliente sin fila en
  *    `customer_membership`.
  *
- * 2. **Promociones queda deshabilitado en "Sin promoción".** El select existe en
- *    el diseño y la columna `discount_rules.applies_to` admite `'promo'` desde
- *    la migración 20260722120000, pero **no hay ninguna regla promo cargada ni
- *    CRUD que las cree** — eso es la Fase 14. Se muestra deshabilitado en vez de
- *    ocultarlo porque el propio resumen del diseño imprime "Sin promoción", así
- *    que el concepto ya es visible para el operador.
+ * 2. **Promociones y Descuento son excluyentes** (2026-10-02). El Figma los
+ *    dibuja como dos campos que se podrían combinar, pero el pago guarda una
+ *    sola regla y un solo monto: con los dos, el monto manual quedaría
+ *    atribuido a la promo en el desglose de Balance. Elegir uno deshabilita el
+ *    otro, con el motivo a la vista. Promociones lista **todas las reglas
+ *    activas** y arranca en "Sin promoción" — el grupo familiar es una de ellas,
+ *    no una sugerencia por cliente. Ver el ADR 20261002120000.
  *
  * 3. **Modalidad de cobro y Forma de pago desaparecen con VIP**, y Modalidad
  *    también con Diaria. Mismo motivo que en el alta: VIP vale 0 y
@@ -88,7 +96,7 @@ export default function RenewMembershipStep({
   membershipTypes,
   selectedType,
   suggestion,
-  applicableDiscount,
+  promotions,
   warnsTypeChange,
   currentPeriod,
   onChange,
@@ -100,26 +108,20 @@ export default function RenewMembershipStep({
   const isDaily = values.membership_type === MEMBERSHIP_TYPE_DAILY
   const dailyPeriod = useMemo(() => resolveRenewalPeriod(values), [values])
 
-  const discountOptions = useMemo<AmountChoiceOption[]>(() => {
-    const options: AmountChoiceOption[] = [
+  const discountOptions = useMemo<AmountChoiceOption[]>(
+    () => [
       { value: AMOUNT_CHOICE_NONE, label: t('v2.membership.renew.noDiscount') },
-    ]
+      { value: AMOUNT_CHOICE_CUSTOM, label: t('v2.membership.renew.otherAmount') },
+    ],
+    [t]
+  )
 
-    if (applicableDiscount) {
-      options.push({
-        value: AMOUNT_CHOICE_SUGGESTED,
-        label: `${applicableDiscount.rule.name} - ${formatCurrency(applicableDiscount.suggested_amount)}`,
-        hint: t('v2.membership.renew.discountReason', {
-          group: applicableDiscount.group.name,
-          members: applicableDiscount.group.active_members_count,
-        }),
-      })
-    }
-
-    options.push({ value: AMOUNT_CHOICE_CUSTOM, label: t('v2.membership.renew.otherAmount') })
-
-    return options
-  }, [applicableDiscount, t])
+  // El monto de cada promo contra el bruto vigente: una regla `percent` da otro
+  // número si el operador cambia de plan o de modalidad, y el label tiene que
+  // decir lo mismo que el total.
+  const base = getPeriodBaseAmount(selectedType, values.period_mode)
+  const hasPromotion = values.promotion_id !== ''
+  const hasManualDiscount = values.discount_choice === AMOUNT_CHOICE_CUSTOM
 
   const surchargeOptions = useMemo<AmountChoiceOption[]>(() => {
     const options: AmountChoiceOption[] = [
@@ -279,16 +281,62 @@ export default function RenewMembershipStep({
             {t('v2.membership.renew.conditions')}
           </p>
 
-          <FormField htmlFor='renew_promotion' label={t('v2.membership.renew.promotions')}>
-            <Select disabled value='none'>
-              <SelectTrigger id='renew_promotion'>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='none'>{t('v2.membership.renew.noPromotion')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </FormField>
+          <div className='flex flex-col gap-2'>
+            <FormField
+              error={errors.promotion}
+              hint={
+                hasManualDiscount ? t('v2.membership.renew.promotionLockedByDiscount') : undefined
+              }
+              htmlFor='renew_promotion'
+              label={t('v2.membership.renew.promotions')}
+            >
+              <Select
+                disabled={hasManualDiscount}
+                // Radix no admite `''` como valor de un item: "sin promoción"
+                // viaja como un centinela y se traduce de vuelta al cambiar.
+                value={values.promotion_id || NO_PROMOTION}
+                onValueChange={(next) =>
+                  onChange({
+                    promotion_id: next === NO_PROMOTION ? '' : next,
+                    // La nota es de la promo que se eligió: cambiar de promo o
+                    // sacarla no puede arrastrar el motivo de la anterior.
+                    discount_note: '',
+                  })
+                }
+              >
+                <SelectTrigger id='renew_promotion'>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_PROMOTION}>
+                    {t('v2.membership.renew.noPromotion')}
+                  </SelectItem>
+                  {promotions.map((rule) => (
+                    <SelectItem key={rule.id} value={rule.id}>
+                      {`${rule.name} - ${formatCurrency(computeDiscountAmount(rule, base))}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormField>
+
+            {/* Opcional (Ema, 2026-10-02): sirve para dejar con quién vino la
+                familia sin volver obligatorio un paso que hoy no existe. Viaja
+                a `discount_note`, el mismo campo que el motivo del manual. */}
+            {hasPromotion && (
+              <FormField
+                htmlFor='renew_promotion_note'
+                label={t('v2.membership.renew.noteLabelOptional')}
+              >
+                <Input
+                  id='renew_promotion_note'
+                  placeholder={t('v2.membership.renew.promotionNotePlaceholder')}
+                  value={values.discount_note}
+                  onChange={(event) => onChange({ discount_note: event.target.value })}
+                />
+              </FormField>
+            )}
+          </div>
 
           {/* Apilados, no en dos columnas como los dibuja el Figma. Cada uno
               crece cuando se elige "Otro monto…" —aparecen el campo de moneda y
@@ -299,6 +347,8 @@ export default function RenewMembershipStep({
               requireNote
               amountError={errors.discount_amount}
               customAmount={values.discount_custom_amount}
+              disabled={hasPromotion}
+              disabledHint={t('v2.membership.renew.discountLockedByPromotion')}
               id='renew_discount'
               label={t('v2.membership.renew.discount')}
               note={values.discount_note}
@@ -358,3 +408,6 @@ export default function RenewMembershipStep({
     </div>
   )
 }
+
+/** Valor del item "Sin promoción" en el select. Ver el comentario del `value`. */
+const NO_PROMOTION = 'none'

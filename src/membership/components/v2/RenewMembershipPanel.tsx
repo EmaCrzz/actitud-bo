@@ -15,8 +15,7 @@ import { upsertCustomerMembership } from '@/customer/api/client'
 import { handleDatabaseError } from '@/customer/errors'
 import { basicMembershipValidation } from '@/customer/utils'
 import { CUSTOMER_STATUS_LABEL, CUSTOMER_STATUS_TONE } from '@/customer/components/v2/customer-status'
-import { fetchApplicableDiscount } from '@/group/api/client'
-import { computeDiscountAmount } from '@/group/discount'
+import { fetchActiveDiscountRules } from '@/group/api/client'
 import { getInitials } from '@/lib/format-person'
 import { useTranslations } from '@/lib/i18n/context'
 import {
@@ -30,7 +29,7 @@ import {
   getMembershipTypes,
   type RenewalContext,
 } from '@/membership/api/client'
-import { getPeriodBaseAmount, getPeriodModeOptions } from '@/membership/charge-mode'
+import { getPeriodModeOptions } from '@/membership/charge-mode'
 import {
   MEMBERSHIP_TYPE_VIP,
   type MembershipTypes,
@@ -149,37 +148,28 @@ export default function RenewMembershipPanel({
     [availableTypes, values?.membership_type]
   )
 
-  // La regla de descuento se consulta **una vez por apertura**, con el bruto del
-  // plan vigente. El monto se recalcula después en memoria con
-  // `computeDiscountAmount()`: una regla `percent` da otro número por cada plan
-  // y modalidad, y refetchear por eso sería un round trip por click para
-  // rehacer una multiplicación.
-  const { data: discountRule = null, isFetched: isDiscountFetched } = useQuery({
-    queryKey: ['applicable-discount', 'v2', activeCustomer?.id],
-    queryFn: () =>
-      fetchApplicableDiscount(
-        activeCustomer!.id,
-        getPeriodBaseAmount(
-          membershipTypes.find((type) => type.type === context?.membership_type) ?? null,
-          'full'
-        )
-      ),
-    enabled: Boolean(open && activeCustomer?.id && context && membershipTypes.length > 0),
+  // El catálogo de promociones no depende del cliente: es el mismo para todos,
+  // así que se cachea como el de planes. El monto de cada una se calcula en
+  // memoria contra el bruto vigente (`computeDiscountAmount`), no acá.
+  const { data: promotions = [] } = useQuery({
+    queryKey: ['discount-rules', 'active'],
+    queryFn: fetchActiveDiscountRules,
+    enabled: open,
     staleTime: 5 * 60 * 1000,
   })
 
-  // Se arma recién cuando llegaron las tres consultas: el `DatePicker` de v2 es
-  // no controlado y sólo lee su `defaultValue` al montar, así que un prefill que
-  // llegue después no se vería. Y las sugerencias tienen que estar preelegidas
-  // desde el primer render — si aparecieran más tarde, cambiarían la pantalla
-  // bajo el operador mientras la está leyendo.
+  // Se arma recién cuando llegaron el contexto y los planes: el `DatePicker` de
+  // v2 es no controlado y sólo lee su `defaultValue` al montar, así que un
+  // prefill que llegue después no se vería. Y las sugerencias tienen que estar
+  // preelegidas desde el primer render — si aparecieran más tarde, cambiarían
+  // la pantalla bajo el operador mientras la está leyendo.
+  //
+  // Las promociones no entran en esta espera: arrancan siempre en "Sin
+  // promoción", así que no hay nada que preelegir con ellas.
   useEffect(() => {
-    if (!open || !context || membershipTypes.length === 0 || !isDiscountFetched) return
-    setValues(
-      (previous) =>
-        previous ?? buildInitialValues(context, membershipTypes, discountRule !== null)
-    )
-  }, [open, context, membershipTypes, isDiscountFetched, discountRule])
+    if (!open || !context || membershipTypes.length === 0) return
+    setValues((previous) => previous ?? buildInitialValues(context, membershipTypes))
+  }, [open, context, membershipTypes])
 
   // Reabrir el panel arranca de cero. Se limpia al cerrar y no al abrir —al
   // revés que el alta— porque acá el estado inicial depende de un fetch: dejarlo
@@ -212,30 +202,25 @@ export default function RenewMembershipPanel({
     [selectedType, period.start_date, context?.has_assistances_this_month]
   )
 
-  /**
-   * La regla de descuento con su monto recalculado contra el bruto vigente.
-   *
-   * `fetchApplicableDiscount` la trajo con el bruto del plan que el cliente
-   * tenía al abrir el panel; si el operador cambió de plan o de modalidad, el
-   * `suggested_amount` de una regla `percent` ya no corresponde.
-   */
-  const applicableDiscount = useMemo(() => {
-    if (!discountRule) return null
-
-    const base = getPeriodBaseAmount(selectedType, values?.period_mode ?? 'full')
-
-    return {
-      ...discountRule,
-      suggested_amount: computeDiscountAmount(discountRule.rule, base),
-    }
-  }, [discountRule, selectedType, values?.period_mode])
+  // Una promoción desactivada entre que se abrió el panel y ahora deja de
+  // resolver, y el cobro sale sin ella: mejor eso que aplicar una regla que ya
+  // no está en el catálogo.
+  const selectedPromotion = useMemo(
+    () => promotions.find((rule) => rule.id === values?.promotion_id) ?? null,
+    [promotions, values?.promotion_id]
+  )
 
   const amounts = useMemo(
     () =>
       values
-        ? resolveRenewalAmounts({ values, membership: selectedType, suggestion, applicableDiscount })
+        ? resolveRenewalAmounts({
+            values,
+            membership: selectedType,
+            suggestion,
+            promotion: selectedPromotion,
+          })
         : { base: 0, surcharge: 0, discount: 0, discount_rule_id: null, total: 0 },
-    [values, selectedType, suggestion, applicableDiscount]
+    [values, selectedType, suggestion, selectedPromotion]
   )
 
   /**
@@ -339,13 +324,17 @@ export default function RenewMembershipPanel({
       //
       // `membership_payments` tiene `CHECK (amount > 0)`: un total en 0 lo
       // rechaza la base con un 23514 que la UI no sabe explicar.
+      // El error va al campo que generó el descuento: con promoción, Descuento
+      // está deshabilitado y un mensaje ahí no se puede corregir desde ahí.
       if (!isVip && amounts.total <= 0) {
-        fieldErrors.discount_amount = t('v2.membership.renew.errors.totalNotPositive')
+        fieldErrors[selectedPromotion ? 'promotion' : 'discount_amount'] = t(
+          'v2.membership.renew.errors.totalNotPositive'
+        )
       }
 
       return fieldErrors
     },
-    [amounts.total, values?.membership_type, t]
+    [amounts.total, values?.membership_type, selectedPromotion, t]
   )
 
   // Se valida al pasar al resumen, no al confirmar: los campos viven en el paso
@@ -403,7 +392,10 @@ export default function RenewMembershipPanel({
       membershipType: values.membership_type as MembershipTypes,
       periodModeLabel: periodModeLabel ? t(periodModeLabel) : null,
       base: amounts.base,
-      discount: amounts.discount,
+      discount: selectedPromotion ? 0 : amounts.discount,
+      promotion: selectedPromotion
+        ? { name: selectedPromotion.name, amount: amounts.discount }
+        : null,
       surcharge: amounts.surcharge,
       total: amounts.total,
       paymentMethod: values.payment_type,
@@ -413,7 +405,17 @@ export default function RenewMembershipPanel({
       receiptNumber: (response.data?.receipt_number as string | undefined) ?? null,
     })
     onRenewed?.()
-  }, [activeCustomer, values, buildFormData, validate, amounts, periodModeLabel, onRenewed, t])
+  }, [
+    activeCustomer,
+    values,
+    buildFormData,
+    validate,
+    amounts,
+    selectedPromotion,
+    periodModeLabel,
+    onRenewed,
+    t,
+  ])
 
   const name = activeCustomer
     ? `${activeCustomer.first_name} ${activeCustomer.last_name}`.trim()
@@ -494,10 +496,10 @@ export default function RenewMembershipPanel({
           <StepSkeleton />
         ) : step === 0 ? (
           <RenewMembershipStep
-            applicableDiscount={applicableDiscount}
             currentPeriod={currentPeriod}
             errors={errors}
             membershipTypes={availableTypes}
+            promotions={promotions}
             selectedType={selectedType}
             suggestion={suggestion}
             values={values}
@@ -508,6 +510,7 @@ export default function RenewMembershipPanel({
           <RenewSummaryStep
             amounts={amounts}
             period={period}
+            promotion={selectedPromotion}
             selectedType={selectedType}
             values={values}
             warnsTypeChange={warnsTypeChange}
@@ -571,15 +574,21 @@ function StepSkeleton() {
  *
  * "Sugerir" acá significa preseleccionar, no sólo ofrecer: la regla de producto
  * (Ema, 2026-09-21) es *"sugerir el monto pero no ser una regla 100%
- * obligatoria"*. Los tres campos que la política puede proponer —modalidad de
- * cobro, recargo y descuento— arrancan en la opción sugerida con su motivo a la
- * vista, y el operador puede bajarlos a "sin" o a un monto libre sin que nada se
- * lo impida.
+ * obligatoria"*. Los dos campos que la política puede proponer —modalidad de
+ * cobro y recargo— arrancan en la opción sugerida con su motivo a la vista, y
+ * el operador puede bajarlos a "sin" o a un monto libre sin que nada se lo
+ * impida.
+ *
+ * **Promoción y descuento arrancan siempre vacíos** (2026-10-02). Hasta ahí el
+ * descuento de grupo venía preseleccionado, y medido en prod el operador lo
+ * sacaba en ~45% de los cobros de integrantes: al primero en pagar y a quien
+ * venía solo. Con la promo a elegir, un olvido hace que el cliente pague de más
+ * y lo reclame; con la sugerencia, regalaba un descuento sin que nadie lo note.
+ * Ver el ADR 20261002120000.
  */
 function buildInitialValues(
   context: RenewalContext,
-  membershipTypes: MembershipType[],
-  hasDiscountRule: boolean
+  membershipTypes: MembershipType[]
 ): RenewalFormValues {
   const period = buildRenewalPeriod(context.expiration_date)
   const currentType = membershipTypes.find((type) => type.type === context.membership_type) ?? null
@@ -601,7 +610,8 @@ function buildInitialValues(
     period_mode: suggestion.periodMode,
     start_date: period.start_date,
     end_date: period.end_date,
-    discount_choice: hasDiscountRule ? AMOUNT_CHOICE_SUGGESTED : AMOUNT_CHOICE_NONE,
+    promotion_id: '',
+    discount_choice: AMOUNT_CHOICE_NONE,
     discount_custom_amount: 0,
     discount_note: '',
     surcharge_choice: suggestion.suggestsSurcharge ? AMOUNT_CHOICE_SUGGESTED : AMOUNT_CHOICE_NONE,

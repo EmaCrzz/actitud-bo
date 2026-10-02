@@ -29,10 +29,10 @@
 | 8 | Registrar pago / renovar membresía + comprobante | ✅ completa | Fundaciones en prod con **v0.13.0/v0.13.1**. Panel de renovación: PR [#62](https://github.com/EmaCrzz/actitud-bo/pull/62), ADR [20260922173000](../architecture/decisions/20260922173000_v2-panel-de-renovacion-de-membresia.md). Comprobante + cobro desde el home: rama `feat/v2-comprobante-y-pago-desde-home`, ADR [20260923140000](../architecture/decisions/20260923140000_v2-comprobante-de-pago-y-cobro-desde-el-home.md). **Ninguno de los dos llevó migraciones.** |
 | 9 | Sección Asistencias | ✅ completa | Rama `feat/v2-asistencias`. ADR [20260926171200](../architecture/decisions/20260926171200_v2-seccion-asistencias.md). **Desktop con tabs, mobile sin ellos** — la divergencia es deliberada y está en el Figma. Sin migraciones. Primera fase que entrega con specs e2e. |
 | 10 | Sección Membresías (planes y precios) | ✅ completa | Rama `feat/v2-membresias`. ADR [20260928112705](../architecture/decisions/20260928112705_v2-seccion-membresias-y-catalogo-de-planes.md). **Catálogo híbrido**: se crean planes y los 5 originales conservan su comportamiento especial. Vive en `/v2/settings/memberships`; se borró el stub de `/v2/memberships`. **Lleva migración aditiva** `20260928110544` (B6 cerrada). |
-| 10b | Grupos de clientes (familiares) | 🔵 relevada, sin planificar | **No estaba en el plan original**; capturas del 2026-09-29. El panel ya existe en v1 casi 1:1; lo nuevo es la tabla del listado. Relevada contra prod y **pausada a pedido de Ema** para revisarla con calma. Decidido: el descuento sólo se muestra, y eliminar pasa a baja lógica. Abierto: las columnas derivadas → [decisión #17](#decisiones-abiertas--riesgos). |
+| 10b | Grupos de clientes (familiares) | ❌ **cancelada (2026-10-02)** | El grupo familiar pasa a ser **una promoción que se elige al cobrar**. Rama `feat/v2-descuento-por-promocion`, ADR [20261002120000](../architecture/decisions/20261002120000_grupo-familiar-como-promocion.md). El catálogo de promociones lo absorbe la Fase 14. Lo que sigue es el relevamiento original: **No estaba en el plan original**; capturas del 2026-09-29. El panel ya existe en v1 casi 1:1; lo nuevo es la tabla del listado. Relevada contra prod y **pausada a pedido de Ema** para revisarla con calma. Decidido: el descuento sólo se muestra, y eliminar pasa a baja lógica. Abierto: las columnas derivadas → [decisión #17](#decisiones-abiertas--riesgos). |
 | 11 | Sección Gastos (crear/editar/eliminar) | ✅ completa · **en prod (v0.17.0)** | Rama `feat/v2-gastos`. ADR [20260930121500](../architecture/decisions/20260930121500_v2-seccion-gastos-y-medio-de-pago.md). **Lleva migración aditiva** `20260929104500` (B1 cerrada): `payment_method` **nullable, sin backfill** — decisión #8 resuelta midiendo prod (29 gastos) . De paso se arregló un bug que bloqueaba el **alta de cliente el último día de cada mes**. |
 | 12 | Sección Ventas (cuotas + productos) | ✅ completa · **en prod (v0.18.0)** | Rama `feat/v2-ventas`. ADR [20261001100524](../architecture/decisions/20261001100524_v2-seccion-ventas.md). **Ventas es todo lo cobrado**: cuotas de `membership_payments` + productos de la tabla nueva `sales`, unidas al leer. Sin catálogo, sin stock, un producto por venta. **Lleva migración aditiva** `20261001100524` (A1 cerrada). Capturas versionadas en [figma/ventas/](figma/ventas/). |
-| 13 | Balance | ✅ completa | Rama `feat/v2-balance`. ADR [20261001154047](../architecture/decisions/20261001154047_v2-balance.md). **Navegador de mes** en vez de rango; ingresos contra egresos en la evolución; desgloses de los dos lados que suman exactamente su total. **Cuadra con Ventas y Gastos por construcción** (spec e2e). Sin migraciones. Capturas en [figma/balance/](figma/balance/). |
+| 13 | Balance | ✅ completa · **en prod (v0.19.0)** | Rama `feat/v2-balance`. ADR [20261001154047](../architecture/decisions/20261001154047_v2-balance.md). **Navegador de mes** en vez de rango; ingresos contra egresos en la evolución; desgloses de los dos lados que suman exactamente su total. **Cuadra con Ventas y Gastos por construcción** (spec e2e). Sin migraciones. Capturas en [figma/balance/](figma/balance/). |
 | 14 | Configuración (Negocio / Membresías / Promociones / Usuarios) | ⬜ pendiente | Requiere tabla de settings del negocio. |
 | 15 | Promoción de v2 a default + retiro de v1 | ⬜ pendiente | Fuera del alcance actual; se planifica cuando 3–14 estén cerradas. |
 
@@ -40,7 +40,9 @@
 
 ## Por dónde seguir
 
-> Última actualización: **2026-10-01**. Esta sección es el arranque de cualquier sesión nueva: decí en qué estado quedó todo y cuál es el siguiente movimiento, sin tener que leer el documento entero.
+> Última actualización: **2026-10-02**. Esta sección es el arranque de cualquier sesión nueva: decí en qué estado quedó todo y cuál es el siguiente movimiento, sin tener que leer el documento entero.
+
+**La Fase 10b se canceló el 2026-10-02: el grupo familiar es una promoción, no una entidad.** Rama `feat/v2-descuento-por-promocion`, ADR [20261002120000](../architecture/decisions/20261002120000_grupo-familiar-como-promocion.md). Medido prod, **no hay titular: hay un orden de pago**. El primero de la familia paga completo y los que pagan después tienen el descuento (31 de 34), casi siempre a minutos del primero. La sugerencia automática por grupo contradecía esa regla en ~45% de los cobros, y quien cobraba la corregía a mano. En v2 el panel de renovación ahora ofrece las reglas activas en el select **Promociones** del Figma, que arranca vacío, con nota opcional y excluyente con el descuento manual. **Sin migración**, y v1 queda como estaba.
 
 **La Fase 12 (Ventas) se cerró el 2026-10-01** — rama `feat/v2-ventas`, ADR [20261001100524](../architecture/decisions/20261001100524_v2-seccion-ventas.md). La [decisión #5](#decisiones-abiertas--riesgos) la respondió Ema (sin stock, sin catálogo, editar y borrar como Gastos) y **las capturas cambiaron el alcance**: el panel "Nueva venta" ofrece `Membresía` al lado de `Producto`, así que **Ventas es todo lo que se cobra**. Las cuotas siguen en `membership_payments`, los productos van a `sales`, y la sección las une al leer — cada peso vive en una sola tabla. Ver [Fase 12](#fase-12--sección-ventas).
 
@@ -48,11 +50,13 @@
 
 **La Fase 13 (Balance) se cerró el 2026-10-01** — rama `feat/v2-balance`, ADR [20261001154047](../architecture/decisions/20261001154047_v2-balance.md). Ema la sentía vacía; medido prod, no le faltaban bloques sino que **le sobraban los que repetían Ventas**. Quedó como ingresos **contra** egresos: resultado del mes, evolución de los dos lados, ingresos por concepto (planes + productos), egresos por categoría, método de pago y descuentos/recargos. Navegador de mes en vez de los dos datepickers del diseño. **Sin migraciones.** Ver [Fase 13](#fase-13--balance).
 
-**El movimiento siguiente:** la [Fase 14](#fase-14--configuración) (necesita `business_settings` y bucket de Storage) o la [Fase 10b](#fase-10b--grupos-de-clientes-familiares) (relevada, esperando la [decisión #17](#decisiones-abiertas--riesgos)). Quedó **en espera hasta la Fase 15**, por decisión de Ema: el ciclo de cobro y la lista de pendientes de `/incomes` de v1, que no tienen lugar en v2 todavía.
+**La Fase 13 viajó a producción como v0.19.0 el 2026-10-02** (PRs [#74](https://github.com/EmaCrzz/actitud-bo/pull/74) y [#75](https://github.com/EmaCrzz/actitud-bo/pull/75)). **Sin migraciones**: la última en prod sigue siendo `20261001100524`. Lo único que ve un operador de v1 es que **el balance de v1 (`getMonthlyStats`) ahora suma `sales`**; no debería cambiar ningún número, porque `sales` sólo se escribe desde v2 y nadie lo tiene habilitado (0 filas al migrar, no re-medido).
+
+**El movimiento siguiente:** la [Fase 14](#fase-14--configuración), que ahora también es la casa del descuento familiar: el ABM de Promociones sobre `discount_rules`. Necesita `business_settings` y bucket de Storage para Negocio. ~~O la Fase 10b~~ → cancelada. Quedó **en espera hasta la Fase 15**, por decisión de Ema: el ciclo de cobro y la lista de pendientes de `/incomes` de v1, que no tienen lugar en v2 todavía.
 
 ---
 
-**Las fases 0–13 están cerradas (salvo la 10b, pausada). Quedan dos: 14 Configuración y 15 promoción de v2.** De las pantallas de v2, **tres siguen siendo `UnderConstruction`** — las de `settings` (`business`, `promotions`, `users`); medido el 2026-10-01 con un grep sobre `v2/`.
+**Las fases 0–13 están cerradas (la 10b, cancelada el 2026-10-02). Quedan dos: 14 Configuración y 15 promoción de v2.** De las pantallas de v2, **tres siguen siendo `UnderConstruction`** — las de `settings` (`business`, `promotions`, `users`); medido el 2026-10-01 con un grep sobre `v2/`.
 
 **La Fase 10 se cerró el 2026-09-28** — rama `feat/v2-membresias`, ADR [20260928112705](../architecture/decisions/20260928112705_v2-seccion-membresias-y-catalogo-de-planes.md). La [decisión #7](#decisiones-abiertas--riesgos) terminó en **catálogo híbrido: se crean planes, y los 5 originales conservan su comportamiento especial**. Ver [Fase 10](#fase-10--sección-membresías-planes-y-precios).
 
@@ -82,9 +86,9 @@
 
 **Lo que cambió el diseño el 2026-09-22:** el paso 1 ahora tiene los **dos datepickers** (inicio y vencimiento), que antes no estaban. El panel los muestra con prefill derivado — inicio = día siguiente al vencimiento vigente, o hoy si ya venció — y con eso la renovación anticipada arranca sola en el período correcto.
 
-**Estado de entornos — todo desplegado, `main` y `develop` emparejados.** Producción corre **v0.16.0** (release del 2026-09-28), que llevó la Fase 10 completa. Antes salió la v0.15.0 el mismo día, con la Fase 9, la suite e2e y los unit tests. Prod sigue con **0 usuarios con `v2_access`**, así que toda la UI de v2 viaja apagada.
+**Estado de entornos — todo desplegado, `main` y `develop` emparejados.** Producción corre **v0.19.0** (release del 2026-10-02), que llevó la Fase 13. El historial de releases está en [Cambios registrados](#cambios-registrados). Prod sigue con **0 usuarios con `v2_access`**, así que toda la UI de v2 viaja apagada.
 
-**Migraciones: al día.** La última aplicada en prod es `20260928110544` (Fase 10), y dev está emparejado. Se aplicó **antes** del release, con ensayo transaccional previo y auditoría de integridad antes y después: **idéntica**, no se movió ningún dato.
+**Migraciones: al día.** La última aplicada en prod es `20261001100524` (Fase 12), y dev está emparejado. Se aplicó **antes** del release, con ensayo transaccional previo y auditoría de integridad antes y después: **idéntica**, no se movió ningún dato.
 
 **Lo que un operador de v1 ve de estas dos versiones: nada nuevo.** De la v0.15.0, refactors que preservan comportamiento en `/assistances`. De la v0.16.0, los ~20 call sites de etiquetas de membresía migrados al resolver —misma variante de copy en todos— más tres arreglos que no cambian nada visible hasta que alguien cree un plan: la FK que pasó de `CASCADE` a `RESTRICT`, el INSERT admin-only y el trigger de `last_update`. **Cubierto por el smoke de v1** que la fase agregó.
 
@@ -117,6 +121,15 @@ La evidencia que lo confirmó: de los 15 clientes creados desde el 22-07 con alg
 
 **Pendiente con el diseñador:** el copy *"Aun"* sin tilde y las barras horizontales del home mobile ([decisión #18](#decisiones-abiertas--riesgos)), las **tres divergencias deliberadas** que introdujo la Fase 7 contra el Figma (no existe "Sin membresía" en el select; "Modalidad de cobro" y "Forma de pago" desaparecen con VIP; "Modalidad de cobro" desaparece con Diaria), y los **seis defectos de las capturas de renovación** del 2026-09-21 — incluido que el ícono de Compartir dice PDF y se va a implementar como imagen. Lista completa en [Fase 8](#defectos-del-diseño-detectados-en-las-capturas-del-2026-09-21).
 
+**Follow-ups anotados el 2026-10-02** (Ema, al probar la promoción del PR [#77](https://github.com/EmaCrzz/actitud-bo/pull/77)). Ninguno está empezado:
+
+1. **"Ver perfil" del modal de asistencia del home lleva a v1.** [AssistanceModal.tsx](../../src/home/components/v2/AssistanceModal.tsx) arma el link con la ruta `CUSTOMER` de v1 (`/customer/{id}`) en vez de abrir el perfil de v2, que es un panel dentro de Clientes desde la Fase 6b. Revisar el flow de registrar asistencia entero, no sólo el link.
+2. **Medio mes elegido antes del 16: avisar, no corregir.** Hoy se puede elegir "Medio mes" con inicio el 02/10, y el período queda hasta el 31/10 a mitad de precio. En prod pasó una vez desde julio (inicio 10/09, 1 de 4 pagos a precio de medio mes, sobre 303 cuotas); no se sabe si fue excepción pactada o error. Propuesta: un aviso que no bloquea cuando la modalidad contradice la política ("cubre hasta el 31/10 a mitad de precio"), con el umbral sacado de `halfMonthStart` en [billing-policy.ts](../../src/accounting/billing-policy.ts). No recortar fechas automáticamente: la app estaría adivinando si quiso decir "del 2 al 15" o un precio especial. Mismo criterio de "sugerir sin imponer" del 2026-09-21.
+3. **VIP ignora el precio que tenga cargado.** Desde la Fase 10 los planes son configurables, pero "VIP no se cobra" sigue atado a la clave literal (`MEMBERSHIP_TYPE_VIP` aparece en ~57 lugares de `src/`): si alguien le carga un precio al VIP, el formulario lo ignora. Es la ramificación que la [decisión #7](#decisiones-abiertas--riesgos) dejó "deliberadamente sin resolver": mover "si se cobra" a una columna (`is_chargeable`) o derivarlo del precio, y que el SQL del RPC la lea en vez de comparar la clave. Fase propia, con migración.
+4. **Medio mes como concepto opcional, no de fábrica.** La mayoría de los gimnasios cobra el mes entero; la media membresía es una regla de Actitud. La app debería poder **no proponer** el concepto si el negocio no lo configuró. Lo que ya existe: `getPeriodModeOptions` sólo ofrece "Medio mes" si el plan tiene `middle_amount`, y `halfMonthStart` está en la política con nombre semántico. Lo que falta:
+   - **Bug latente, mismo origen:** el formulario de planes guarda `middle_amount` tal cual, y un campo vacío queda en **0**, no en NULL ([PlanFormPanel.tsx](../../src/membership/components/v2/PlanFormPanel.tsx), decisión deliberada por el VIP). `getPeriodModeOptions` filtra `!== null`, así que **un plan nuevo sin precio de medio mes ofrecería "Medio mes - $0"**. Hoy no hay planes creados desde la UI en prod (0 filas con `name`), así que no afectó a nadie.
+   - Un interruptor a nivel negocio ("¿cobrás media membresía?") que apague a la vez la modalidad, la sugerencia de `getSuggestedCharge` y el campo del formulario de planes. Su lugar natural es `business_settings` de la [Fase 14](#fase-14--configuración), y se cruza con el ítem 3: los dos son "comportamiento que hoy está atado a Actitud y debería ser configuración".
+
 **Deuda conocida que quedó anotada, no resuelta:**
 
 - **B5 (DNI sin UNIQUE)** sigue abierta y sigue necesitando PR propio: 8 pares duplicados en prod que requieren criterio caso por caso — uno son dos personas distintas con un DNI mal tipeado.
@@ -140,7 +153,7 @@ Actitud BO es hoy una PWA mobile-first sin diseño desktop. El rediseño complet
 
 **Multitenant:** la app es tenant-configurable en build (env `TENANT`, temas y fuentes por tenant en [src/lib/themes/](../../src/lib/themes/)). La v2 hereda esto tal cual. Migrar la DB a multi-tenant en runtime (RLS por `tenant_id`) es una tarea aparte que no bloquea este plan.
 
-**No hacemos ahora:** RLS por tenant en DB, i18n adicional (queda `es` como único idioma), tests automatizados (status quo del proyecto).
+**No hacemos ahora:** RLS por tenant en DB, i18n adicional (queda `es` como único idioma). ~~Tests automatizados~~ → hay Playwright y Vitest desde el 2026-09-26.
 
 ---
 
@@ -1210,7 +1223,11 @@ También: el sidebar de las dos capturas desktop marca **`Inicio`** activo, no `
 
 ## Fase 10b — Grupos de clientes (familiares)
 
-**Estado:** 🔵 relevada, sin planificar · **no estaba en el plan original**
+**Estado:** ❌ **cancelada el 2026-10-02** · ADR [20261002120000](../architecture/decisions/20261002120000_grupo-familiar-como-promocion.md) · **no estaba en el plan original**
+
+> **Por qué se canceló.** Al retomarla quedaron dos preguntas sin respuesta: quién es el titular, y qué pasa con el grupo cuando un integrante vence y no vuelve. Medido prod el 2026-10-02, **la regla real no usa titular**: en cada grupo y mes, el primero en pagar paga completo (3 descuentos de 28) y los siguientes tienen el descuento (31 de 34), y 25 de esos 34 pagaron a menos de diez minutos del primero. Quien paga solo nunca lo tuvo (0 de 5). La sugerencia por grupo de v1/v2 contradecía eso en ~30 de 67 cobranzas. Se compararon tres modelos —grupos como entidad, planes paralelos "familiares" y descuento con motivo al cobrar— y se eligió el tercero: **el grupo familiar es una promoción del catálogo**, que quien cobra elige en el select Promociones del panel de renovación. Así no hace falta titular, ni derivar columnas (la #17), ni baja lógica (B15), ni B14. Detalle y números en el ADR.
+>
+> Lo que sigue es el relevamiento del 2026-09-29, que queda como historia.
 **Figma:** sin nodos — 3 capturas aportadas por Ema el 2026-09-29 (listado con tab `Grupos`, panel de grupo, diálogo de eliminación). Mobile: *"el mismo patrón que en el resto de la app"*.
 
 > **Por qué existe esta fase.** Grupos familiares figuraba en la [Fase 15](#fase-15--promoción-de-v2-a-default) como deuda de paridad a auditar recién al final. Las capturas la adelantan: el rediseño le da al grupo una **fila de tabla con plan, estado y vencimiento**, que es más de lo que el grupo sabe de sí mismo hoy. Ema pidió volver acá **antes de la Fase 13**, y el motivo es correcto: el grupo es el único habilitador del descuento, y el descuento es la diferencia entre bruto y neto que Balance va a tener que reportar.
@@ -1271,7 +1288,7 @@ El dominio está completo desde julio de 2026 (migración `20260722120000`): `cu
 
 ### Brechas de DB
 
-- **B13 (nueva)** — `customer_groups` no tiene `active`; hoy la única baja es el `DELETE` con cascada. Bloquea lo decidido arriba.
+- **B15 (nueva)** — `customer_groups` no tiene `active`; hoy la única baja es el `DELETE` con cascada. Bloquea lo decidido arriba.
 - **B14 (nueva)** — `membership_payments` no registra **qué grupo** originó el descuento, sólo la regla. Es la causa de los 5 pagos hoy inauditables. Cerrarlo toca el RPC de cobro; se evaluó y **no se eligió** en esta pasada.
 
 **Riesgo timezone: alto.** La columna `Vencimiento` compara fechas de varios integrantes entre sí, y leerlas en UTC ya produjo una divergencia falsa durante el propio relevamiento. Toda comparación va por `getAppTzDateParts`, como ya hacen [server.ts](../../src/group/api/server.ts) y [client.ts](../../src/group/api/client.ts).
@@ -1280,7 +1297,7 @@ El dominio está completo desde julio de 2026 (migración `20260722120000`): `cu
 - [ ] Resuelta la decisión #17 y confirmado el entrypoint de creación
 - [ ] Tabs `Clientes` / `Grupos` en `CustomersSection`
 - [ ] Listado con paginación + panel de grupo portado desde v1
-- [ ] Baja lógica de grupo (migración B13) sin romper v1
+- [ ] Baja lógica de grupo (migración B15) sin romper v1
 - [ ] El descuento que habilita el grupo, visible en el panel
 - [ ] v1 sigue funcionando: `src/group/` es código compartido → **correr el smoke de v1**
 - [ ] Specs e2e + verificación contra la DB de las fechas derivadas
@@ -1481,7 +1498,7 @@ El sidebar tiene 4 sub-items pero sólo hay 3 pantallas diseñadas, en ambos vie
 - [ ] Decidido el patrón de navegación: sub-items de sidebar (desktop) vs `Tabs` in-page (mobile) — o unificar
 - [ ] `business_settings` + bucket de Storage
 - [ ] Form de Negocio con upload de logo funcionando
-- [ ] Promociones sobre `discount_rules` + vigencia (B7)
+- [ ] Promociones sobre `discount_rules` + vigencia (B7). **Absorbe el descuento familiar** (ex Fase 10b): la regla "2do integrante grupo familiar" es la primera promoción, y renombrarla a "Grupo familiar" se hace desde este ABM. El panel de renovación de v2 **ya lista las reglas activas** desde el 2026-10-02 (ADR 20261002120000), así que el ABM sólo tiene que crearlas y editarlas.
 - [ ] Usuarios: diseñar la pantalla, o documentar explícitamente por qué se difiere
 
 **ADR:** sí — `business_settings`, Storage, y el modelo de promociones.
@@ -1494,7 +1511,7 @@ El sidebar tiene 4 sub-items pero sólo hay 3 pantallas diseñadas, en ambos vie
 
 Se planifica cuando 3–14 estén cerradas. A tener en cuenta desde ya:
 
-- **Paridad funcional.** La v1 tiene cosas que el Figma no cubre: ~~grupos familiares (`src/group/`)~~ → **adelantados a la [Fase 10b](#fase-10b--grupos-de-clientes-familiares)** el 2026-09-29, con capturas propias; share de imagen de asistencias; stats de membresías. Auditar qué se porta, qué se descarta y qué se rediseña.
+- **Paridad funcional.** La v1 tiene cosas que el Figma no cubre: ~~grupos familiares (`src/group/`)~~ → **no se portan**: el descuento familiar es una promoción desde el 2026-10-02 (ADR 20261002120000). Al retirar v1, `customer_groups` / `customer_group_members` quedan como historia de sólo lectura o se archivan, y `resolveApplicableDiscount` se borra con v1; share de imagen de asistencias; stats de membresías. Auditar qué se porta, qué se descarta y qué se rediseña.
 - **Cobranza de `/incomes` (en espera desde la Fase 13, decisión de Ema 2026-10-01).** El dashboard de v1 tiene el **progreso del ciclo de cobro** (pagaron, con y sin recargo, pendientes) y la **lista de pendientes**. No entraron al Balance porque son de cobranza, no de balance, y v2 todavía no tiene dónde ponerlos. Si no se ubican antes de retirar v1, se pierden. Candidatos: el Home o una vista de Membresías. La lógica ya existe y funciona (`getBillingCycleProgress`, `getPendingCustomers` en `src/accounting/api/incomes.ts`).
 - **Manifest PWA.** `theme_color` y `background_color` están hardcodeados a la paleta v1.
 - **Wireframes mobile.** El Figma es 100% desktop 1280×832. **No existe ni un solo wireframe mobile**, y la app hoy es mobile-first en producción. Es el riesgo más grande del rediseño → [Decisiones abiertas](#decisiones-abiertas--riesgos) #1.
@@ -1567,7 +1584,7 @@ Ordenadas por impacto. Las que bloquean una fase están marcadas.
 
     **Lo que deja como método:** el hueco no se vio mirando el Figma —seis frames coherentes— sino **comparando el diseño contra lo que el flow v1 ya escribía en la DB**. Para toda fase que reemplaza un flow existente, listar qué escribe v1 antes de dar el diseño por suficiente. El corolario apareció al cerrarlo: cuando el diseño no cubre un dato, la salida no es inventarlo ni omitirlo en silencio — es decidir qué significa su ausencia y escribirlo.
 
-17. **⚠️ Las columnas `Tipo de plan`, `Vencimiento` y `Estado` del listado de grupos (bloquea Fase 10b).** El diseño le da a la fila del grupo tres valores únicos, pero los tres son datos **de cada integrante**, no del grupo. En prod **3 de 13 grupos no son homogéneos** (ver [Fase 10b](#fase-10b--grupos-de-clientes-familiares)), así que no es un borde raro: es el 23%.
+17. **~~Las columnas `Tipo de plan`, `Vencimiento` y `Estado` del listado de grupos~~ → OBSOLETA (2026-10-02).** La Fase 10b se canceló y v2 no tiene listado de grupos: ver ADR 20261002120000. Queda el análisis original como historia. El diseño le da a la fila del grupo tres valores únicos, pero los tres son datos **de cada integrante**, no del grupo. En prod **3 de 13 grupos no son homogéneos** (ver [Fase 10b](#fase-10b--grupos-de-clientes-familiares)), así que no es un borde raro: es el 23%.
 
     El caso que fija la importancia es **Nenina - Milagros**: Mili venció el 31/08 y Nenina el 30/09. Una fila que muestre un solo `Vencimiento: 30/09` y un solo badge `Activo` **oculta que una integrante lleva un mes vencida** — el mismo tipo de mentira silenciosa que las guardas defensivas que aparecieron en la Fase 10.
 
@@ -1879,4 +1896,20 @@ Aplica a **toda** fase antes de pedir review. Está pensado para que el otro dev
   - **Decidido con Ema**: navegador de mes, los bloques propuestos, y el ciclo de cobro / pendientes de v1 en espera hasta la Fase 15.
   - **Cuadre verificado de punta a punta**: el spec e2e compara Ingresos con el Total cobrado de Ventas y Egresos con el Total de gastos de Gastos para el mismo mes.
   - **Corregido en el plan**: el "Resumen del día" del home nunca sumó montos; la deuda que se le había anotado no existía.
+  — Ema + Claude.
+
+- 2026-10-02 — **Release v0.19.0 a producción: la Fase 13 completa.** PRs [#74](https://github.com/EmaCrzz/actitud-bo/pull/74) y [#75](https://github.com/EmaCrzz/actitud-bo/pull/75). **Sin migraciones.**
+  - **`develop` no pasaba `type-check`** después del #74: un cast directo en `getEarliestBalanceMonth` (TS2352). No rompía el build porque `next.config` tiene `ignoreBuildErrors: true`, y justamente por eso pasó desapercibido. Se arregló en el #75 antes del release. Unit tests: 172 en verde.
+  - **Deploy verificado:** estado de Vercel `success` sobre `f023e5c`; prod responde 200.
+  - **Lo que alcanza a un usuario de producción, que hoy es sólo v1:** `getMonthlyStats` suma `sales`. Sin efecto visible mientras `sales` siga sin filas. 0 usuarios con `v2_access`.
+  - **El release volvió a esquivar la protección de rama de `main`** (`Bypassed rule violations`). Quinta vez registrada.
+  - **Higiene del plan:** el grupo de la Fase 10b pasó de B13 a **B15**, porque B13 ya era "Sin membresía" (cerrada en la Fase 7); se actualizaron "Estado de entornos", "Migraciones" y la nota de "No hacemos ahora" sobre tests.
+  — Ema + Claude.
+
+- 2026-10-02 — **Fase 10b cancelada: el grupo familiar pasa a ser una promoción.** Rama `feat/v2-descuento-por-promocion`, ADR [20261002120000](../architecture/decisions/20261002120000_grupo-familiar-como-promocion.md). Sin migración.
+  - **Medido antes de decidir**: 13 grupos, 27 integrantes (~27% de los que pagaron en septiembre), $20k–32k de descuento por mes. **No hay titular: hay un orden de pago.** El primero paga completo, los demás tienen descuento, y quien viene solo no lo tiene.
+  - **La sugerencia por grupo fallaba en ~45% de los cobros** y quien cobraba la corregía a mano. Era peor de lo que parecía, porque un olvido regalaba el descuento en silencio.
+  - **Se compararon tres modelos** (grupos, planes "familiares", promoción al cobrar). Los planes paralelos se descartaron con números: duplicaban el costo del descuento y no podían expresar "el primero paga completo".
+  - **v2**: el select Promociones del panel de renovación lista las reglas activas, arranca vacío, con nota opcional y excluyente con el descuento manual. Resumen y comprobante muestran la promo. **v1 sin cambios.**
+  - **Cerrado**: la decisión #17 queda obsoleta; B14 y B15 dejan de hacer falta. **Movido**: el ABM de promociones y el rename de la regla, a la Fase 14.
   — Ema + Claude.

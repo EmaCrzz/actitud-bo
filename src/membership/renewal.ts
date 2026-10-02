@@ -1,4 +1,5 @@
-import type { ApplicableDiscount } from '@/group/types'
+import { computeDiscountAmount } from '@/group/discount'
+import type { DiscountRule } from '@/group/types'
 import {
   getAppTzDateParts,
   getEndOfMonthIsoDateInAppTz,
@@ -50,9 +51,23 @@ export interface RenewalFormValues {
   /** "YYYY-MM-DD". Se canonicaliza a instante AR recién al salir hacia el RPC. */
   start_date: string
   end_date: string
+  /**
+   * `discount_rules.id` de la promoción elegida, o `''` sin promoción.
+   *
+   * Promoción y descuento manual son **excluyentes**: el pago guarda una sola
+   * regla y un solo monto, y sumarlos dejaría el monto manual escondido bajo el
+   * nombre de la promo en el desglose de Balance. Ver `resolveDiscount`.
+   */
+  promotion_id: string
+  /** Descuento manual. Con promoción elegida queda en `none`. */
   discount_choice: AmountChoice
   /** Sólo se usa con `discount_choice === 'custom'`. */
   discount_custom_amount: number
+  /**
+   * Motivo del descuento, sea cual sea su origen: opcional con promoción ("viene
+   * con su hermana"), obligatorio con monto manual (`DISCOUNT_NOTE_REQUIRED` del RPC).
+   * Uno solo alcanza porque los dos caminos son excluyentes.
+   */
   discount_note: string
   surcharge_choice: AmountChoice
   /** Sólo se usa con `surcharge_choice === 'custom'`. */
@@ -170,7 +185,8 @@ export interface RenewalAmountsInput {
   values: RenewalFormValues
   membership: MembershipType | null
   suggestion: SuggestedCharge
-  applicableDiscount: ApplicableDiscount | null
+  /** La regla de `values.promotion_id`, ya resuelta. `null` sin promoción. */
+  promotion: DiscountRule | null
 }
 
 /**
@@ -191,7 +207,7 @@ export function resolveRenewalAmounts({
   values,
   membership,
   suggestion,
-  applicableDiscount,
+  promotion,
 }: RenewalAmountsInput): RenewalAmounts {
   // VIP no se cobra: el plan vale 0 y `membership_payments` exige `amount > 0`,
   // así que no hay pago posible. Renovar un VIP extiende el período y nada más.
@@ -201,7 +217,7 @@ export function resolveRenewalAmounts({
 
   const base = getPeriodBaseAmount(membership, values.period_mode)
   const surcharge = resolveSurcharge(values, suggestion)
-  const { amount: discount, ruleId } = resolveDiscount(values, applicableDiscount)
+  const { amount: discount, ruleId } = resolveDiscount(values, promotion, base)
 
   return {
     base,
@@ -221,12 +237,23 @@ function resolveSurcharge(values: RenewalFormValues, suggestion: SuggestedCharge
   return 0
 }
 
+/**
+ * La promoción gana sobre el descuento manual. La pantalla ya no deja elegir
+ * los dos a la vez; esto es la red por si el estado llegara a tenerlos: un pago
+ * con regla y un monto que no es el de la regla haría que el Balance atribuya
+ * plata a la promo que no salió de ella.
+ *
+ * El monto se calcula contra el bruto **vigente** (`base`), no contra el del
+ * plan con el que se abrió el panel: una regla `percent` da otro número si el
+ * operador cambia de plan o de modalidad.
+ */
 function resolveDiscount(
   values: RenewalFormValues,
-  applicableDiscount: ApplicableDiscount | null
+  promotion: DiscountRule | null,
+  base: number
 ): { amount: number; ruleId: string | null } {
-  if (values.discount_choice === AMOUNT_CHOICE_SUGGESTED && applicableDiscount) {
-    return { amount: applicableDiscount.suggested_amount, ruleId: applicableDiscount.rule.id }
+  if (promotion) {
+    return { amount: computeDiscountAmount(promotion, base), ruleId: promotion.id }
   }
   if (values.discount_choice === AMOUNT_CHOICE_CUSTOM) {
     // Sin regla asociada: el RPC exige nota para un descuento ad-hoc

@@ -1,9 +1,10 @@
 -- Limpieza de los datos que deja la suite e2e.
 --
--- Criterio: el prefijo '[E2E]' en `customers.first_name` y, desde la Fase 10,
--- en `types_memberships.name`. Ese prefijo lo pone `e2e/support/data.ts` y es
--- la razón por la que existe — sin él no habría forma de distinguir un dato de
--- test de uno real, porque la DB de dev es un backup de producción.
+-- Criterio: el prefijo '[E2E]' en `customers.first_name`, desde la Fase 10 en
+-- `types_memberships.name` y desde 2026-10-02 en `discount_rules.name`. Ese
+-- prefijo lo pone `e2e/support/data.ts` y es la razón por la que existe — sin
+-- él no habría forma de distinguir un dato de test de uno real, porque la DB
+-- de dev es un backup de producción.
 --
 -- El orden importa: primero las filas que referencian al cliente, después el
 -- cliente, y **los planes al final**. Desde la migración 20260928110544 la FK
@@ -48,6 +49,15 @@ DELETE FROM types_memberships WHERE name LIKE '[E2E]%';
 SELECT count(*) AS gastos FROM expenses WHERE description LIKE '[E2E]%';
 
 DELETE FROM expenses WHERE description LIKE '[E2E]%';
+
+-- Promociones creadas por el spec de renovación (2026-10-02). Van después de
+-- los pagos: `membership_payments.discount_rule_id` es ON DELETE SET NULL, y un
+-- pago con descuento que pierde su regla viola el CHECK que exige regla o
+-- motivo. Borrados los pagos de test antes, no queda nada que las referencie.
+\echo 'Promociones de test encontradas:'
+SELECT count(*) AS promociones FROM discount_rules WHERE name LIKE '[E2E]%';
+
+DELETE FROM discount_rules WHERE name LIKE '[E2E]%';
 
 COMMIT;
 

@@ -2,14 +2,13 @@ import { createClient } from '@/lib/supabase/client'
 import { withRateLimit } from '@/lib/rate-limit'
 import { DatabaseResult } from '@/types/database-errors'
 import {
-  ApplicableDiscount,
   CustomerGroup,
   CustomerGroupWithCount,
   CustomerGroupWithMembers,
+  DiscountRule,
   GroupMemberSummary,
 } from '@/group/types'
 import { GROUP_TYPE_FAMILY } from '@/group/consts'
-import { resolveApplicableDiscount } from '@/group/discount'
 import { getAppTzDateParts } from '@/lib/timezone'
 
 // -------- Reads (cliente) --------
@@ -19,22 +18,30 @@ import { getAppTzDateParts } from '@/lib/timezone'
 // `@/lib/supabase/client` — distintos módulos, no compatibles.
 
 /**
- * Descuento aplicable al cliente, desde el browser.
+ * Promociones que el panel de renovación de v2 ofrece: **todas las reglas
+ * activas**, sin mirar a qué cliente se le cobra.
  *
- * Gemelo de `getApplicableDiscountForCustomer` ([../api/server.ts]): **el mismo
- * cuerpo**, importado de [src/group/discount.ts]. Acá sólo cambia de dónde sale
- * el cliente de Supabase. Lo consume el panel de renovación de la Fase 8, que
- * prefija el campo Descuento con `suggested_amount`.
+ * Reemplaza a la sugerencia por grupo (`resolveApplicableDiscount`), que v1
+ * sigue usando. Medido en prod el 2026-10-02, esa sugerencia contradecía lo que
+ * hacía el operador en ~45% de los cobros de integrantes de grupos: se la
+ * ofrecía al primero en pagar y a quien venía solo, y el operador la sacaba a
+ * mano. La regla real es "el que paga junto con otro integrante tiene
+ * descuento", y eso lo ve quien cobra, no la base. Ver el ADR
+ * 20261002120000.
  *
- * `membershipGrossAmount` importa sólo para reglas `percent`: el panel lo
- * recalcula cada vez que cambia el plan o la modalidad de cobro, porque el
- * porcentaje se aplica sobre el bruto vigente.
+ * `discount_rules` es legible por cualquier `authenticated` desde la migración
+ * `20260722121000`, así que un operador sin rol admin también ve el catálogo.
  */
-export async function fetchApplicableDiscount(
-  customerId: string,
-  membershipGrossAmount: number | null
-): Promise<ApplicableDiscount | null> {
-  return resolveApplicableDiscount(createClient(), customerId, membershipGrossAmount)
+export async function fetchActiveDiscountRules(): Promise<DiscountRule[]> {
+  const { data, error } = await createClient()
+    .from('discount_rules')
+    .select('*')
+    .eq('active', true)
+    .order('created_at', { ascending: true })
+
+  if (error) throw new Error(error.message)
+
+  return (data ?? []) as DiscountRule[]
 }
 
 async function _listGroupsWithCount(): Promise<CustomerGroupWithCount[]> {

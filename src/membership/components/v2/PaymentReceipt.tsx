@@ -18,7 +18,10 @@ export interface PaymentReceiptData {
   /** Etiqueta ya resuelta de la modalidad — "Mes completo", "Medio mes". */
   periodModeLabel: string | null
   base: number
+  /** Descuento manual. El de una promoción va en `promotion`, no acá. */
   discount: number
+  /** La promoción aplicada y lo que descontó. `null` sin promoción. */
+  promotion: { name: string; amount: number } | null
   surcharge: number
   total: number
   paymentMethod: PaymentType | ''
@@ -112,8 +115,15 @@ export default function PaymentReceipt({ data }: { data: PaymentReceiptData }) {
         <Row label={t('v2.membership.receipt.surcharge')}>
           {data.surcharge > 0 ? `+ ${formatCurrency(data.surcharge)}` : '-'}
         </Row>
-        <Row label={t('v2.membership.receipt.promotion')}>
-          {t('v2.membership.renew.noPromotion')}
+        <Row wrap label={t('v2.membership.receipt.promotion')}>
+          {data.promotion ? (
+            <span className='flex flex-col items-end'>
+              <span>{data.promotion.name}</span>
+              <span>{`- ${formatCurrency(data.promotion.amount)}`}</span>
+            </span>
+          ) : (
+            t('v2.membership.renew.noPromotion')
+          )}
         </Row>
         {data.paymentMethod && (
           <Row label={t('v2.membership.receipt.paymentMethod')}>
@@ -136,11 +146,29 @@ export default function PaymentReceipt({ data }: { data: PaymentReceiptData }) {
 
 // Sub-componentes
 
-function Row({ label, children }: { label: string; children: ReactNode }) {
+/**
+ * `wrap` para el nombre de una promoción, que carga el operador: a 390px fijos
+ * truncado se comía el monto, y el comprobante es lo que el cliente se lleva.
+ */
+function Row({
+  label,
+  children,
+  wrap = false,
+}: {
+  label: string
+  children: ReactNode
+  wrap?: boolean
+}) {
   return (
     <div className='flex items-baseline justify-between gap-3 border-b border-[#E5E5E5] px-4 py-2.5 text-sm last:border-b-0'>
-      <span className='text-[#737373]'>{label}</span>
-      <span className='truncate text-right font-medium'>{children}</span>
+      <span className={wrap ? 'shrink-0 text-[#737373]' : 'text-[#737373]'}>{label}</span>
+      <span
+        className={
+          wrap ? 'min-w-0 text-right font-medium break-words' : 'truncate text-right font-medium'
+        }
+      >
+        {children}
+      </span>
     </div>
   )
 }
